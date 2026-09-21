@@ -26,7 +26,9 @@ spring:
     password: ${MYSQL_PASSWORD:ticketqa123}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      maximum-pool-size: 20
+      # 20 是本项目的运行配置(ADR-021:并发用例在撑满的 20 条上跑)。环境变量只给测试用:
+      # CI 的容量用例用小池(HIKARI_MAX_POOL_SIZE=3)起服务,让 40 线程就能把池打满、复现消费者与 HTTP 争池(ADR-023)
+      maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:20}
       minimum-idle: 2
       connection-timeout: 5000
 

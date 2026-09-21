@@ -36,7 +36,7 @@
 - 状态机数据驱动(枚举 + 迁移表),Service 层拦非法流转(ADR-001);状态变更与审计同事务,MQ 在提交后发(ADR-002)。
 - 抢单三层防线:Redis 前置锁削峰(fail-open)→ 条件 UPDATE 根治 → `version` 乐观锁兜底(ADR-016);审计 `from_status` 只在 UPDATE 命中后写(ADR-017)。
 - LLM 路径:`LlmClient` 双实现(真实 / WireMock 挡板),同一层韧性外壳;挡板靠标题里的故障标记制造超时、500、越界、坏 JSON(ADR-004 / 009)。
-- 所有决策:[`docs/adr/`](docs/adr/README.md)(22 条);逐模块讲解:[`docs/walkthrough.md`](docs/walkthrough.md)。
+- 所有决策:[`docs/adr/`](docs/adr/README.md)(23 条);逐模块讲解:[`docs/walkthrough.md`](docs/walkthrough.md)。
 
 ### 0.3 质量体系全景
 
@@ -70,6 +70,8 @@ cd service && java -Dfile.encoding=UTF-8 -jar target/ticket-qa-service-0.1.0.jar
 # 3. 接口 + 安全 + 并发 + 容量 + 故障注入(约 7 分钟;故障注入需要 tests/api/config/*.env 里的 DOCKER_COMPOSE_CMD)
 cd tests && pip install -r requirements.txt && python tools/warm_pool.py && python -m pytest && cd ..
 # 预期:全部 passed,3 xfailed(KI-001 / KI-002),0 failed;allure serve tests/allure-results 看报告
+# 容量用例(-m capacity)要求池被打满:服务端很快的机器上请用小池起服务再跑(CI 就是这么跑的,ADR-023)
+#   HIKARI_MAX_POOL_SIZE=3 java -Dfile.encoding=UTF-8 -jar service/target/ticket-qa-service-0.1.0.jar &  →  cd tests && python tools/warm_pool.py && python -m pytest -m capacity
 
 # 4. 压测(JMeter 5.6,tests/perf/README.md;JDK / JMeter / python 路径填在 tests/perf/tools/local.env,见 local.env.example)
 cd tests/perf && bash tools/regress_grab.sh fix && bash tools/run_load.sh grab_throughput.jmx 50 grab_t50 20 && cd ../..
@@ -87,7 +89,7 @@ ticket-qa/
 ├── service/        Spring Boot 被测服务(mvn 构建);src/test/java 是 JUnit 5 + Mockito + H2 切片
 ├── platform/       质量数据平台(Spring Boot :8081 + Vue 静态页),导入格式见 platform/README.md
 ├── ops/            docker-compose、MySQL 初始化 SQL 与迁移、WireMock 桩、Prometheus 配置、联调冒烟脚本、WSL 说明
-├── docs/           adr(22 条)/ walkthrough / test-design(8 篇)/ test-inventory / findings(压测、故障注入、回归、已知问题)
+├── docs/           adr(23 条)/ walkthrough / test-design(8 篇)/ test-inventory / findings(压测、故障注入、回归、已知问题)
 ├── tests/          api(pytest 接口自动化 + 自研封装)/ security(越权、注入、绕过)/ perf(JMeter + 取证工具)/ tools
 └── .github/        workflows/ci.yml:编译 → 单测 → 覆盖率门禁 → 起环境 → 预热连接池 → 接口自动化 → Allure 归档
 ```
@@ -335,6 +337,7 @@ pip install -r requirements.txt
 python tools/warm_pool.py              # 把 HikariCP 撑到上限,并发用例才可复现(ADR-021;CI 里也是这一步)
 python -m pytest                       # 312 条,约 7 分钟(熔断 2 分钟 + 故障注入 2 分钟排在最后)
 python -m pytest -m "not circuit and not fault and not capacity"   # 只跑功能 + 安全,约 3 分钟
+python -m pytest -m capacity -q             # 容量用例;前提"池被打满"由小池构造:服务以 HIKARI_MAX_POOL_SIZE=3 起(ADR-023)
 python -m pytest -m concurrency -q     # 竞态回归门禁(抢单 / 指派 / 流转的并发)
 python -m pytest api/test_sla.py -q    # 只跑一个文件
 python -m pytest -m known_issue -q     # 只看已知问题(xfail)
@@ -370,5 +373,6 @@ CI 里同样的报告作为 artifact `allure-report` 归档 30 天。
 ### CI
 
 `.github/workflows/ci.yml`,push / PR 到 main 触发:`unit`(编译 + 单测 + JaCoCo + diff-cover 增量门禁 80%)→
-`api`(compose 起中间件 → java -jar 起服务 → 预热连接池 → pytest 含并发 / 容量 / 故障注入 → Allure 归档)。阈值和编排的理由在 ADR-011 / ADR-015 / ADR-021。
+`api`(compose 起中间件 → java -jar 起服务 → 预热连接池 → pytest 含并发 / 故障注入 → 用 `HIKARI_MAX_POOL_SIZE=3` 重启服务、只跑 capacity → 两部分合成一份 Allure 归档)。
+阈值和编排的理由在 ADR-011 / ADR-015 / ADR-021;容量用例为什么单独一步、为什么用小池在 ADR-023。
 

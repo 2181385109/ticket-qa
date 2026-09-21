@@ -3,8 +3,9 @@
 # 两个 job:
 #   unit  编译 + JUnit/Mockito + JaCoCo 全量兜底线(mvn verify)+ 增量门禁(diff-cover 对 JaCoCo XML,阈值 ADR-011)
 #   api   复用 ops/docker-compose.yml 起 MySQL/Redis/RabbitMQ/WireMock,java -jar 起服务,预热连接池,跑 pytest(api + security,
-#         含并发 / 容量 / 故障注入用例——后者用 runner 上的 docker compose stop/start 中间件),
-#         出 Allure 报告并归档为 artifact;同时用 coverage.py 量 tests/api/framework 自身的覆盖率并做同样的增量门禁
+#         含并发 / 故障注入用例——后者用 runner 上的 docker compose stop/start 中间件);容量用例单独一步:
+#         用 HIKARI_MAX_POOL_SIZE=3 重启服务后只跑 capacity 标记(前提"池被打满"由环境构造,ADR-023);
+#         两部分合出一份 Allure 报告归档为 artifact;同时用 coverage.py 量 tests/api/framework 自身的覆盖率并做同样的增量门禁
 # 为什么不用 GitHub 的 services: 语法起中间件:它挂不了仓库里的初始化 SQL 和 WireMock 桩目录,compose 文件本来就是本地联调用的,直接复用。
 name: ci
 
@@ -145,15 +146,7 @@ jobs:
 
       - name: 起服务(后台)并等待 health UP
         working-directory: service
-        run: |
-          mkdir -p "$APP_ATTACHMENT_DIR" logs
-          nohup java -Dfile.encoding=UTF-8 -jar target/ticket-qa-service-*.jar > logs/stdout.log 2>&1 &
-          echo $! > logs/app.pid
-          for i in $(seq 1 60); do
-            if curl -sf localhost:8080/actuator/health | grep -q '"status":"UP"'; then echo "service UP"; exit 0; fi
-            sleep 2
-          done
-          echo "service did not come up"; tail -n 80 logs/stdout.log; exit 1
+        run: bash ../.github/scripts/start-service.sh
 
       - name: 安装 Python 依赖
         run: pip install -q -r tests/requirements.txt
@@ -162,10 +155,29 @@ jobs:
         working-directory: tests
         run: python tools/warm_pool.py
 
-      - name: 接口自动化 + 安全用例(coverage.py 量框架自身)
+      - name: 接口自动化 + 安全用例(coverage.py 量框架自身;容量用例另起一步)
+        working-directory: tests
+        run: python -m coverage run --source=api/framework -m pytest -m "not capacity" --alluredir=allure-results -p no:cacheprovider
+
+      # 容量用例的前提"HikariCP 被打满"由环境构造(ADR-023):runner 上服务端 ~15 ms 一次创建,20 条连接要 >1000 req/s 才排得起队,
+      # 40 线程的 Python 负载源打不到。改用 3 条连接的池重启服务,同样的负载就能复现"消费者与 HTTP 争池";
+      # 并发用例(ADR-021)仍然在上面那步、撑满的 20 条上跑,两者不混。
+      - name: 容量用例:用小池重启服务(HIKARI_MAX_POOL_SIZE=3,ADR-023)
+        if: always()
+        working-directory: service
+        env:
+          HIKARI_MAX_POOL_SIZE: "3"
+        run: bash ../.github/scripts/start-service.sh && cd ../tests && python tools/warm_pool.py
+
+      - name: 容量用例(capacity 标记,小池)
+        if: always()
+        working-directory: tests
+        run: python -m coverage run --append --source=api/framework -m pytest -m capacity --alluredir=allure-results-capacity -p no:cacheprovider
+
+      - name: 框架代码覆盖率汇总(两步合并)
+        if: always()
         working-directory: tests
         run: |
-          python -m coverage run --source=api/framework -m pytest --alluredir=allure-results -p no:cacheprovider
           python -m coverage xml -o coverage.xml
           python -m coverage report
 
@@ -197,7 +209,8 @@ jobs:
           tar -xzf /tmp/allure.tgz -C /tmp
           # environment.properties 会显示在报告首页
           printf 'env=ci\nbase_url=http://127.0.0.1:8080\ncommit=%s\nbranch=%s\n' "${{ github.sha }}" "${{ github.ref_name }}" > tests/allure-results/environment.properties
-          /tmp/allure-${ALLURE_VERSION}/bin/allure generate tests/allure-results --clean -o tests/allure-report
+          dirs="tests/allure-results"; [ -d tests/allure-results-capacity ] && dirs="$dirs tests/allure-results-capacity"
+          /tmp/allure-${ALLURE_VERSION}/bin/allure generate $dirs --clean -o tests/allure-report
           ls tests/allure-report | head
 
       - name: Allure 报告归档
@@ -213,7 +226,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
-          path: tests/allure-results
+          path: |
+            tests/allure-results
+            tests/allure-results-capacity
           retention-days: 30
 
       - name: 停服务与中间件

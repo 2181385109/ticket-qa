@@ -169,6 +169,9 @@ class TestConsumerStarvation:
 
     @allure.title("40 线程创建 8 秒把 HikariCP 打满(pending>0):期间消费速率不归零,停止后 60 秒内积压清完")
     def test_consumer_not_starved_when_pool_saturated(self, tickets, config, rabbit, metrics, metrics_before, warmed_pool):
+        """前提"池被打满"由环境构造,不由用例猜(ADR-023):服务用小池起(HIKARI_MAX_POOL_SIZE=3,CI 单独一步),
+        40 线程的负载源在任何机器上都能排起队。前提不成立仍然是失败而不是 skip,消息里带池大小 / pending 峰值 / req/s。"""
+        pool_max = int(warmed_pool[1])
         wait_until(lambda: rabbit.queue_depth("STATUS_CHANGED"), lambda d: d == 0, timeout=60, interval=1, what="队列起点为空")
         sampler = _Sampler(rabbit, metrics, interval=0.5)
         sampler.start()
@@ -184,13 +187,17 @@ class TestConsumerStarvation:
 
         rate_during = sampler.consume_rate_between(t0 + 1, t_load_end)     # 去掉起步第 1 秒
         rate_after = sampler.consume_rate_between(t_load_end, t_drained)
+        req_per_s = len(ids) / max(t_load_end - t0, 0.001)
         allure.attach("\n".join([
-            f"生产 {len(ids)} 张 / {t_load_end - t0:.1f}s;HikariCP pending 峰值 {sampler.max_pending():.0f}(>0 即池被打满)",
+            f"HikariCP max={pool_max};生产 {len(ids)} 张 / {t_load_end - t0:.1f}s = {req_per_s:.0f} req/s;pending 峰值 {sampler.max_pending():.0f}(>0 即池被打满)",
             f"队列深度峰值 {sampler.max_depth()}",
             f"消费速率:池满期间 {rate_during:.0f} 条/s,停止后 {rate_after:.0f} 条/s(压测记录:190 → ~110)",
             f"停止后清空用时 {t_drained - t_load_end:.1f}s",
         ]), name="消费者饥饿观测", attachment_type=allure.attachment_type.TEXT)
 
-        assert sampler.max_pending() > 0, "前提不成立:池没有被打满,这条用例没测到想测的场景"
+        assert sampler.max_pending() > 0, (
+            f"前提不成立:池没有被打满,这条用例没测到想测的场景——HikariCP max={pool_max},"
+            f"40 线程打出 {req_per_s:.0f} req/s({len(ids)} 张 / {t_load_end - t0:.1f}s),pending 峰值 {sampler.max_pending():.0f}。"
+            f"服务应以 HIKARI_MAX_POOL_SIZE=3 起(ADR-023);仍打不满说明负载源比这台机器的服务端慢太多")
         assert rate_during > 0, "池满期间消费者被饿死(消费速率为 0)"
         assert metrics.delta(metrics_before, "mq_event_consumed_total") >= metrics.delta(metrics_before, "mq_event_published_total")

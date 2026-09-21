@@ -385,7 +385,7 @@
 | API-CC-04 | `…TestAssignVsGrab::test_leader_assign_races_agent_grab` | 指派 vs 抢单四种合法结局的不变量,5 轮 | 判定表 |
 | API-CC-05..08 | `…TestTransitionRace::*` | ASSIGNED 互斥对恰 1 个 200;WAIT_CONFIRM 非互斥对连续;同目标两次;改标题 vs 流转 version 增量 | 判定表 |
 | API-AC-01..04 | `test_audit_chain.py` | 完整生命周期 / 分支路径 / 拒绝不留行 / 全库扫描 0 断裂(用例自造 3 张工单保证扫描非空,不 skip) | 反向断言 |
-| API-CP-01..03 | `test_capacity.py` | MQ 生产 > 消费不丢且清空;SLA 250 张高峰每张恰 1 次;池满消费者不饿死 | 场景法 |
+| API-CP-01..03 | `test_capacity.py` | MQ 生产 > 消费不丢且清空;SLA 250 张高峰每张恰 1 次;池满消费者不饿死(CI 里三条在 `HIKARI_MAX_POOL_SIZE=3` 重启后的单独一步跑,ADR-023) | 场景法 |
 | API-LD-01..03 | `test_llm_draft_faults.py` | 草稿 TIMEOUT / UPSTREAM_ERROR 降级;草稿 + 分类共用熔断器 | 判定表 |
 | API-FI-01..02 | `test_fault_injection.py` | RabbitMQ 停机可观测、不补投、恢复 SLO;Redis 停机 fail-open、恢复 SLO | 场景法 |
 | API-CB-05 | `test_llm_circuit.py::test_still_degraded_while_dependency_is_healthy` | 挡板恢复但熔断未到期仍降级 | 场景法 |

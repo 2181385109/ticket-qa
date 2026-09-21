@@ -60,6 +60,7 @@ jmeter.log
 
 # ---- Allure / 覆盖率 / JUnit 产物 ----
 tests/allure-results/
+tests/allure-results-capacity/
 tests/allure-report/
 tests/.coverage
 tests/coverage.xml

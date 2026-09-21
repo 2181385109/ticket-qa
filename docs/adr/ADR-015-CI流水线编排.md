@@ -47,6 +47,9 @@ CLAUDE.md 要求的流水线:编译 → 单测 → JaCoCo 增量覆盖率门禁 
 - 什么场景下这个选择是错的:如果服务需要在容器网络里才能连到中间件(比如换成 Kubernetes 风格的 DNS 名),
   宿主起服务就连不上了,那时候换方案 C。
 
+补记(2026-09-21):容量用例(`capacity` 标记)在 api job 里单独一步——用 `HIKARI_MAX_POOL_SIZE=3` 重启服务后只跑这三条,
+两步的 Allure 结果合成一份报告;coverage.py 用 `--append` 合并。原因在 ADR-023。
+
 ## 常见质疑与回应
 
 **"为什么不用 GitHub 自带的 services?"**
