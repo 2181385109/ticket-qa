@@ -153,11 +153,13 @@ jobs:
 
       - name: 连接池预热(KI-010:并发用例的结果取决于那一刻 HikariCP 的大小,CI 和本地必须在同一起点)
         working-directory: tests
-        run: python tools/warm_pool.py
+        # 预热工具也在 coverage 下跑:framework/pool.py 的建连循环只在池未满时执行,pytest 里的 warmed_pool fixture
+        # 看到的池已经满了、循环不进——不量这里,增量门禁会把 pool.py 判成没覆盖(第四次 CI:14%)
+        run: python -m coverage run --source=api/framework tools/warm_pool.py
 
       - name: 接口自动化 + 安全用例(coverage.py 量框架自身;容量用例另起一步)
         working-directory: tests
-        run: python -m coverage run --source=api/framework -m pytest -m "not capacity" --alluredir=allure-results -p no:cacheprovider
+        run: python -m coverage run --append --source=api/framework -m pytest -m "not capacity" --alluredir=allure-results -p no:cacheprovider
 
       # 容量用例的前提"HikariCP 被打满"由环境构造(ADR-023):runner 上服务端 ~15 ms 一次创建,20 条连接要 >1000 req/s 才排得起队,
       # 40 线程的 Python 负载源打不到。改用 3 条连接的池重启服务,同样的负载就能复现"消费者与 HTTP 争池";
@@ -167,7 +169,7 @@ jobs:
         working-directory: service
         env:
           HIKARI_MAX_POOL_SIZE: "3"
-        run: bash ../.github/scripts/start-service.sh && cd ../tests && python tools/warm_pool.py
+        run: bash ../.github/scripts/start-service.sh && cd ../tests && python -m coverage run --append --source=api/framework tools/warm_pool.py
 
       - name: 容量用例(capacity 标记,小池)
         if: always()

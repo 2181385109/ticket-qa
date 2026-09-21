@@ -49,6 +49,8 @@ CLAUDE.md 要求的流水线:编译 → 单测 → JaCoCo 增量覆盖率门禁 
 
 补记(2026-09-21):容量用例(`capacity` 标记)在 api job 里单独一步——用 `HIKARI_MAX_POOL_SIZE=3` 重启服务后只跑这三条,
 两步的 Allure 结果合成一份报告;coverage.py 用 `--append` 合并。原因在 ADR-023。
+两次 `tools/warm_pool.py` 也在 coverage 下跑:`framework/pool.py` 的建连循环只在池未满时执行,pytest 里的 fixture 看到的池
+已经满了、循环不进,不量预热步骤的话增量门禁会把 pool.py 判成没覆盖(第四次 CI 实测 14%,门禁 80%)。
 
 ## 常见质疑与回应
 
