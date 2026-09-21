@@ -1,0 +1,6 @@
+# WSL2 全局配置,放在 %USERPROFILE%\.wslconfig,改完需 wsl --shutdown 生效。
+# 由 ticket-qa 项目加入:Docker Engine 跑在 WSL2 里。
+[wsl2]
+# 底层虚拟机空闲多久后关机(毫秒)。默认 60000。实测 -1 不被识别,用 7 天等价于关闭。
+# 注意:这只管虚拟机;发行版实例的存活另有机制,见 ops/wsl/README.md。
+vmIdleTimeout=604800000

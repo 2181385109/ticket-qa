@@ -1,0 +1,26 @@
+===== ticket_id=8235 =====
+SQL> SELECT ticket_id, to_status, COUNT(*) AS n, GROUP_CONCAT(operator_id ORDER BY id) AS operators FROM ticket_audit_log WHERE ticket_id = 8235 AND to_status = 'ASSIGNED' GROUP BY ticket_id, to_status
+  ticket_id | to_status | n | operators
+  8235 | ASSIGNED | 12 | 3,3,4,3,3,4,4,4,4,3,4,3
+
+SQL> SELECT id, status, assignee_id, group_id, created_at, updated_at FROM ticket WHERE id = 8235
+  id | status | assignee_id | group_id | created_at | updated_at
+  8235 | ASSIGNED | 3 | 1 | 2026-09-20 18:30:56.705000 | 2026-09-20 18:30:57.348000
+
+SQL> SELECT id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, DATE_FORMAT(created_at, '%H:%i:%s.%f') AS created_at FROM ticket_audit_log WHERE ticket_id = 8235 ORDER BY id
+  id | from_status | to_status | operator_id | operator_name | source | remark | trace_id | created_at
+  10795 |  | PENDING | 1 | 管理员 | LLM | 自动分类 category=OTHER priority=P2 model=mock-classifier-v1 latencyMs=8 | 9762cc72fa04415b | 18:30:56.740000
+  10796 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 1e5b12b6415142ff | 18:30:57.325000
+  10797 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | f808242ad6724b05 | 18:30:57.355000
+  10798 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 326de208d6554a12 | 18:30:57.373000
+  10799 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 576cc78027d24dbd | 18:30:57.404000
+  10800 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | e8264c6e096648d5 | 18:30:57.445000
+  10801 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 18d2d3ead089474a | 18:30:57.461000
+  10802 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 928dfd8e170d4300 | 18:30:57.480000
+  10803 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 16cef00fecd7456b | 18:30:57.499000
+  10804 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 419943182df04103 | 18:30:57.515000
+  10805 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 129f1f90881e4a56 | 18:30:57.529000
+  10806 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 1c56e33d00564a88 | 18:30:57.547000
+  10807 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 51de285c2daa43df | 18:30:57.561000
+
+[结论字段] audit_log 里 to_status='ASSIGNED' 的行数 = 12  (>1 即重复分配)  审计总行数 = 13

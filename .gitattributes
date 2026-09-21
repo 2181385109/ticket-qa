@@ -1,0 +1,7 @@
+# 仓库内一律 LF:SQL / yml / json 会被挂载进 Linux 容器,未来的 shell 脚本也不能带 CR
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary
+*.jar binary
+*.vbs text eol=crlf

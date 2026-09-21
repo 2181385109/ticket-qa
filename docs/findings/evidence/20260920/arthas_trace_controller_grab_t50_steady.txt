@@ -1,0 +1,63 @@
+# 2026-09-20 19:37:13  arthas pid=15936
+# 命令: trace com.ticketqa.ticket.TicketController grab -n 8
+[arthas@15936]$ trace com.ticketqa.ticket.TicketController grab -n 8 | plaintext 
+Press Q or Ctrl+C to abort.
+Affect(class count: 2 , method count: 2) cost in 108 ms, listenerId: 23
+`---ts=2026-09-20 19:37:18.334;thread_name=http-nio-8080-exec-782;id=100178;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[111.5647ms] com.ticketqa.ticket.TicketController$$SpringCGLIB$$0:grab()
+        `---[99.94% 111.4983ms ] org.springframework.cglib.proxy.MethodInterceptor:intercept()
+            `---[99.87% 111.3525ms ] com.ticketqa.ticket.TicketController:grab()
+                +---[99.93% 111.2733ms ] com.ticketqa.ticket.TicketService:grab() #85
+                `---[0.01% 0.0128ms ] com.ticketqa.common.Result:ok() #85
+
+`---ts=2026-09-20 19:37:18.343;thread_name=http-nio-8080-exec-739;id=100116;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[106.8969ms] com.ticketqa.ticket.TicketController$$SpringCGLIB$$0:grab()
+        `---[99.99% 106.8849ms ] org.springframework.cglib.proxy.MethodInterceptor:intercept()
+            `---[99.92% 106.8001ms ] com.ticketqa.ticket.TicketController:grab()
+                +---[99.99% 106.7862ms ] com.ticketqa.ticket.TicketService:grab() #85
+                `---[0.00% 0.0023ms ] com.ticketqa.common.Result:ok() #85
+
+`---ts=2026-09-20 19:37:18.343;thread_name=http-nio-8080-exec-833;id=100249;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[110.36ms] com.ticketqa.ticket.TicketController$$SpringCGLIB$$0:grab()
+        `---[99.99% 110.3477ms ] org.springframework.cglib.proxy.MethodInterceptor:intercept()
+            `---[99.91% 110.2518ms ] com.ticketqa.ticket.TicketController:grab()
+                +---[99.99% 110.2401ms ] com.ticketqa.ticket.TicketService:grab() #85
+                `---[0.00% 0.0021ms ] com.ticketqa.common.Result:ok() #85
+
+`---ts=2026-09-20 19:37:18.335;thread_name=http-nio-8080-exec-799;id=100196;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[119.0764ms] com.ticketqa.ticket.TicketController$$SpringCGLIB$$0:grab()
+        `---[99.96% 119.0309ms ] org.springframework.cglib.proxy.MethodInterceptor:intercept()
+            `---[99.89% 118.8991ms ] com.ticketqa.ticket.TicketController:grab()
+                +---[99.99% 118.8913ms ] com.ticketqa.ticket.TicketService:grab() #85
+                `---[0.00% 0.0013ms ] com.ticketqa.common.Result:ok() #85
+
+`---ts=2026-09-20 19:37:18.343;thread_name=http-nio-8080-exec-836;id=100252;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[112.1106ms] com.ticketqa.ticket.TicketController$$SpringCGLIB$$0:grab()
+        `---[99.99% 112.1034ms ] org.springframework.cglib.proxy.MethodInterceptor:intercept()
+            `---[99.94% 112.0402ms ] com.ticketqa.ticket.TicketController:grab()
+                +---[99.99% 112.028ms ] com.ticketqa.ticket.TicketService:grab() #85
+                `---[0.00% 0.0021ms ] com.ticketqa.common.Result:ok() #85
+
+`---ts=2026-09-20 19:37:18.348;thread_name=http-nio-8080-exec-831;id=100247;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[110.6936ms] com.ticketqa.ticket.TicketController$$SpringCGLIB$$0:grab()
+        `---[99.99% 110.6798ms ] org.springframework.cglib.proxy.MethodInterceptor:intercept()
+            `---[99.93% 110.5986ms ] com.ticketqa.ticket.TicketController:grab()
+                +---[99.99% 110.5895ms ] com.ticketqa.ticket.TicketService:grab() #85
+                `---[0.00% 0.0017ms ] com.ticketqa.common.Result:ok() #85
+
+`---ts=2026-09-20 19:37:18.354;thread_name=http-nio-8080-exec-783;id=100179;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[111.3805ms] com.ticketqa.ticket.TicketController$$SpringCGLIB$$0:grab()
+        `---[99.99% 111.3699ms ] org.springframework.cglib.proxy.MethodInterceptor:intercept()
+            `---[99.92% 111.2754ms ] com.ticketqa.ticket.TicketController:grab()
+                +---[99.99% 111.2644ms ] com.ticketqa.ticket.TicketService:grab() #85
+                `---[0.00% 0.0018ms ] com.ticketqa.common.Result:ok() #85
+
+`---ts=2026-09-20 19:37:18.352;thread_name=http-nio-8080-exec-808;id=100205;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[114.4522ms] com.ticketqa.ticket.TicketController$$SpringCGLIB$$0:grab()
+        `---[99.99% 114.4397ms ] org.springframework.cglib.proxy.MethodInterceptor:intercept()
+            `---[99.91% 114.34ms ] com.ticketqa.ticket.TicketController:grab()
+                +---[99.99% 114.3291ms ] com.ticketqa.ticket.TicketService:grab() #85
+                `---[0.00% 0.0017ms ] com.ticketqa.common.Result:ok() #85
+
+Command execution times exceed limit: 8, so command will exit. You can set it with -n option.
+[arthas@15936]$ 

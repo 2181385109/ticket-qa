@@ -1,0 +1,84 @@
+===== 21:49:30  场景2 基线(注入前)
+health   HTTP 200    76.9 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200    27.3 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201   112.9 ms  code=0 id=9 category=REFUND priority=P1 traceId=03c56f15f29a4b47
+grab     HTTP 200    37.1 ms  code=0 status=ASSIGNED assignee=3 traceId=258e5a898782437a
+metrics  mq_event_published=581680 mq_event_publish_failed=0 mq_event_consumed=581678 llm_fallback=0 llm_circuit_open=0 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=457
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': 'mock-classifier-v1', 'latency_ms': 56, 'degraded': 0, 'degrade_reason': None, 'raw_category': 'REFUND', 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 9 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+21:49:33 docker compose stop rabbitmq
+ Container ticketqa-rabbitmq Stopped 
+===== 21:49:38  场景2 注入中 #1(rabbitmq 已停)
+health   HTTP 503    77.6 ms  status=DOWN db=UP ping=UP rabbit=DOWN redis=UP
+me       HTTP 200    24.4 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201    74.6 ms  code=0 id=10 category=REFUND priority=P1 traceId=dfe876783ff64fc5
+grab     HTTP 200    40.6 ms  code=0 status=ASSIGNED assignee=3 traceId=16d48d9e3a144fea
+metrics  mq_event_published=581680 mq_event_publish_failed=3 mq_event_consumed=581680 llm_fallback=0 llm_circuit_open=0 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=457
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': 'mock-classifier-v1', 'latency_ms': 46, 'degraded': 0, 'degrade_reason': None, 'raw_category': 'REFUND', 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 10 = 0 (创建 1 + 抢单 2 = 3 为全部消费)
+
+===== 21:49:40  场景2 注入中 #2(rabbitmq 已停)
+health   HTTP 503    72.2 ms  status=DOWN db=UP ping=UP rabbit=DOWN redis=UP
+me       HTTP 200    16.2 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201    67.4 ms  code=0 id=11 category=REFUND priority=P1 traceId=16a8d2a52d0e4ee5
+grab     HTTP 200    43.6 ms  code=0 status=ASSIGNED assignee=3 traceId=90ba875d656e45c5
+metrics  mq_event_published=581680 mq_event_publish_failed=6 mq_event_consumed=581680 llm_fallback=0 llm_circuit_open=0 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=457
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': 'mock-classifier-v1', 'latency_ms': 42, 'degraded': 0, 'degrade_reason': None, 'raw_category': 'REFUND', 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 11 = 0 (创建 1 + 抢单 2 = 3 为全部消费)
+
+===== 21:49:42  场景2 注入中 #3(rabbitmq 已停)
+health   HTTP 503    71.4 ms  status=DOWN db=UP ping=UP rabbit=DOWN redis=UP
+me       HTTP 200     2.4 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201    71.6 ms  code=0 id=12 category=REFUND priority=P1 traceId=7593f98bbf044d60
+grab     HTTP 200    47.3 ms  code=0 status=ASSIGNED assignee=3 traceId=84ce3290d0ad403b
+metrics  mq_event_published=581680 mq_event_publish_failed=9 mq_event_consumed=581680 llm_fallback=0 llm_circuit_open=0 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=457
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': 'mock-classifier-v1', 'latency_ms': 46, 'degraded': 0, 'degrade_reason': None, 'raw_category': 'REFUND', 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 12 = 0 (创建 1 + 抢单 2 = 3 为全部消费)
+
+--- 服务日志 ERROR(发送失败)
+2026-09-20T21:49:38.777+08:00 ERROR 1593etqa.mq.TicketEventPublisher     : MQ 发送失败(事务已提交,消息丢失) type=STATUS_CHANGED ticketId=10 messageId=64a36446
+2026-09-20T21:49:38.815+08:00 ERROR 1593etqa.mq.TicketEventPublisher     : MQ 发送失败(事务已提交,消息丢失) type=STATUS_CHANGED ticketId=10 messageId=83ed4096
+2026-09-20T21:49:38.821+08:00 ERROR 1593etqa.mq.TicketEventPublisher     : MQ 发送失败(事务已提交,消息丢失) type=ASSIGNED ticketId=10 messageId=e2042959-9942-
+9
+21:50:04 docker compose start rabbitmq
+ Container ticketqa-rabbitmq Started 
+===== 21:50:15  场景2 恢复后 +累计10s
+health   HTTP 200    77.4 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200     2.9 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201    44.2 ms  code=0 id=13 category=REFUND priority=P1 traceId=2c4cb2c29f3741ad
+grab     HTTP 200    16.4 ms  code=0 status=ASSIGNED assignee=3 traceId=eb1eab9de868483c
+metrics  mq_event_published=581683 mq_event_publish_failed=9 mq_event_consumed=581681 llm_fallback=0 llm_circuit_open=0 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=458
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': 'mock-classifier-v1', 'latency_ms': 6, 'degraded': 0, 'degrade_reason': None, 'raw_category': 'REFUND', 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 13 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+===== 21:50:37  场景2 恢复后 +累计20s
+health   HTTP 200    70.0 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200    25.7 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201    74.6 ms  code=0 id=14 category=REFUND priority=P1 traceId=55ce59d0666747b4
+grab     HTTP 200    27.2 ms  code=0 status=ASSIGNED assignee=3 traceId=4aa8e0bd97c346ab
+metrics  mq_event_published=581686 mq_event_publish_failed=9 mq_event_consumed=581684 llm_fallback=0 llm_circuit_open=0 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=459
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': 'mock-classifier-v1', 'latency_ms': 41, 'degraded': 0, 'degrade_reason': None, 'raw_category': 'REFUND', 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 14 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+===== 21:51:09  场景2 恢复后 +累计30s
+health   HTTP 200    66.9 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200    17.1 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201    36.6 ms  code=0 id=15 category=REFUND priority=P1 traceId=9f3f762376c54d31
+grab     HTTP 200    13.0 ms  code=0 status=ASSIGNED assignee=3 traceId=fca1766d00aa4e3b
+metrics  mq_event_published=581689 mq_event_publish_failed=9 mq_event_consumed=581687 llm_fallback=0 llm_circuit_open=0 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=460
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': 'mock-classifier-v1', 'latency_ms': 5, 'degraded': 0, 'degrade_reason': None, 'raw_category': 'REFUND', 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 15 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+--- 恢复后:注入期间创建的工单 10/11/12 的消息是否补投(去重表按 ticket_id)
+{9: 3, 10: 0, 11: 0, 12: 0, 13: 3, 14: 3, 15: 3, 16: 0}
+--- 消费者重连(服务日志)
+2026-09-20T21:50:10.410+08:00 queue(s).
+2026-09-20T21:50:15.080+08:00 size=0
+2026-09-20T21:50:15.082+08:00 [localhost:5672]
+2026-09-20T21:50:15.126+08:00 size=0
+2026-09-20T21:50:15.131+08:00 localPort=61362]
+2026-09-20T21:50:15.514+08:00 size=0
+q.ticket.assigned messages= 0 consumers= 1
+q.ticket.sla-escalated messages= 0 consumers= 1
+q.ticket.status-changed messages= 0 consumers= 1

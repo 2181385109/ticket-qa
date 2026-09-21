@@ -1,0 +1,68 @@
+# 2026-09-20 18:25:18  arthas pid=15936
+# 命令: trace com.ticketqa.ticket.TicketService grab -n 3 --skipJDKMethod false
+[arthas@15936]$ trace com.ticketqa.ticket.TicketService grab -n 3 --skipJDKMetho d false | plaintext
+Press Q or Ctrl+C to abort.
+Affect(class count: 2 , method count: 2) cost in 141 ms, listenerId: 2
+`---ts=2026-09-20 18:25:32.560;thread_name=http-nio-8080-exec-42;id=8368;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[16.027ms] com.ticketqa.ticket.TicketService$$SpringCGLIB$$0:grab()
+        `---[99.72% 15.9828ms ] org.springframework.cglib.proxy.MethodInterceptor:intercept()
+            `---[63.44% 10.139ms ] com.ticketqa.ticket.TicketService:grab()
+                +---[0.26% 0.0261ms ] com.ticketqa.auth.UserContext:require() #215
+                +---[55.59% 5.6359ms ] com.ticketqa.ticket.TicketService:getOrThrow() #216
+                +---[0.33% 0.0337ms ] com.ticketqa.auth.AccessChecker:checkGrab() #217
+                +---[0.05% 0.0048ms ] com.ticketqa.domain.entity.Ticket:getStatus() #218
+                +---[0.05% 0.0049ms ] java.time.LocalDateTime:now() #221
+                +---[0.02% 0.0025ms ] com.ticketqa.auth.CurrentUser:id() #222
+                +---[0.06% 0.0057ms ] com.ticketqa.domain.entity.Ticket:setAssigneeId() #222
+                +---[0.37% 0.0373ms ] com.ticketqa.statemachine.TicketStateMachine:transit() #223
+                +---[22.33% 2.2645ms ] com.ticketqa.mapper.TicketMapper:updateById() #224
+                +---[0.03% 0.0035ms ] com.ticketqa.auth.CurrentUser:id() #226
+                +---[0.03% 0.0033ms ] com.ticketqa.auth.CurrentUser:displayName() #226
+                +---[17.83% 1.8077ms ] com.ticketqa.audit.AuditLogService:record() #226
+                +---[0.32% 0.032ms ] com.ticketqa.ticket.TicketService:publish() #227
+                +---[0.08% 0.0082ms ] com.ticketqa.ticket.TicketService:publish() #228
+                `---[0.07% 0.0075ms ] com.ticketqa.ticket.TicketConverter:toVO() #229
+
+`---ts=2026-09-20 18:25:36.380;thread_name=http-nio-8080-exec-12;id=8335;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[14.1644ms] com.ticketqa.ticket.TicketService$$SpringCGLIB$$0:grab()
+        `---[99.53% 14.098ms ] org.springframework.cglib.proxy.MethodInterceptor:intercept()
+            `---[62.47% 8.8074ms ] com.ticketqa.ticket.TicketService:grab()
+                +---[0.05% 0.0041ms ] com.ticketqa.auth.UserContext:require() #215
+                +---[54.32% 4.784ms ] com.ticketqa.ticket.TicketService:getOrThrow() #216
+                +---[0.06% 0.005ms ] com.ticketqa.auth.AccessChecker:checkGrab() #217
+                +---[0.01% 0.0013ms ] com.ticketqa.domain.entity.Ticket:getStatus() #218
+                +---[0.04% 0.0037ms ] java.time.LocalDateTime:now() #221
+                +---[0.01% 0.0012ms ] com.ticketqa.auth.CurrentUser:id() #222
+                +---[0.02% 0.0014ms ] com.ticketqa.domain.entity.Ticket:setAssigneeId() #222
+                +---[0.38% 0.0338ms ] com.ticketqa.statemachine.TicketStateMachine:transit() #223
+                +---[22.69% 1.9988ms ] com.ticketqa.mapper.TicketMapper:updateById() #224
+                +---[0.03% 0.0023ms ] com.ticketqa.auth.CurrentUser:id() #226
+                +---[0.01% 0.0013ms ] com.ticketqa.auth.CurrentUser:displayName() #226
+                +---[20.83% 1.8342ms ] com.ticketqa.audit.AuditLogService:record() #226
+                +---[0.33% 0.0294ms ] com.ticketqa.ticket.TicketService:publish() #227
+                +---[0.05% 0.0042ms ] com.ticketqa.ticket.TicketService:publish() #228
+                `---[0.06% 0.0056ms ] com.ticketqa.ticket.TicketConverter:toVO() #229
+
+`---ts=2026-09-20 18:25:40.166;thread_name=http-nio-8080-exec-44;id=8370;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[25.7522ms] com.ticketqa.ticket.TicketService$$SpringCGLIB$$0:grab()
+        `---[99.93% 25.7332ms ] org.springframework.cglib.proxy.MethodInterceptor:intercept()
+            `---[48.66% 12.5221ms ] com.ticketqa.ticket.TicketService:grab()
+                +---[0.06% 0.0077ms ] com.ticketqa.auth.UserContext:require() #215
+                +---[41.13% 5.1509ms ] com.ticketqa.ticket.TicketService:getOrThrow() #216
+                +---[0.06% 0.0079ms ] com.ticketqa.auth.AccessChecker:checkGrab() #217
+                +---[0.01% 0.0014ms ] com.ticketqa.domain.entity.Ticket:getStatus() #218
+                +---[0.04% 0.0052ms ] java.time.LocalDateTime:now() #221
+                +---[0.01% 0.0011ms ] com.ticketqa.auth.CurrentUser:id() #222
+                +---[0.01% 0.0014ms ] com.ticketqa.domain.entity.Ticket:setAssigneeId() #222
+                +---[0.33% 0.0418ms ] com.ticketqa.statemachine.TicketStateMachine:transit() #223
+                +---[36.04% 4.5127ms ] com.ticketqa.mapper.TicketMapper:updateById() #224
+                +---[0.02% 0.0021ms ] com.ticketqa.auth.CurrentUser:id() #226
+                +---[0.01% 9.0E-4ms ] com.ticketqa.auth.CurrentUser:displayName() #226
+                +---[21.45% 2.6866ms ] com.ticketqa.audit.AuditLogService:record() #226
+                +---[0.28% 0.0356ms ] com.ticketqa.ticket.TicketService:publish() #227
+                +---[0.03% 0.0042ms ] com.ticketqa.ticket.TicketService:publish() #228
+                `---[0.04% 0.0056ms ] com.ticketqa.ticket.TicketConverter:toVO() #229
+
+Command execution times exceed limit: 3, so command will exit. You can set it with -n option.
+[arthas@15
+936]$ 

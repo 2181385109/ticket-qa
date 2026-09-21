@@ -1,0 +1,8 @@
+# 接口自动化 + 安全用例的 Python 依赖(ADR-012:自研封装,只用 pytest + requests 两个基础件)
+pytest>=8.0
+requests>=2.31
+allure-pytest>=2.13
+PyMySQL>=1.1
+# 覆盖率(coverage.py 量 api/framework 自身)+ 增量门禁(diff-cover 同时给 JaCoCo XML 和 coverage.xml 用)
+coverage>=7.4
+diff-cover>=9.0

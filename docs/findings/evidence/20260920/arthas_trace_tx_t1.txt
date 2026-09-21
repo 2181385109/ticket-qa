@@ -1,0 +1,79 @@
+# 2026-09-20 18:24:36  arthas pid=15936
+# 命令: trace org.springframework.transaction.interceptor.TransactionAspectSupport invokeWithinTransaction 'params[0].name=="grab"' -n 3
+[arthas@15936]$ trace org.springframework.transaction.interceptor.TransactionAsp ectSupport invokeWithinTransaction 'params[0].name=="grab"' -n 3 | plaintext
+Press Q or Ctrl+C to abort.
+Affect(class count: 2 , method count: 1) cost in 300 ms, listenerId: 1
+`---ts=2026-09-20 18:24:50.419;thread_name=http-nio-8080-exec-100;id=8427;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[26.7283ms] org.springframework.transaction.interceptor.TransactionAspectSupport:invokeWithinTransaction()
+        +---[0.03% 0.0083ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:getTransactionAttributeSource() #345
+        +---[0.05% 0.0136ms ] org.springframework.transaction.interceptor.TransactionAttributeSource:getTransactionAttribute() #346
+        +---[0.05% 0.013ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:determineTransactionManager() #347
+        +---[0.02% 0.0054ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:asPlatformTransactionManager() #368
+        +---[0.02% 0.006ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:methodIdentification() #369
+        +---[5.32% 1.4222ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:createTransactionIfNecessary() #373
+        +---[62.53% 16.7135ms ] org.springframework.transaction.interceptor.TransactionAspectSupport$InvocationCallback:proceedWithInvocation() #379
+        |   `---[36.51% 6.1017ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:invokeWithinTransaction()
+        |       +---[0.13% 0.0077ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:getTransactionAttributeSource() #345
+        |       +---[0.26% 0.016ms ] org.springframework.transaction.interceptor.TransactionAttributeSource:getTransactionAttribute() #346
+        |       +---[0.54% 0.0332ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:determineTransactionManager() #347
+        |       +---[0.10% 0.0058ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:asPlatformTransactionManager() #368
+        |       +---[0.11% 0.0067ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:methodIdentification() #369
+        |       +---[0.52% 0.032ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:createTransactionIfNecessary() #373
+        |       +---[95.97% 5.8559ms ] org.springframework.transaction.interceptor.TransactionAspectSupport$InvocationCallback:proceedWithInvocation() #379
+        |       +---[0.18% 0.0109ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:cleanupTransactionInfo() #387
+        |       +---[0.06% 0.0035ms ] org.springframework.transaction.interceptor.TransactionAspectSupport$TransactionInfo:getTransactionStatus() #391
+        |       `---[0.28% 0.0169ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:commitTransactionAfterReturning() #413
+        +---[0.01% 0.0038ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:cleanupTransactionInfo() #387
+        +---[0.01% 0.003ms ] org.springframework.transaction.interceptor.TransactionAspectSupport$TransactionInfo:getTransactionStatus() #391
+        `---[31.47% 8.4102ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:commitTransactionAfterReturning() #413
+
+`---ts=2026-09-20 18:24:54.381;thread_name=http-nio-8080-exec-22;id=8348;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[23.1044ms] org.springframework.transaction.interceptor.TransactionAspectSupport:invokeWithinTransaction()
+        +---[0.04% 0.0099ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:getTransactionAttributeSource() #345
+        +---[0.05% 0.0113ms ] org.springframework.transaction.interceptor.TransactionAttributeSource:getTransactionAttribute() #346
+        +---[0.04% 0.0083ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:determineTransactionManager() #347
+        +---[0.02% 0.0044ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:asPlatformTransactionManager() #368
+        +---[0.02% 0.0049ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:methodIdentification() #369
+        +---[6.83% 1.5791ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:createTransactionIfNecessary() #373
+        +---[60.77% 14.0406ms ] org.springframework.transaction.interceptor.TransactionAspectSupport$InvocationCallback:proceedWithInvocation() #379
+        |   `---[33.28% 4.6732ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:invokeWithinTransaction()
+        |       +---[0.08% 0.0039ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:getTransactionAttributeSource() #345
+        |       +---[0.20% 0.0092ms ] org.springframework.transaction.interceptor.TransactionAttributeSource:getTransactionAttribute() #346
+        |       +---[0.19% 0.0087ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:determineTransactionManager() #347
+        |       +---[0.10% 0.0047ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:asPlatformTransactionManager() #368
+        |       +---[0.10% 0.0047ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:methodIdentification() #369
+        |       +---[0.52% 0.0244ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:createTransactionIfNecessary() #373
+        |       +---[93.37% 4.3636ms ] org.springframework.transaction.interceptor.TransactionAspectSupport$InvocationCallback:proceedWithInvocation() #379
+        |       +---[0.22% 0.0101ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:cleanupTransactionInfo() #387
+        |       +---[0.06% 0.0029ms ] org.springframework.transaction.interceptor.TransactionAspectSupport$TransactionInfo:getTransactionStatus() #391
+        |       `---[0.33% 0.0152ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:commitTransactionAfterReturning() #413
+        +---[0.05% 0.0114ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:cleanupTransactionInfo() #387
+        +---[0.01% 0.0025ms ] org.springframework.transaction.interceptor.TransactionAspectSupport$TransactionInfo:getTransactionStatus() #391
+        `---[31.61% 7.3044ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:commitTransactionAfterReturning() #413
+
+`---ts=2026-09-20 18:24:59.102;thread_name=http-nio-8080-exec-54;id=8381;is_daemon=true;priority=5;TCCL=org.springframework.boot.web.embedded.tomcat.TomcatEmbeddedWebappClassLoader@42a0786f
+    `---[13.0911ms] org.springframework.transaction.interceptor.TransactionAspectSupport:invokeWithinTransaction()
+        +---[0.02% 0.0027ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:getTransactionAttributeSource() #345
+        +---[0.02% 0.0031ms ] org.springframework.transaction.interceptor.TransactionAttributeSource:getTransactionAttribute() #346
+        +---[0.03% 0.0034ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:determineTransactionManager() #347
+        +---[0.01% 0.0011ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:asPlatformTransactionManager() #368
+        +---[0.03% 0.0034ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:methodIdentification() #369
+        +---[7.61% 0.9961ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:createTransactionIfNecessary() #373
+        +---[51.02% 6.6795ms ] org.springframework.transaction.interceptor.TransactionAspectSupport$InvocationCallback:proceedWithInvocation() #379
+        |   `---[29.34% 1.9598ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:invokeWithinTransaction()
+        |       +---[0.15% 0.003ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:getTransactionAttributeSource() #345
+        |       +---[0.18% 0.0036ms ] org.springframework.transaction.interceptor.TransactionAttributeSource:getTransactionAttribute() #346
+        |       +---[0.24% 0.0047ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:determineTransactionManager() #347
+        |       +---[0.08% 0.0016ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:asPlatformTransactionManager() #368
+        |       +---[0.23% 0.0045ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:methodIdentification() #369
+        |       +---[0.63% 0.0123ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:createTransactionIfNecessary() #373
+        |       +---[96.68% 1.8947ms ] org.springframework.transaction.interceptor.TransactionAspectSupport$InvocationCallback:proceedWithInvocation() #379
+        |       +---[0.10% 0.002ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:cleanupTransactionInfo() #387
+        |       +---[0.08% 0.0015ms ] org.springframework.transaction.interceptor.TransactionAspectSupport$TransactionInfo:getTransactionStatus() #391
+        |       `---[0.18% 0.0036ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:commitTransactionAfterReturning() #413
+        +---[0.01% 0.0012ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:cleanupTransactionInfo() #387
+        +---[0.01% 0.0012ms ] org.springframework.transaction.interceptor.TransactionAspectSupport$TransactionInfo:getTransactionStatus() #391
+        `---[40.93% 5.3576ms ] org.springframework.transaction.interceptor.TransactionAspectSupport:commitTransactionAfterReturning() #413
+
+Command execution times exceed limit: 3, so command will exit. You can set it with -n option.
+[arthas@15936]$ 

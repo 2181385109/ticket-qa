@@ -1,0 +1,150 @@
+# =====================================================================
+# 智能客服工单系统 · 服务配置
+# 所有 ${ENV:default} 的默认值与 ops/.env.example 保持一致,
+# 因此本地 `docker compose up -d` + `mvn spring-boot:run` 零改动可跑。
+# 切换 LLM 挡板:LLM_MODE=mock(默认)/ real
+# =====================================================================
+
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+  tomcat:
+    # 暴露 tomcat_threads_{busy,current,config_max} 指标(KI-016):压测时判断"是不是 Tomcat 线程池封顶"不必再靠 Arthas
+    mbeanregistry:
+      enabled: true
+
+spring:
+  application:
+    name: ticket-qa-service
+
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:ticket_qa}?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai&connectionTimeZone=Asia/Shanghai&forceConnectionTimeZoneToSession=true
+    username: ${MYSQL_USER:ticketqa}
+    password: ${MYSQL_PASSWORD:ticketqa123}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 2
+      connection-timeout: 5000
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:redis123}
+      # 缓存是加速器不是依赖:Redis 挂掉时每次缓存操作最多等这么久就回源查库(CacheConfig.errorHandler)。
+      # 联调实测 2s 时一次鉴权(get+put)要等 4s,改成 500ms 后约 1s。
+      timeout: 500ms
+      connect-timeout: 500ms
+
+  cache:
+    type: redis   # TTL / 序列化在 com.ticketqa.config.CacheConfig 里定制
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:ticketqa}
+    password: ${RABBITMQ_PASSWORD:rabbit123}
+    connection-timeout: 5s
+    listener:
+      simple:
+        acknowledge-mode: auto
+        # 消费抛异常时不无限重投:本地重试 3 次后拒绝并丢弃(去重表保证重试也是幂等的)
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 500ms
+          multiplier: 2.0
+
+  jackson:
+    time-zone: ${APP_TIME_ZONE:Asia/Shanghai}
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: non_null
+
+  servlet:
+    multipart:
+      # 故意比业务上限(5MB)大一点:让"文件过大"由业务校验以明确错误码返回,而不是被容器层拦成 413
+      max-file-size: 8MB
+      max-request-size: 10MB
+
+mybatis-plus:
+  # 自定义 SQL 全部用注解写在 Mapper 接口上,没有 XML;枚举按 name() 存储(MP 默认 CompositeEnumTypeHandler)
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# ---- 业务配置(绑定到 com.ticketqa.config.AppProperties) ----
+app:
+  time-zone: ${APP_TIME_ZONE:Asia/Shanghai}
+  sla:
+    # 响应时限(分钟),计时起点=创建时刻,闭区间:恰好等于即超时(ADR-006)
+    response-minutes:
+      P0: 15
+      P1: 60
+      P2: 240
+    scan-interval-ms: 30000
+    scan-batch-size: 100
+    lock-ttl-seconds: 25
+  ticket:
+    reopen-window-days: 7
+    # 抢单前置 Redis 锁的 TTL(ADR-016):削峰用,不是正确性保证;Redis 不可用时 fail-open 直接走条件 UPDATE
+    grab-lock-ttl-ms: 3000
+  attachment:
+    dir: ${APP_ATTACHMENT_DIR:./data/attachments}
+    max-size-bytes: 5242880
+    allowed-ext: jpg,png,pdf,txt
+
+# ---- LLM 依赖路径(ADR-004 / ADR-009) ----
+llm:
+  mode: ${LLM_MODE:mock}          # real | mock
+  timeout-ms: 3000
+  circuit:
+    failure-threshold: 5
+    open-seconds: 60
+  real:
+    base-url: ${LLM_BASE_URL:https://api.deepseek.com}
+    api-key: ${LLM_API_KEY:}
+    model: ${LLM_MODEL:deepseek-chat}
+  mock:
+    base-url: ${WIREMOCK_BASE_URL:http://localhost:8089}
+    model: mock-classifier-v1
+
+# ---- Actuator / Micrometer ----
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.ticketqa: INFO
+    com.ticketqa.mapper: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%X{traceId:-}] %-40.40logger{39} : %m%n"
+    # 文件日志同样带 traceId(KI-016):第一版只配了 console,压测对账时文件里对不上 X-Trace-Id
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%X{traceId:-}] [%t] %-40.40logger{39} : %m%n"
+  file:
+    name: ./logs/ticket-qa-service.log

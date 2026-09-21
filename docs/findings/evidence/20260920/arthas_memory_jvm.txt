@@ -1,0 +1,124 @@
+# 2026-09-20 18:47:46  arthas pid=15936
+# 命令: memory; jvm
+# (脱敏:MACHINE-NAME 的主机名与 CLASS-PATH / -Xlog 里的仓库绝对路径已替换为占位符,其余原样)
+[arthas@15936]$ memory | plaintext
+Memory                            used        total      max         usage      
+heap                              234M        1024M      1024M       22.89%     
+g1_eden_space                     168M        607M       -1          27.84%     
+g1_old_gen                        27M         379M       1024M       2.72%      
+g1_survivor_space                 37M         38M        -1          98.68%     
+nonheap                           154M        180M       -1          85.56%     
+codeheap_'non-nmethods'           1M          4M         7M          19.96%     
+metaspace                         106M        107M       -1          99.26%     
+codeheap_'profiled_nmethods'      15M         33M        116M        13.73%     
+compressed_class_space            12M         13M        1024M       1.23%      
+codeheap_'non-profiled_nmethods'  17M         22M        116M        15.15%     
+mapped                            0K          0K         -           0.00%      
+direct                            136M        136M       -           100.00%    
+mapped - 'non-volatile memory'    0K          0K         -           0.00%      
+[arthas@15936]$ jvm | plaintext
+ RUNTIME                                                                        
+--------------------------------------------------------------------------------
+ MACHINE-NAME           15936@<hostname>                                         
+ JVM-START-TIME         2026-09-20 17:54:26                                     
+ MANAGEMENT-SPEC-VERSI  3.0                                                     
+ ON                                                                             
+ SPEC-NAME              Java Virtual Machine Specification                      
+ SPEC-VENDOR            Oracle Corporation                                      
+ SPEC-VERSION           17                                                      
+ VM-NAME                OpenJDK 64-Bit Server VM                                
+ VM-VENDOR              Eclipse Adoptium                                        
+ VM-VERSION             17.0.20.1+1                                             
+ INPUT-ARGUMENTS        -Xms1g                                                  
+                        -Xmx1g                                                  
+                        -XX:+UseG1GC                                            
+                        -Xlog:gc*:file=<repo>\service\logs\gc-202 
+                        60920-175426.log:time,uptime,level,tags                 
+                        -Dfile.encoding=UTF-8                                   
+ CLASS-PATH             <repo>\service\target\ticket-qa-service-0 
+                        .1.0.jar                                                
+ BOOT-CLASS-PATH                                                                
+ LIBRARY-PATH           (本机 PATH 环境变量,已从证据中删去,与分析无关)
+                                                                                
+--------------------------------------------------------------------------------
+ CLASS-LOADING                                                                  
+--------------------------------------------------------------------------------
+ LOADED-CLASS-COUNT     20244                                                   
+ TOTAL-LOADED-CLASS-CO  20244                                                   
+ UNT                                                                            
+ UNLOADED-CLASS-COUNT   0                                                       
+ IS-VERBOSE             false                                                   
+                                                                                
+--------------------------------------------------------------------------------
+ COMPILATION                                                                    
+--------------------------------------------------------------------------------
+ NAME                   HotSpot 64-Bit Tiered Compilers                         
+ TOTAL-COMPILE-TIME     221611                                                  
+ [time (ms)]                                                                    
+                                                                                
+--------------------------------------------------------------------------------
+ GARBAGE-COLLECTORS                                                             
+--------------------------------------------------------------------------------
+ G1 Young Generation    name : G1 Young Generation                              
+ [count/time (ms)]      collectionCount : 20                                    
+                        collectionTime : 208                                    
+ G1 Old Generation      name : G1 Old Generation                                
+ [count/time (ms)]      collectionCount : 0                                     
+                        collectionTime : 0                                      
+                                                                                
+--------------------------------------------------------------------------------
+ MEMORY-MANAGERS                                                                
+--------------------------------------------------------------------------------
+ CodeCacheManager       CodeHeap 'non-nmethods'                                 
+                        CodeHeap 'profiled nmethods'                            
+                        CodeHeap 'non-profiled nmethods'                        
+ Metaspace Manager      Metaspace                                               
+                        Compressed Class Space                                  
+ G1 Young Generation    G1 Eden Space                                           
+                        G1 Survivor Space                                       
+                        G1 Old Gen                                              
+ G1 Old Generation      G1 Eden Space                                           
+                        G1 Survivor Space                                       
+                        G1 Old Gen                                              
+                                                                                
+--------------------------------------------------------------------------------
+ MEMORY                                                                         
+--------------------------------------------------------------------------------
+ HEAP-MEMORY-USAGE      init : 1073741824(1.0 GiB)                              
+ [memory in bytes]      used : 245758416(234.4 MiB)                             
+                        committed : 1073741824(1.0 GiB)                         
+                        max : 1073741824(1.0 GiB)                               
+ NO-HEAP-MEMORY-USAGE   init : 7667712(7.3 MiB)                                 
+ [memory in bytes]      used : 162224360(154.7 MiB)                             
+                        committed : 189661184(180.9 MiB)                        
+                        max : -1(-1 B)                                          
+ PENDING-FINALIZE-COUN  0                                                       
+ T                                                                              
+                                                                                
+--------------------------------------------------------------------------------
+ OPERATING-SYSTEM                                                               
+--------------------------------------------------------------------------------
+ OS                     Windows 11                                              
+ ARCH                   amd64                                                   
+ PROCESSORS-COUNT       16                                                      
+ LOAD-AVERAGE           -1.0                                                    
+ VERSION                10.0                                                    
+                                                                                
+--------------------------------------------------------------------------------
+ THREAD                                                                         
+--------------------------------------------------------------------------------
+ COUNT                  100                                                     
+ DAEMON-COUNT           74                                                      
+ PEAK-COUNT             191                                                     
+ STARTED-COUNT          8690                                                    
+ DEADLOCK-COUNT         0                                                       
+                                                                                
+--------------------------------------------------------------------------------
+ FILE-DESCRIPTOR                                                                
+--------------------------------------------------------------------------------
+ MAX-FILE-DESCRIPTOR-C  -1                                                      
+ OUNT                                                                           
+ OPEN-FILE-DESCRIPTOR-  -1                                                      
+ COUNT                                                                          
+                                                                                
+[arthas@15936]$ 

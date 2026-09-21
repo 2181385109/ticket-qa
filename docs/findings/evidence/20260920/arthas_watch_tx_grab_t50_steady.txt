@@ -1,0 +1,1447 @@
+# 2026-09-20 21:41:48  arthas pid=15936
+# 命令: watch -E org.springframework.transaction.interceptor.TransactionAspectSupport (invokeWithinTransaction|createTransactionIfNecessary|commitTransactionAfterReturning) '{method.name, #cost, (params[0] instanceof java.lang.reflect.Method ? params[0].name : (params.length>2 ? params[2].toString() : ""))}' '@java.lang.Thread@currentThread().getName().startsWith("http")' -n 240 -x 1
+[arthas@15936]$ watch -E org.springframework.transaction.interceptor.Transaction AspectSupport (invokeWithinTransaction|createTransactionIfNecessary|commitTransa ctionAfterReturning) '{method.name, #cost, (params[0] instanceof java.lang.refle ct.Method ? params[0].name : (params.length>2 ? params[2].toString() : ""))}' '@ java.lang.Thread@currentThread().getName().startsWith("http")' -n 240 -x 1 | pla intext
+Press Q or Ctrl+C to abort.
+Affect(class count: 2 , method count: 3) cost in 91 ms, listenerId: 25
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.906; [cost=0.0534ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0534],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.908; [cost=0.0079ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0079],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.908; [cost=0.0165ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0165],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.910; [cost=0.0102ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0102],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.912; [cost=0.0103ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0103],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.912; [cost=0.0053ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0053],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.912; [cost=0.0044ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0044],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.915; [cost=0.0166ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0166],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.917; [cost=10.6345ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[10.6345],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.918; [cost=0.009ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.009],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.919; [cost=0.0072ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0072],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.919; [cost=0.0047ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0047],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.919; [cost=10.6946ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[10.6946],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.920; [cost=0.006ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.006],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.920; [cost=0.0043ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0043],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.920; [cost=0.0049ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0049],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.920; [cost=12.2445ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[12.2445],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.922; [cost=10.324ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[10.324],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.923; [cost=0.0084ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0084],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.924; [cost=0.0064ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0064],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.924; [cost=0.0043ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0043],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.924; [cost=11.3646ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.3646],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.924; [cost=8.9164ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[8.9164],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.925; [cost=12.8253ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[12.8253],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.928; [cost=0.0075ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0075],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.929; [cost=9.4984ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[9.4984],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.930; [cost=16.2206ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[16.2206],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.930; [cost=0.0057ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0057],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.930; [cost=12.0015ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[12.0015],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.931; [cost=0.018ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.018],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.931; [cost=0.0048ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0048],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.931; [cost=0.004ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.004],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.931; [cost=12.0545ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[12.0545],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.932; [cost=0.0053ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0053],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.932; [cost=0.0031ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0031],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.932; [cost=12.1312ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[12.1312],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.932; [cost=0.0025ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0025],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.932; [cost=9.6438ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[9.6438],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.933; [cost=0.0032ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0032],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.933; [cost=12.5988ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[12.5988],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.933; [cost=11.9192ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[11.9192],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.933; [cost=0.0085ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0085],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.935; [cost=0.007ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.007],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.936; [cost=11.8105ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[11.8105],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.940; [cost=9.5389ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[9.5389],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.940; [cost=15.5947ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[15.5947],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.941; [cost=0.0072ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0072],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.943; [cost=0.0598ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0598],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.943; [cost=0.025ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.025],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.943; [cost=14.6877ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[14.6877],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.943; [cost=12.0797ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[12.0797],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.944; [cost=0.0052ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0052],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.944; [cost=13.0978ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[13.0978],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.944; [cost=0.004ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.004],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.944; [cost=0.0027ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0027],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.944; [cost=12.6258ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[12.6258],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.944; [cost=13.6845ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[13.6845],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.944; [cost=0.0067ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0067],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.947; [cost=0.0083ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0083],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.947; [cost=13.8943ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[13.8943],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.949; [cost=16.3418ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[16.3418],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.949; [cost=0.0062ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0062],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.949; [cost=16.764ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[16.764],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.949; [cost=14.4623ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[14.4623],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.951; [cost=18.0815ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[18.0815],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.953; [cost=0.0117ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0117],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.953; [cost=0.0064ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0064],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.953; [cost=11.717ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.717],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.955; [cost=0.012ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.012],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.957; [cost=0.0058ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0058],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.957; [cost=15.8079ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[15.8079],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.958; [cost=0.0074ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0074],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.958; [cost=15.9433ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[15.9433],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.959; [cost=0.0038ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0038],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.960; [cost=15.0793ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[15.0793],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.960; [cost=16.4824ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[16.4824],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.961; [cost=0.0072ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0072],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.961; [cost=0.0407ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0407],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.963; [cost=15.6605ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[15.6605],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.964; [cost=19.1647ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[19.1647],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.964; [cost=19.2783ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[19.2783],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.967; [cost=0.0073ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0073],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.967; [cost=14.0028ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[14.0028],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.967; [cost=18.2177ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[18.2177],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.967; [cost=0.007ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.007],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.969; [cost=0.0076ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0076],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.969; [cost=0.0043ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0043],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.969; [cost=13.3118ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[13.3118],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.971; [cost=0.0077ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0077],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.972; [cost=17.7611ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[17.7611],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.972; [cost=0.0082ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0082],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.973; [cost=0.0049ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0049],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.973; [cost=0.0046ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0046],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.973; [cost=12.7129ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[12.7129],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.974; [cost=17.4175ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[17.4175],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.974; [cost=0.0043ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0043],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.974; [cost=15.9872ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[15.9872],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.974; [cost=13.8782ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[13.8782],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.974; [cost=0.0073ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0073],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.976; [cost=16.3546ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[16.3546],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.977; [cost=0.0091ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0091],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.978; [cost=11.0165ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[11.0165],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.978; [cost=0.007ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.007],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.980; [cost=0.0061ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0061],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.980; [cost=12.7183ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[12.7183],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.980; [cost=0.0035ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0035],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.980; [cost=12.8335ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[12.8335],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.982; [cost=0.0039ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0039],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.982; [cost=0.013ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.013],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.982; [cost=12.5954ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[12.5954],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.983; [cost=14.2401ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[14.2401],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.983; [cost=0.0035ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0035],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.983; [cost=11.6679ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.6679],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.983; [cost=0.0029ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0029],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.984; [cost=12.2073ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[12.2073],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.985; [cost=0.008ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.008],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.985; [cost=0.0037ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0037],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.985; [cost=9.1223ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[9.1223],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.986; [cost=0.0038ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0038],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.986; [cost=11.0848ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.0848],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.986; [cost=13.4839ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[13.4839],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.987; [cost=0.0077ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0077],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.987; [cost=13.0883ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[13.0883],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.989; [cost=0.0061ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0061],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.989; [cost=10.9338ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[10.9338],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.992; [cost=10.9752ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[10.9752],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.992; [cost=81.9815ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[81.9815],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.993; [cost=11.1431ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[11.1431],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.993; [cost=0.006ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.006],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.994; [cost=0.0034ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0034],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.994; [cost=11.1649ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.1649],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.996; [cost=12.5629ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[12.5629],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.996; [cost=0.0054ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0054],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.996; [cost=0.0091ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0091],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.996; [cost=10.6697ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[10.6697],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.996; [cost=83.4409ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[83.4409],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.996; [cost=0.0033ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0033],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.998; [cost=11.7705ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[11.7705],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.998; [cost=0.0089ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0089],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.998; [cost=13.7598ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[13.7598],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.998; [cost=11.6418ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[11.6418],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.998; [cost=0.715ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.715],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.998; [cost=0.0034ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0034],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:52.998; [cost=10.713ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[10.713],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.999; [cost=86.0433ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[86.0433],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.999; [cost=0.0051ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0051],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:52.999; [cost=14.5078ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[14.5078],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:52.999; [cost=78.9116ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[78.9116],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.001; [cost=0.0058ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0058],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.004; [cost=14.6189ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[14.6189],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.004; [cost=83.0064ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[83.0064],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.006; [cost=11.8095ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[11.8095],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.006; [cost=0.0058ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0058],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.006; [cost=12.7672ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[12.7672],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.006; [cost=82.4101ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[82.4101],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.007; [cost=0.0071ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0071],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.007; [cost=0.0029ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0029],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.008; [cost=8.6649ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[8.6649],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.008; [cost=11.5883ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.5883],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.008; [cost=0.0025ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0025],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.008; [cost=11.752ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.752],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.009; [cost=0.0036ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0036],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.009; [cost=0.0065ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0065],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.009; [cost=11.0099ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.0099],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.009; [cost=13.2647ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[13.2647],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.010; [cost=82.0767ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[82.0767],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.010; [cost=76.9226ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[76.9226],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.010; [cost=11.6058ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[11.6058],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.010; [cost=0.0054ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0054],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.011; [cost=75.3134ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[75.3134],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.013; [cost=0.0035ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0035],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.013; [cost=11.9479ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.9479],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.013; [cost=0.0062ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0062],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.014; [cost=0.0075ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0075],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.016; [cost=10.443ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[10.443],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.016; [cost=78.0014ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[78.0014],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.018; [cost=75.5125ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[75.5125],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.018; [cost=10.5148ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[10.5148],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.019; [cost=76.0919ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[76.0919],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.019; [cost=0.0044ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0044],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.019; [cost=0.0042ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0042],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.019; [cost=10.7138ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[10.7138],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.020; [cost=12.7642ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[12.7642],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.020; [cost=0.009ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.009],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.020; [cost=0.0054ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0054],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.021; [cost=10.5084ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[10.5084],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.021; [cost=73.7868ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[73.7868],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.022; [cost=0.0072ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0072],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.022; [cost=14.1999ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[14.1999],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.022; [cost=12.9257ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[12.9257],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.022; [cost=0.0065ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0065],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.022; [cost=75.1214ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[75.1214],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.023; [cost=71.0641ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[71.0641],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.025; [cost=0.0035ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0035],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.025; [cost=11.5238ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.5238],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.026; [cost=0.0042ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0042],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.026; [cost=11.6712ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.6712],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.027; [cost=13.9522ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[13.9522],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.027; [cost=0.0073ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0073],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.027; [cost=75.6769ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[75.6769],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.028; [cost=0.009ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.009],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.029; [cost=0.004ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.004],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.029; [cost=8.0998ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[8.0998],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.029; [cost=0.0026ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0026],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.029; [cost=11.0984ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.0984],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.030; [cost=0.0057ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0057],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.030; [cost=11.5305ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[11.5305],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.031; [cost=76.9024ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[76.9024],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.031; [cost=0.0023ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0023],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.031; [cost=11.6812ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.6812],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.033; [cost=0.0032ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0032],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.033; [cost=10.5862ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[10.5862],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.033; [cost=0.0094ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0094],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.034; [cost=12.9287ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[12.9287],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.034; [cost=71.2126ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[71.2126],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.036; [cost=10.7187ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[10.7187],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.036; [cost=126.5433ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[126.5433],
+    @String[grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.036; [cost=70.6676ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[70.6676],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.038; [cost=0.0081ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0081],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.038; [cost=11.2399ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.2399],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.038; [cost=0.0073ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0073],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.038; [cost=0.0032ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0032],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.038; [cost=10.2731ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[10.2731],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.039; [cost=12.9997ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[12.9997],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.039; [cost=126.9759ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[126.9759],
+    @String[grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.039; [cost=0.0055ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0055],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.040; [cost=74.1126ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[74.1126],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.040; [cost=74.1123ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[74.1123],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.040; [cost=10.8907ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[10.8907],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.040; [cost=0.013ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.013],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.041; [cost=120.4457ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[120.4457],
+    @String[grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.041; [cost=7.854ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[7.854],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.041; [cost=0.0069ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0069],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.041; [cost=71.1293ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[71.1293],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.041; [cost=0.0029ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[0.0029],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.042; [cost=11.1778ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[11.1778],
+    @String[record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.042; [cost=0.0036ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[0.0036],
+    @String[com.ticketqa.audit.AuditLogService.record],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.commitTransactionAfterReturning location=AtExit
+ts=2026-09-20 21:41:53.043; [cost=12.7025ms] result=@ArrayList[
+    @String[commitTransactionAfterReturning],
+    @Double[12.7025],
+    @String[],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction location=AtExit
+ts=2026-09-20 21:41:53.043; [cost=45.5133ms] result=@ArrayList[
+    @String[invokeWithinTransaction],
+    @Double[45.5133],
+    @String[grab],
+]
+method=org.springframework.transaction.interceptor.TransactionAspectSupport.createTransactionIfNecessary location=AtExit
+ts=2026-09-20 21:41:53.043; [cost=69.849ms] result=@ArrayList[
+    @String[createTransactionIfNecessary],
+    @Double[69.849],
+    @String[com.ticketqa.ticket.TicketService.grab],
+]
+Command execution times exceed limit: 240, so command will exit. You can set it with -n option.
+[arthas@15936]$ 

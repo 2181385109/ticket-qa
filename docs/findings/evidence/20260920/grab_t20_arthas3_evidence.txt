@@ -1,0 +1,23 @@
+===== ticket_id=8234 =====
+SQL> SELECT ticket_id, to_status, COUNT(*) AS n, GROUP_CONCAT(operator_id ORDER BY id) AS operators FROM ticket_audit_log WHERE ticket_id = 8234 AND to_status = 'ASSIGNED' GROUP BY ticket_id, to_status
+  ticket_id | to_status | n | operators
+  8234 | ASSIGNED | 9 | 3,4,3,4,3,3,4,4,3
+
+SQL> SELECT id, status, assignee_id, group_id, created_at, updated_at FROM ticket WHERE id = 8234
+  id | status | assignee_id | group_id | created_at | updated_at
+  8234 | ASSIGNED | 3 | 1 | 2026-09-20 18:29:34.990000 | 2026-09-20 18:29:35.666000
+
+SQL> SELECT id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, DATE_FORMAT(created_at, '%H:%i:%s.%f') AS created_at FROM ticket_audit_log WHERE ticket_id = 8234 ORDER BY id
+  id | from_status | to_status | operator_id | operator_name | source | remark | trace_id | created_at
+  10785 |  | PENDING | 1 | 管理员 | LLM | 自动分类 category=OTHER priority=P2 model=mock-classifier-v1 latencyMs=16 | 5d95e9d8c4164ba0 | 18:29:35.040000
+  10786 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 6e2b4d8f8dca411c | 18:29:35.649000
+  10787 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | daabd62e86d24b8d | 18:29:35.675000
+  10788 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 91253b94ca824414 | 18:29:35.713000
+  10789 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 028e71518a3c4a27 | 18:29:35.740000
+  10790 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | ea398ae4de9448d9 | 18:29:35.775000
+  10791 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 568a555fd8f844bc | 18:29:35.800000
+  10792 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | d6b4ccfc8ab04688 | 18:29:35.822000
+  10793 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 56ce3cb4af4949d7 | 18:29:35.846000
+  10794 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 0ad9d66934f147a1 | 18:29:35.866000
+
+[结论字段] audit_log 里 to_status='ASSIGNED' 的行数 = 9  (>1 即重复分配)  审计总行数 = 10

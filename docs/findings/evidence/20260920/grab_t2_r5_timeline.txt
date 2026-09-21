@@ -1,0 +1,36 @@
+ticket_id=8225  线程数=4  t0=2026-09-20T18:03:08.308  (+ms 相对 t0)
+线程                        +ms  mapper       阶段          内容
+http-nio-8080-exec-31#1      0  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-31#1      1  selectById   PARAMS      8225(Long)
+http-nio-8080-exec-31#1      2  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-31#1      2  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-31#1      3  updateById   PARAMS      T20260920-436226F1(String), perf grab target 20260920-180307(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-31#1      9  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-31#1      9  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-31#1     10  insert       PARAMS      8225(Long), PENDING(String), ASSIGNED(String), 3(Long), 坐席A(String), MANUAL(String), 抢单(String), ff2bffdbac034d22(String
+http-nio-8080-exec-31#1     11  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-4#1      0  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-4#1      1  selectById   PARAMS      8225(Long)
+http-nio-8080-exec-4#1      2  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-4#1      2  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-4#1      3  updateById   PARAMS      T20260920-436226F1(String), perf grab target 20260920-180307(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-4#1      4  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-4#1      4  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-4#1      4  insert       PARAMS      8225(Long), PENDING(String), ASSIGNED(String), 4(Long), 坐席B(String), MANUAL(String), 抢单(String), 05c6adf642cc4566(String
+http-nio-8080-exec-4#1      5  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-82#1     52  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-82#1     53  selectById   PARAMS      8225(Long)
+http-nio-8080-exec-82#1     54  selectById   RESULT      <==      Total: 1
+
+http-nio-8080-exec-100#1     60  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-100#1     60  selectById   PARAMS      8225(Long)
+http-nio-8080-exec-100#1     62  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-100#1     62  selectList   SEND        SELECT id,ticket_id,from_status,to_status,operator_id,operat
+http-nio-8080-exec-100#1     63  selectList   PARAMS      8225(Long)
+http-nio-8080-exec-100#1     64  selectList   RESULT      <==      Total: 3
+
+每线程摘要(+ms):SELECT 发出 / SELECT 返回 / UPDATE 发出 / UPDATE 返回 / SELECT返回→UPDATE返回 的窗口
+  http-nio-8080-exec-31#1      0      2      2      9   window=7 ms   UPDATE 执行了
+  http-nio-8080-exec-4#1      0      2      2      4   window=2 ms   UPDATE 执行了

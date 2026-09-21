@@ -1,0 +1,223 @@
+# CI 流水线(CLAUDE.md §3):编译 → 单测 → JaCoCo 增量覆盖率门禁 → 起服务和中间件 → 接口自动化 → Allure 报告归档
+#
+# 两个 job:
+#   unit  编译 + JUnit/Mockito + JaCoCo 全量兜底线(mvn verify)+ 增量门禁(diff-cover 对 JaCoCo XML,阈值 ADR-011)
+#   api   复用 ops/docker-compose.yml 起 MySQL/Redis/RabbitMQ/WireMock,java -jar 起服务,预热连接池,跑 pytest(api + security,
+#         含并发 / 容量 / 故障注入用例——后者用 runner 上的 docker compose stop/start 中间件),
+#         出 Allure 报告并归档为 artifact;同时用 coverage.py 量 tests/api/framework 自身的覆盖率并做同样的增量门禁
+# 为什么不用 GitHub 的 services: 语法起中间件:它挂不了仓库里的初始化 SQL 和 WireMock 桩目录,compose 文件本来就是本地联调用的,直接复用。
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  # 增量覆盖率门禁阈值(ADR-011):改动行的覆盖率 ≥ 80%
+  DIFF_COVER_FAIL_UNDER: "80"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: 编译 + 单测 + 覆盖率门禁
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0            # diff-cover 需要和基线分支比 diff
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+          cache-dependency-path: service/pom.xml
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 编译 + 单测 + JaCoCo 全量兜底线
+        working-directory: service
+        run: mvn -B -ntp verify
+
+      - name: 单测结果与覆盖率报告归档
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-reports
+          path: |
+            service/target/surefire-reports/**/*.xml
+            service/target/site/jacoco/**
+          retention-days: 14
+
+      - name: 增量覆盖率门禁(diff-cover ← JaCoCo XML)
+        run: |
+          pip install -q "diff-cover>=9.0"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="origin/${{ github.base_ref }}"
+          else
+            BASE="HEAD~1"
+          fi
+          git rev-parse --verify "$BASE" >/dev/null 2>&1 || BASE="$(git rev-list --max-parents=0 HEAD | tail -1)"
+          echo "基线: $BASE"
+          # --src-roots:JaCoCo XML 里的路径相对 src/main/java,告诉 diff-cover 去哪里找源码
+          diff-cover service/target/site/jacoco/jacoco.xml \
+            --compare-branch="$BASE" \
+            --src-roots service/src/main/java \
+            --fail-under="$DIFF_COVER_FAIL_UNDER" \
+            --html-report diff-cover-java.html \
+            --markdown-report diff-cover-java.md
+          cat diff-cover-java.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: 增量覆盖率报告归档
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diff-cover-java
+          path: diff-cover-java.*
+          if-no-files-found: ignore
+          retention-days: 14
+
+  api:
+    name: 起服务 + 接口自动化 + Allure
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    needs: unit
+    env:
+      TICKETQA_ENV: ci
+      # 与 ops/.env.example 一致;compose 与服务都从这里读
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: ticket_qa
+      MYSQL_USER: ticketqa
+      MYSQL_PASSWORD: ticketqa123
+      REDIS_PASSWORD: redis123
+      RABBITMQ_USER: ticketqa
+      RABBITMQ_PASSWORD: rabbit123
+      APP_ATTACHMENT_DIR: /tmp/ticketqa-attachments
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+          cache-dependency-path: service/pom.xml
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+
+      - name: 起中间件(复用 ops/docker-compose.yml)
+        working-directory: ops
+        run: |
+          cp .env.example .env
+          docker compose up -d mysql redis rabbitmq wiremock
+          # 等四个容器全部 healthy(MySQL 首次初始化要跑 init SQL,给足 120s)
+          for i in $(seq 1 60); do
+            unhealthy=$(docker compose ps --format json | python3 -c '
+          import json,sys
+          rows=[json.loads(l) for l in sys.stdin if l.strip()]
+          bad=[r["Service"] for r in rows if r.get("Health") not in ("healthy",)]
+          print(",".join(bad))')
+            if [ -z "$unhealthy" ]; then echo "all healthy"; break; fi
+            echo "waiting: $unhealthy"; sleep 2
+          done
+          docker compose ps
+          test -z "$unhealthy"
+
+      - name: 打包服务
+        working-directory: service
+        run: mvn -B -ntp -DskipTests package
+
+      - name: 起服务(后台)并等待 health UP
+        working-directory: service
+        run: |
+          mkdir -p "$APP_ATTACHMENT_DIR" logs
+          nohup java -Dfile.encoding=UTF-8 -jar target/ticket-qa-service-*.jar > logs/stdout.log 2>&1 &
+          echo $! > logs/app.pid
+          for i in $(seq 1 60); do
+            if curl -sf localhost:8080/actuator/health | grep -q '"status":"UP"'; then echo "service UP"; exit 0; fi
+            sleep 2
+          done
+          echo "service did not come up"; tail -n 80 logs/stdout.log; exit 1
+
+      - name: 安装 Python 依赖
+        run: pip install -q -r tests/requirements.txt
+
+      - name: 连接池预热(KI-010:并发用例的结果取决于那一刻 HikariCP 的大小,CI 和本地必须在同一起点)
+        working-directory: tests
+        run: python tools/warm_pool.py
+
+      - name: 接口自动化 + 安全用例(coverage.py 量框架自身)
+        working-directory: tests
+        run: |
+          python -m coverage run --source=api/framework -m pytest --alluredir=allure-results -p no:cacheprovider
+          python -m coverage xml -o coverage.xml
+          python -m coverage report
+
+      - name: 框架代码增量覆盖率门禁(diff-cover ← coverage.py)
+        working-directory: tests
+        if: always()
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then BASE="origin/${{ github.base_ref }}"; else BASE="HEAD~1"; fi
+          git rev-parse --verify "$BASE" >/dev/null 2>&1 || BASE="$(git rev-list --max-parents=0 HEAD | tail -1)"
+          diff-cover coverage.xml --compare-branch="$BASE" --fail-under="$DIFF_COVER_FAIL_UNDER" \
+            --markdown-report diff-cover-python.md
+          cat diff-cover-python.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: 服务日志归档(便于按 traceId 对账)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-logs
+          path: |
+            service/logs/stdout.log
+            service/logs/ticket-qa-service.log
+          retention-days: 7
+
+      - name: 生成 Allure 报告
+        if: always()
+        run: |
+          ALLURE_VERSION=2.30.0
+          curl -sSL -o /tmp/allure.tgz "https://github.com/allure-framework/allure2/releases/download/${ALLURE_VERSION}/allure-${ALLURE_VERSION}.tgz"
+          tar -xzf /tmp/allure.tgz -C /tmp
+          # environment.properties 会显示在报告首页
+          printf 'env=ci\nbase_url=http://127.0.0.1:8080\ncommit=%s\nbranch=%s\n' "${{ github.sha }}" "${{ github.ref_name }}" > tests/allure-results/environment.properties
+          /tmp/allure-${ALLURE_VERSION}/bin/allure generate tests/allure-results --clean -o tests/allure-report
+          ls tests/allure-report | head
+
+      - name: Allure 报告归档
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: tests/allure-report
+          retention-days: 30
+
+      - name: Allure 原始结果归档(可与历史合并看趋势)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: tests/allure-results
+          retention-days: 30
+
+      - name: 停服务与中间件
+        if: always()
+        run: |
+          kill "$(cat service/logs/app.pid)" 2>/dev/null || true
+          (cd ops && docker compose down -v) || true

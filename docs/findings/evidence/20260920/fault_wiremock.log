@@ -1,0 +1,109 @@
+===== 21:51:26  场景3 基线(注入前)
+health   HTTP 200    69.5 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200     3.9 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201    65.1 ms  code=0 id=16 category=REFUND priority=P1 traceId=cdedec924ce5489f
+grab     HTTP 200    32.7 ms  code=0 status=ASSIGNED assignee=3 traceId=5d401dde9a5e4f39
+metrics  mq_event_published=581692 mq_event_publish_failed=9 mq_event_consumed=581690 llm_fallback=0 llm_circuit_open=0 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=460
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': 'mock-classifier-v1', 'latency_ms': 46, 'degraded': 0, 'degrade_reason': None, 'raw_category': 'REFUND', 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 16 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+21:51:28 WireMock 全局 fixedDelay=5000ms (POST /__admin/settings)
+HTTP 200
+{
+  "settings" : {
+    "fixedDelay" : 5000,
+    "proxyPassThrough" : false
+  }
+}===== 21:51:28  场景3 注入中 #1(挡板延迟 5s)
+health   HTTP 200    68.0 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200    27.5 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201  3042.9 ms  code=0 id=17 category=REFUND priority=P1 traceId=8acb6e9048ea4d16
+grab     HTTP 200    34.3 ms  code=0 status=ASSIGNED assignee=3 traceId=84791fd2053b4420
+metrics  mq_event_published=581695 mq_event_publish_failed=9 mq_event_consumed=581693 llm_fallback=1 llm_circuit_open=0 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=461
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': None, 'latency_ms': 3007, 'degraded': 1, 'degrade_reason': 'TIMEOUT', 'raw_category': None, 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 17 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+===== 21:51:32  场景3 注入中 #2(挡板延迟 5s)
+health   HTTP 200    65.0 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200    26.9 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201  3045.9 ms  code=0 id=18 category=REFUND priority=P1 traceId=353196bb0bd44083
+grab     HTTP 200    11.9 ms  code=0 status=ASSIGNED assignee=3 traceId=4d699f38e8434783
+metrics  mq_event_published=581698 mq_event_publish_failed=9 mq_event_consumed=581696 llm_fallback=2 llm_circuit_open=0 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=461
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': None, 'latency_ms': 3013, 'degraded': 1, 'degrade_reason': 'TIMEOUT', 'raw_category': None, 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 18 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+===== 21:51:36  场景3 注入中 #3(挡板延迟 5s)
+health   HTTP 200    70.9 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200     2.3 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201  3043.2 ms  code=0 id=19 category=REFUND priority=P1 traceId=405107cc73bf4ca7
+grab     HTTP 200    37.3 ms  code=0 status=ASSIGNED assignee=3 traceId=e1f366c8b1424842
+metrics  mq_event_published=581701 mq_event_publish_failed=9 mq_event_consumed=581701 llm_fallback=3 llm_circuit_open=0 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=461
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': None, 'latency_ms': 3005, 'degraded': 1, 'degrade_reason': 'TIMEOUT', 'raw_category': None, 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 19 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+===== 21:51:40  场景3 注入中 #4(挡板延迟 5s)
+health   HTTP 200    66.9 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200    27.3 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201  3034.8 ms  code=0 id=20 category=REFUND priority=P1 traceId=858143895a6343b0
+grab     HTTP 200    13.6 ms  code=0 status=ASSIGNED assignee=3 traceId=470032b711364b8a
+metrics  mq_event_published=581704 mq_event_publish_failed=9 mq_event_consumed=581702 llm_fallback=4 llm_circuit_open=0 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=461
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': None, 'latency_ms': 3003, 'degraded': 1, 'degrade_reason': 'TIMEOUT', 'raw_category': None, 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 20 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+===== 21:51:44  场景3 注入中 #5(挡板延迟 5s)
+health   HTTP 200    89.9 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200     2.1 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201  3047.8 ms  code=0 id=21 category=REFUND priority=P1 traceId=ec2ef17137264c7e
+grab     HTTP 200    26.5 ms  code=0 status=ASSIGNED assignee=3 traceId=c1ca1b14afc84980
+metrics  mq_event_published=581707 mq_event_publish_failed=9 mq_event_consumed=581705 llm_fallback=5 llm_circuit_open=1 llm_circuit_state=1 sla_scan_lock_unavailable=3 sla_scan=461
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': None, 'latency_ms': 3005, 'degraded': 1, 'degrade_reason': 'TIMEOUT', 'raw_category': None, 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 21 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+===== 21:51:48  场景3 注入中 #6(挡板延迟 5s)
+health   HTTP 200    63.7 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200    16.2 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201    33.7 ms  code=0 id=22 category=REFUND priority=P1 traceId=745f504d0fe6478f
+grab     HTTP 200    12.7 ms  code=0 status=ASSIGNED assignee=3 traceId=aa8ebacfbc2b4752
+metrics  mq_event_published=581710 mq_event_publish_failed=9 mq_event_consumed=581708 llm_fallback=6 llm_circuit_open=1 llm_circuit_state=1 sla_scan_lock_unavailable=3 sla_scan=461
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': None, 'latency_ms': 0, 'degraded': 1, 'degrade_reason': 'CIRCUIT_OPEN', 'raw_category': None, 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 22 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+===== 21:51:48  场景3 注入中 #7(挡板延迟 5s)
+health   HTTP 200    67.2 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200     2.5 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201    22.3 ms  code=0 id=23 category=REFUND priority=P1 traceId=32a0a18082e543fa
+grab     HTTP 200    13.8 ms  code=0 status=ASSIGNED assignee=3 traceId=b8d59b92de93485c
+metrics  mq_event_published=581713 mq_event_publish_failed=9 mq_event_consumed=581711 llm_fallback=7 llm_circuit_open=1 llm_circuit_state=1 sla_scan_lock_unavailable=3 sla_scan=461
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': None, 'latency_ms': 0, 'degraded': 1, 'degrade_reason': 'CIRCUIT_OPEN', 'raw_category': None, 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 23 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+21:52:07 WireMock fixedDelay 复原为 0(熔断器于 21:51:44 打开,open-seconds=60)
+HTTP 200
+wiremock direct: 200 0.006965s
+===== 21:52:33  场景3 挡板已复原,熔断打开后 +40s
+health   HTTP 200    65.4 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200     2.3 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201    42.8 ms  code=0 id=24 category=REFUND priority=P1 traceId=a08c24daa4844fcb
+grab     HTTP 200    22.9 ms  code=0 status=ASSIGNED assignee=3 traceId=9c83b25858974d03
+metrics  mq_event_published=581716 mq_event_publish_failed=9 mq_event_consumed=581714 llm_fallback=8 llm_circuit_open=1 llm_circuit_state=1 sla_scan_lock_unavailable=3 sla_scan=463
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': None, 'latency_ms': 0, 'degraded': 1, 'degrade_reason': 'CIRCUIT_OPEN', 'raw_category': None, 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 24 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+===== 21:53:01  场景3 挡板已复原,熔断打开后 +6x s #1
+health   HTTP 200    68.8 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200    18.4 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201    41.3 ms  code=0 id=25 category=REFUND priority=P1 traceId=36712a99c8794eed
+grab     HTTP 200    13.1 ms  code=0 status=ASSIGNED assignee=3 traceId=be2368f3e79742ee
+metrics  mq_event_published=581719 mq_event_publish_failed=9 mq_event_consumed=581717 llm_fallback=8 llm_circuit_open=1 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=464
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': 'mock-classifier-v1', 'latency_ms': 8, 'degraded': 0, 'degrade_reason': None, 'raw_category': 'REFUND', 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 25 = 3 (创建 1 + 抢单 2 = 3 为全部消费)
+
+===== 21:53:02  场景3 挡板已复原,熔断打开后 +6x s #2
+health   HTTP 200    75.2 ms  status=UP db=UP ping=UP rabbit=UP redis=UP
+me       HTTP 200    13.3 ms  {"code":0,"message":"success","data":{"id":3,"username":"agent_a","displayName":"坐席A","rol
+create   HTTP 201    78.0 ms  code=0 id=26 category=REFUND priority=P1 traceId=ab47190edb754fc6
+grab     HTTP 200    24.9 ms  code=0 status=ASSIGNED assignee=3 traceId=658e61c8ba9b41bf
+metrics  mq_event_published=581722 mq_event_publish_failed=9 mq_event_consumed=581720 llm_fallback=8 llm_circuit_open=1 llm_circuit_state=0 sla_scan_lock_unavailable=3 sla_scan=464
+db       ticket={'status': 'ASSIGNED', 'assignee_id': 3} audit_rows=2 llm_call_log=[{'scene': 'CLASSIFY', 'request_model': 'mock-classifier-v1', 'response_model': 'mock-classifier-v1', 'latency_ms': 46, 'degraded': 0, 'degrade_reason': None, 'raw_category': 'REFUND', 'final_category': 'REFUND'}]
+db       mq_message_dedup rows for ticket 26 = 4 (创建 1 + 抢单 2 = 3 为全部消费)
+

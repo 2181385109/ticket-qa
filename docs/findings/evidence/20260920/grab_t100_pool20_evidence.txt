@@ -1,0 +1,34 @@
+===== ticket_id=8240 =====
+SQL> SELECT ticket_id, to_status, COUNT(*) AS n, GROUP_CONCAT(operator_id ORDER BY id) AS operators FROM ticket_audit_log WHERE ticket_id = 8240 AND to_status = 'ASSIGNED' GROUP BY ticket_id, to_status
+  ticket_id | to_status | n | operators
+  8240 | ASSIGNED | 20 | 3,4,3,4,3,4,4,4,3,3,4,3,4,4,3,3,4,3,3,4
+
+SQL> SELECT id, status, assignee_id, group_id, created_at, updated_at FROM ticket WHERE id = 8240
+  id | status | assignee_id | group_id | created_at | updated_at
+  8240 | ASSIGNED | 4 | 1 | 2026-09-20 18:41:37.105000 | 2026-09-20 18:41:37.784000
+
+SQL> SELECT id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, DATE_FORMAT(created_at, '%H:%i:%s.%f') AS created_at FROM ticket_audit_log WHERE ticket_id = 8240 ORDER BY id
+  id | from_status | to_status | operator_id | operator_name | source | remark | trace_id | created_at
+  10885 |  | PENDING | 1 | 管理员 | LLM | 自动分类 category=OTHER priority=P2 model=mock-classifier-v1 latencyMs=43 | d9c2b5c32493464f | 18:41:37.161000
+  10886 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 1f0e93c5f5834cfa | 18:41:37.785000
+  10887 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 8ca367163bc347a7 | 18:41:37.798000
+  10888 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 0497183245e14988 | 18:41:37.807000
+  10889 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | c1d28ffae0cb4b40 | 18:41:37.815000
+  10890 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 0ff90c84af494dbe | 18:41:37.828000
+  10891 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 671d1a40bfb545b9 | 18:41:37.840000
+  10892 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 26114b8abdcb4deb | 18:41:37.855000
+  10893 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 3deb228ff47e41e4 | 18:41:37.868000
+  10894 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | a3a7922ef5c14a25 | 18:41:37.895000
+  10895 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | a9ff1dd0d420406c | 18:41:37.909000
+  10896 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 124cad6db49f4b8b | 18:41:37.928000
+  10897 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 24b34a80a9814477 | 18:41:37.945000
+  10898 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 7380602e81224c44 | 18:41:37.955000
+  10899 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 89ca217bfe6c44e0 | 18:41:37.963000
+  10900 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | a6a082c9387e4567 | 18:41:37.971000
+  10901 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 5c895350de7b4106 | 18:41:37.981000
+  10902 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | ac0a4cc11af64c04 | 18:41:37.989000
+  10903 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | e6e6723429d94cff | 18:41:37.998000
+  10904 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | a7fb9878c3b94085 | 18:41:38.007000
+  10905 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 8afd2021187843c7 | 18:41:38.016000
+
+[结论字段] audit_log 里 to_status='ASSIGNED' 的行数 = 20  (>1 即重复分配)  审计总行数 = 21

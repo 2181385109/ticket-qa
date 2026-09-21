@@ -1,0 +1,160 @@
+基准 t0 = epoch 1789900755741 ms;每行:线程 | 事件 | 发出(+ms) | 返回(+ms) | 耗时 ms | SQL
+http-nio-8080-exec-155 | getConnection    |   -14.1 |    -9.9 |    4.14 |
+http-nio-8080-exec-155 | getConnection    |     7.8 |     8.1 |    0.31 |
+http-nio-8080-exec-155 | getConnection    |   541.1 |   546.1 |    4.93 |
+http-nio-8080-exec-155 | getConnection    |   555.1 |   555.1 |    0.00 |
+http-nio-8080-exec-155 | getConnection    |   556.8 |   557.1 |    0.25 |
+http-nio-8080-exec-155 | getConnection    |   567.1 |   567.1 |    0.00 |
+http-nio-8080-exec-155 | COMMIT           |     0.0 |     6.1 |    6.08 | COMMIT
+http-nio-8080-exec-155 | UPDATE           |    15.5 |    18.1 |    2.58 | UPDATE llm_call_log  SET ticket_id=8238       WHERE  (id = 8238)
+http-nio-8080-exec-155 | COMMIT           |    23.6 |    28.1 |    4.51 | COMMIT
+http-nio-8080-exec-155 | SELECT           |   561.0 |   562.1 |    1.05 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-155 | UPDATE           |   572.2 |   667.1 |   94.89 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-155 | COMMIT           |   671.3 |   681.1 |    9.75 | COMMIT
+
+http-nio-8080-exec-150 | getConnection    |   541.5 |   542.1 |    0.54 |
+http-nio-8080-exec-150 | getConnection    |   556.1 |   556.1 |    0.00 |
+http-nio-8080-exec-150 | SELECT           |   550.3 |   553.1 |    2.80 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-150 | UPDATE           |   560.0 |   562.1 |    2.11 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-150 | UPDATE           |   561.5 |   564.1 |    2.54 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-150 | COMMIT           |   575.1 |   579.1 |    3.99 | COMMIT
+
+http-nio-8080-exec-149 | getConnection    |   541.7 |   546.1 |    4.35 |
+http-nio-8080-exec-149 | getConnection    |   557.1 |   557.1 |    0.00 |
+http-nio-8080-exec-149 | SELECT           |   550.6 |   553.1 |    2.50 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-149 | SELECT           |   552.1 |   555.1 |    2.95 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-149 | UPDATE           |   563.6 |   589.1 |   25.45 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-149 | COMMIT           |   594.0 |   601.1 |    7.08 | COMMIT
+
+http-nio-8080-exec-160 | getConnection    |   541.3 |   545.1 |    3.74 |
+http-nio-8080-exec-160 | getConnection    |   556.1 |   556.1 |    0.01 |
+http-nio-8080-exec-160 | SELECT           |   552.0 |   553.1 |    1.05 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-160 | UPDATE           |   562.5 |   580.1 |   17.54 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-160 | COMMIT           |   584.1 |   589.1 |    5.03 | COMMIT
+
+http-nio-8080-exec-145 | getConnection    |   541.7 |   547.1 |    5.34 |
+http-nio-8080-exec-145 | getConnection    |   557.1 |   557.1 |    0.01 |
+http-nio-8080-exec-145 | SELECT           |   552.3 |   555.1 |    2.78 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-145 | UPDATE           |   563.7 |   601.1 |   37.41 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-145 | COMMIT           |   607.1 |   612.1 |    5.00 | COMMIT
+
+http-nio-8080-exec-154 | getConnection    |   541.4 |   546.1 |    4.70 |
+http-nio-8080-exec-154 | getConnection    |   559.1 |   559.1 |    0.00 |
+http-nio-8080-exec-154 | SELECT           |   553.6 |   556.1 |    2.45 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-154 | UPDATE           |   566.3 |   612.1 |   45.79 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-154 | COMMIT           |   616.9 |   622.1 |    5.18 | COMMIT
+
+http-nio-8080-exec-142 | getConnection    |   541.3 |   547.1 |    5.78 |
+http-nio-8080-exec-142 | getConnection    |   560.1 |   560.1 |    0.00 |
+http-nio-8080-exec-142 | SELECT           |   554.1 |   557.1 |    3.01 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-142 | UPDATE           |   567.6 |   622.1 |   54.50 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-142 | UPDATE           |   568.9 |   624.1 |   55.17 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-142 | COMMIT           |   630.2 |   635.1 |    4.86 | COMMIT
+
+http-nio-8080-exec-165 | getConnection    |   544.3 |   548.1 |    3.81 |
+http-nio-8080-exec-165 | getConnection    |   562.1 |   562.1 |    0.00 |
+http-nio-8080-exec-165 | SELECT           |   555.7 |   558.1 |    2.41 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-165 | UPDATE           |   568.5 |   635.1 |   66.55 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-165 | COMMIT           |   640.1 |   646.1 |    5.97 | COMMIT
+
+http-nio-8080-exec-168 | getConnection    |   543.1 |   551.1 |    8.02 |
+http-nio-8080-exec-168 | getConnection    |   564.1 |   564.1 |    0.00 |
+http-nio-8080-exec-168 | SELECT           |   556.5 |   560.1 |    3.62 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-168 | UPDATE           |   569.9 |   646.1 |   76.14 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-168 | COMMIT           |   651.4 |   657.1 |    5.68 | COMMIT
+
+http-nio-8080-exec-169 | getConnection    |   543.7 |   548.1 |    4.39 |
+http-nio-8080-exec-169 | getConnection    |   567.1 |   567.1 |    0.00 |
+http-nio-8080-exec-169 | SELECT           |   560.3 |   562.1 |    1.78 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-169 | UPDATE           |   570.7 |   657.1 |   86.39 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-169 | COMMIT           |   661.4 |   666.1 |    4.64 | COMMIT
+
+http-nio-8080-exec-167 | getConnection    |   544.5 |   556.1 |   11.56 |
+http-nio-8080-exec-167 | getConnection    |   569.1 |   569.1 |    0.00 |
+http-nio-8080-exec-167 | SELECT           |   564.3 |   565.1 |    0.83 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-167 | SELECT           |   565.6 |   567.1 |    1.48 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-167 | UPDATE           |   573.8 |   681.1 |  107.30 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-167 | COMMIT           |   686.5 |   691.1 |    4.60 | COMMIT
+
+http-nio-8080-exec-159 | getConnection    |   541.4 |   546.1 |    4.66 |
+http-nio-8080-exec-159 | getConnection    |   556.7 |   557.1 |    0.38 |
+http-nio-8080-exec-159 | getConnection    |   570.1 |   570.1 |    0.00 |
+http-nio-8080-exec-159 | SELECT           |   564.3 |   565.1 |    0.73 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-159 | SELECT           |   565.6 |   567.1 |    1.46 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-159 | UPDATE           |   574.4 |   691.1 |  116.67 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-159 | COMMIT           |   695.5 |   701.1 |    5.58 | COMMIT
+
+http-nio-8080-exec-147 | getConnection    |   541.0 |   545.1 |    4.12 |
+http-nio-8080-exec-147 | getConnection    |   555.1 |   555.1 |    0.00 |
+http-nio-8080-exec-147 | getConnection    |   556.9 |   557.1 |    0.22 |
+http-nio-8080-exec-147 | getConnection    |   570.1 |   570.1 |    0.00 |
+http-nio-8080-exec-147 | SELECT           |   564.5 |   565.1 |    0.62 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-147 | SELECT           |   565.9 |   567.1 |    1.21 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-147 | UPDATE           |   573.4 |   701.1 |  127.71 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-147 | COMMIT           |   706.3 |   710.1 |    3.73 | COMMIT
+
+http-nio-8080-exec-170 | getConnection    |   544.1 |   547.1 |    2.97 |
+http-nio-8080-exec-170 | getConnection    |   555.1 |   555.1 |    0.00 |
+http-nio-8080-exec-170 | getConnection    |   556.4 |   557.1 |    0.66 |
+http-nio-8080-exec-170 | getConnection    |   570.1 |   570.1 |    0.00 |
+http-nio-8080-exec-170 | SELECT           |   565.6 |   567.1 |    1.43 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-170 | UPDATE           |   574.7 |   710.1 |  135.35 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-170 | COMMIT           |   714.5 |   718.1 |    3.59 | COMMIT
+
+http-nio-8080-exec-162 | getConnection    |   543.0 |   548.1 |    5.05 |
+http-nio-8080-exec-162 | getConnection    |   558.8 |   559.1 |    0.29 |
+http-nio-8080-exec-162 | getConnection    |   571.1 |   571.1 |    0.01 |
+http-nio-8080-exec-162 | SELECT           |   566.5 |   568.1 |    1.60 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-162 | UPDATE           |   574.1 |   718.1 |  144.02 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+http-nio-8080-exec-162 | COMMIT           |   723.8 |   730.1 |    6.27 | COMMIT
+
+http-nio-8080-exec-143 | getConnection    |   541.2 |   547.1 |    5.92 |
+http-nio-8080-exec-143 | getConnection    |   558.8 |   559.1 |    0.26 |
+http-nio-8080-exec-143 | getConnection    |   571.1 |   571.1 |    0.00 |
+http-nio-8080-exec-143 | SELECT           |   566.9 |   568.1 |    1.19 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+http-nio-8080-exec-143 | UPDATE           |   574.9 |   730.1 |  155.22 | UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab ta
+
+http-nio-8080-exec-163 | getConnection    |   543.4 |   548.1 |    4.68 |
+http-nio-8080-exec-163 | getConnection    |   557.1 |   557.1 |    0.00 |
+http-nio-8080-exec-163 | getConnection    |   558.0 |   559.1 |    1.10 |
+http-nio-8080-exec-163 | getConnection    |   571.1 |   571.1 |    0.00 |
+http-nio-8080-exec-163 | SELECT           |   567.9 |   569.1 |    1.23 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+
+http-nio-8080-exec-164 | getConnection    |   543.5 |   549.1 |    5.60 |
+http-nio-8080-exec-164 | getConnection    |   559.1 |   559.1 |    0.00 |
+http-nio-8080-exec-164 | getConnection    |   559.6 |   562.1 |    2.47 |
+http-nio-8080-exec-164 | getConnection    |   572.1 |   572.1 |    0.00 |
+http-nio-8080-exec-164 | SELECT           |   568.1 |   569.1 |    1.00 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+
+http-nio-8080-exec-166 | getConnection    |   543.0 |   551.1 |    8.08 |
+http-nio-8080-exec-166 | getConnection    |   559.1 |   559.1 |    0.00 |
+http-nio-8080-exec-166 | getConnection    |   560.8 |   561.1 |    0.28 |
+http-nio-8080-exec-166 | getConnection    |   573.1 |   573.1 |    0.00 |
+http-nio-8080-exec-166 | SELECT           |   568.7 |   570.1 |    1.43 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+
+http-nio-8080-exec-161 | getConnection    |   544.2 |   548.1 |    3.89 |
+http-nio-8080-exec-161 | getConnection    |   560.8 |   561.1 |    0.32 |
+http-nio-8080-exec-161 | getConnection    |   573.1 |   573.1 |    0.01 |
+http-nio-8080-exec-161 | SELECT           |   568.7 |   570.1 |    1.34 | SELECT id,ticket_no,title,content,category,priority,status,customer_id
+
+摘要(+ms 相对 t0):线程 | getConnection 等待 | SELECT 发出 | SELECT 返回 | UPDATE 发出 | UPDATE 返回(含行锁等待) | COMMIT 返回 | 窗口 SELECT发出→COMMIT返回
+  http-nio-8080-exec-150 |   0.54 |   550.3 |   553.1 |   561.5 |   564.1 |   579.1 |   28.8  UPDATE 执行了
+  http-nio-8080-exec-149 |   4.35 |   550.6 |   553.1 |   563.6 |   589.1 |   601.1 |   50.5  UPDATE 执行了
+  http-nio-8080-exec-160 |   3.74 |   552.0 |   553.1 |   562.5 |   580.1 |   589.1 |   37.0  UPDATE 执行了
+  http-nio-8080-exec-145 |   5.34 |   552.3 |   555.1 |   563.7 |   601.1 |   612.1 |   59.8  UPDATE 执行了
+  http-nio-8080-exec-154 |   4.70 |   553.6 |   556.1 |   566.3 |   612.1 |   622.1 |   68.4  UPDATE 执行了
+  http-nio-8080-exec-142 |   5.78 |   554.1 |   557.1 |   568.9 |   624.1 |   635.1 |   81.0  UPDATE 执行了
+  http-nio-8080-exec-165 |   3.81 |   555.7 |   558.1 |   568.5 |   635.1 |   646.1 |   90.4  UPDATE 执行了
+  http-nio-8080-exec-168 |   8.02 |   556.5 |   560.1 |   569.9 |   646.1 |   657.1 |  100.6  UPDATE 执行了
+  http-nio-8080-exec-169 |   4.39 |   560.3 |   562.1 |   570.7 |   657.1 |   666.1 |  105.8  UPDATE 执行了
+  http-nio-8080-exec-155 |   0.25 |   561.0 |   562.1 |   572.2 |   667.1 |   681.1 |  120.1  UPDATE 执行了
+  http-nio-8080-exec-167 |  11.56 |   564.3 |   565.1 |   573.8 |   681.1 |   691.1 |  126.8  UPDATE 执行了
+  http-nio-8080-exec-159 |   0.38 |   564.3 |   565.1 |   574.4 |   691.1 |   701.1 |  136.7  UPDATE 执行了
+  http-nio-8080-exec-147 |   0.22 |   564.5 |   565.1 |   573.4 |   701.1 |   710.1 |  145.6  UPDATE 执行了
+  http-nio-8080-exec-170 |   0.66 |   565.6 |   567.1 |   574.7 |   710.1 |   718.1 |  152.4  UPDATE 执行了
+  http-nio-8080-exec-162 |   0.29 |   566.5 |   568.1 |   574.1 |   718.1 |   730.1 |  163.6  UPDATE 执行了
+  http-nio-8080-exec-143 |   0.26 |   566.9 |   568.1 |   574.9 |   730.1 |       - |      -  UPDATE 执行了
+  http-nio-8080-exec-163 |   1.10 |   567.9 |   569.1 |       - |       - |       - |      -  (只 SELECT,409)
+  http-nio-8080-exec-164 |   2.47 |   568.1 |   569.1 |       - |       - |       - |      -  (只 SELECT,409)
+  http-nio-8080-exec-166 |   0.28 |   568.7 |   570.1 |       - |       - |       - |      -  (只 SELECT,409)
+  http-nio-8080-exec-161 |   0.32 |   568.7 |   570.1 |       - |       - |       - |      -  (只 SELECT,409)

@@ -1,0 +1,14 @@
+# WSL2 里跑 Docker Engine、被测服务跑在 Windows 上时的叠加文件。
+#
+# 问题:docker-compose.yml 里 prometheus 用 `host.docker.internal:host-gateway`,
+#       在 WSL2 的 Docker 里 host-gateway 解析成 docker0 的地址(172.17.0.1)——那是 WSL 虚拟机自己,
+#       不是 Windows,所以 Prometheus 抓 8080 一直 connection refused(2026-09-20 压测阶段发现)。
+# 事实:Windows 宿主在 WSL 里的地址 = WSL 的默认网关,`ip route | awk '/default/{print $3}'`,
+#       本机是 172.30.192.1(NAT 模式下每次 wsl --shutdown 后可能变)。
+# 用法(在 ops/ 下):
+#   WSL_HOST_GATEWAY=$(ip route | awk '/default/{print $3}') \
+#   docker compose -f docker-compose.yml -f docker-compose.wsl.yml up -d prometheus
+services:
+  prometheus:
+    extra_hosts: !override
+      - "host.docker.internal:${WSL_HOST_GATEWAY:-172.30.192.1}"

@@ -1,0 +1,2087 @@
+# 2026-09-20 18:38:18  arthas pid=15936
+# 鍛戒护: watch -E com.zaxxer.hikari.pool.(ProxyPreparedStatement|ProxyConnection|HikariPool) (execute|commit|rollback|getConnection) '#s=(target instanceof com.zaxxer.hikari.pool.HikariPool) ? "getConnection" : target.delegate.toString(), {@java.lang.System@currentTimeMillis(), @java.lang.Thread@currentThread().getName(), #cost, method.name, (#s.length()>520 ? #s.substring(0,520) : #s)}' '@java.lang.Thread@currentThread().getName().startsWith("http")' -n 260 -x 1
+[arthas@15936]$ watch -E com.zaxxer.hikari.pool.(ProxyPreparedStatement|ProxyCon nection|HikariPool) (execute|commit|rollback|getConnection) '#s=(target instance of com.zaxxer.hikari.pool.HikariPool) ? "getConnection" : target.delegate.toStri ng(), {@java.lang.System@currentTimeMillis(), @java.lang.Thread@currentThread(). getName(), #cost, method.name, (#s.length()>520 ? #s.substring(0,520) : #s)}' '@ java.lang.Thread@currentThread().getName().startsWith("http")' -n 260 -x 1 | pla intext
+Press Q or Ctrl+C to abort.
+Affect(class count: 5 , method count: 15) cost in 86 ms, listenerId: 18
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:15.730; [cost=1.3473ms] result=@ArrayList[
+    @Long[1789900755730],
+    @String[http-nio-8080-exec-155],
+    @Double[1.3473],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:15.731; [cost=4.1438ms] result=@ArrayList[
+    @Long[1789900755731],
+    @String[http-nio-8080-exec-155],
+    @Double[4.1438],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:15.739; [cost=3.8265ms] result=@ArrayList[
+    @Long[1789900755739],
+    @String[http-nio-8080-exec-155],
+    @Double[3.8265],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO llm_call_log  ( scene, request_model, response_model, latency_ms, degraded,  raw_category, final_category, contract_violated, trace_id, created_at )  VALUES (  'CLASSIFY', 'mock-classifier-v1', 'mock-classifier-v1', 15, 0,  'OTHER', 'OTHER', 0, '5b2abdebb2704b03', '2026-09-20 18:39:15.733652'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:15.740; [cost=5.5915ms] result=@ArrayList[
+    @Long[1789900755740],
+    @String[http-nio-8080-exec-155],
+    @Double[5.5915],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO llm_call_log  ( scene, request_model, response_model, latency_ms, degraded,  raw_category, final_category, contract_violated, trace_id, created_at )  VALUES (  'CLASSIFY', 'mock-classifier-v1', 'mock-classifier-v1', 15, 0,  'OTHER', 'OTHER', 0, '5b2abdebb2704b03', '2026-09-20 18:39:15.733652'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:15.746; [cost=4.8413ms] result=@ArrayList[
+    @Long[1789900755746],
+    @String[http-nio-8080-exec-155],
+    @Double[4.8413],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@582a3453],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:15.747; [cost=6.0795ms] result=@ArrayList[
+    @Long[1789900755747],
+    @String[http-nio-8080-exec-155],
+    @Double[6.0795],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@582a3453],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:15.748; [cost=0.0127ms] result=@ArrayList[
+    @Long[1789900755748],
+    @String[http-nio-8080-exec-155],
+    @Double[0.0127],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:15.749; [cost=0.312ms] result=@ArrayList[
+    @Long[1789900755749],
+    @String[http-nio-8080-exec-155],
+    @Double[0.312],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:15.754; [cost=3.926ms] result=@ArrayList[
+    @Long[1789900755754],
+    @String[http-nio-8080-exec-155],
+    @Double[3.926],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket  ( ticket_no, title, content, category, priority, status, customer_id, group_id,  created_by, sla_deadline,    created_at, updated_at )  VALUES (  'T20260920-7D75D308', 'perf grab target 20260920-183915', 'JMeter 抢单靶子', 'OTHER', 'P2', 'PENDING', 4488, 1,  1, '2026-09-20 22:39:15.71165',    '2026-09-20 18:39:15.71165', '2026-09-20 18:39:15.71165'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:15.755; [cost=4.725ms] result=@ArrayList[
+    @Long[1789900755755],
+    @String[http-nio-8080-exec-155],
+    @Double[4.725],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket  ( ticket_no, title, content, category, priority, status, customer_id, group_id,  created_by, sla_deadline,    created_at, updated_at )  VALUES (  'T20260920-7D75D308', 'perf grab target 20260920-183915', 'JMeter 抢单靶子', 'OTHER', 'P2', 'PENDING', 4488, 1,  1, '2026-09-20 22:39:15.71165',    '2026-09-20 18:39:15.71165', '2026-09-20 18:39:15.71165'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:15.759; [cost=1.9648ms] result=@ArrayList[
+    @Long[1789900755759],
+    @String[http-nio-8080-exec-155],
+    @Double[1.9648],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE llm_call_log  SET ticket_id=8238       WHERE  (id = 8238)],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:15.759; [cost=2.5823ms] result=@ArrayList[
+    @Long[1789900755759],
+    @String[http-nio-8080-exec-155],
+    @Double[2.5823],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE llm_call_log  SET ticket_id=8238       WHERE  (id = 8238)],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:15.763; [cost=1.7064ms] result=@ArrayList[
+    @Long[1789900755763],
+    @String[http-nio-8080-exec-155],
+    @Double[1.7064],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id,  to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238,  'PENDING', 1, '管理员', 'LLM', '自动分类 category=OTHER priority=P2 model=mock-classifier-v1 latencyMs=15', '5b2abdebb2704b03', '2026-09-20 18:39:15.760603'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:15.764; [cost=2.4347ms] result=@ArrayList[
+    @Long[1789900755764],
+    @String[http-nio-8080-exec-155],
+    @Double[2.4347],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id,  to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238,  'PENDING', 1, '管理员', 'LLM', '自动分类 category=OTHER priority=P2 model=mock-classifier-v1 latencyMs=15', '5b2abdebb2704b03', '2026-09-20 18:39:15.760603'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:15.769; [cost=3.9486ms] result=@ArrayList[
+    @Long[1789900755769],
+    @String[http-nio-8080-exec-155],
+    @Double[3.9486],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@582a3453],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:15.769; [cost=4.5109ms] result=@ArrayList[
+    @Long[1789900755769],
+    @String[http-nio-8080-exec-155],
+    @Double[4.5109],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@582a3453],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.283; [cost=0.014ms] result=@ArrayList[
+    @Long[1789900756282],
+    @String[http-nio-8080-exec-150],
+    @Double[0.014],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.283; [cost=0.5361ms] result=@ArrayList[
+    @Long[1789900756283],
+    @String[http-nio-8080-exec-150],
+    @Double[0.5361],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.286; [cost=3.5886ms] result=@ArrayList[
+    @Long[1789900756286],
+    @String[http-nio-8080-exec-147],
+    @Double[3.5886],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.286; [cost=3.4641ms] result=@ArrayList[
+    @Long[1789900756286],
+    @String[http-nio-8080-exec-160],
+    @Double[3.4641],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.286; [cost=4.1242ms] result=@ArrayList[
+    @Long[1789900756286],
+    @String[http-nio-8080-exec-147],
+    @Double[4.1242],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.286; [cost=3.7375ms] result=@ArrayList[
+    @Long[1789900756286],
+    @String[http-nio-8080-exec-160],
+    @Double[3.7375],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.286; [cost=4.4322ms] result=@ArrayList[
+    @Long[1789900756286],
+    @String[http-nio-8080-exec-159],
+    @Double[4.4322],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.287; [cost=4.0424ms] result=@ArrayList[
+    @Long[1789900756287],
+    @String[http-nio-8080-exec-149],
+    @Double[4.0424],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.287; [cost=4.6631ms] result=@ArrayList[
+    @Long[1789900756287],
+    @String[http-nio-8080-exec-159],
+    @Double[4.6631],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.287; [cost=4.7302ms] result=@ArrayList[
+    @Long[1789900756287],
+    @String[http-nio-8080-exec-155],
+    @Double[4.7302],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.287; [cost=4.3504ms] result=@ArrayList[
+    @Long[1789900756287],
+    @String[http-nio-8080-exec-149],
+    @Double[4.3504],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.287; [cost=4.492ms] result=@ArrayList[
+    @Long[1789900756287],
+    @String[http-nio-8080-exec-154],
+    @Double[4.492],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.287; [cost=4.9341ms] result=@ArrayList[
+    @Long[1789900756287],
+    @String[http-nio-8080-exec-155],
+    @Double[4.9341],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.287; [cost=4.6978ms] result=@ArrayList[
+    @Long[1789900756287],
+    @String[http-nio-8080-exec-154],
+    @Double[4.6978],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.287; [cost=2.6985ms] result=@ArrayList[
+    @Long[1789900756287],
+    @String[http-nio-8080-exec-170],
+    @Double[2.6985],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.287; [cost=5.0279ms] result=@ArrayList[
+    @Long[1789900756287],
+    @String[http-nio-8080-exec-145],
+    @Double[5.0279],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.288; [cost=2.9709ms] result=@ArrayList[
+    @Long[1789900756288],
+    @String[http-nio-8080-exec-170],
+    @Double[2.9709],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.288; [cost=5.3379ms] result=@ArrayList[
+    @Long[1789900756288],
+    @String[http-nio-8080-exec-145],
+    @Double[5.3379],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.288; [cost=5.6518ms] result=@ArrayList[
+    @Long[1789900756288],
+    @String[http-nio-8080-exec-143],
+    @Double[5.6518],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.288; [cost=5.9171ms] result=@ArrayList[
+    @Long[1789900756288],
+    @String[http-nio-8080-exec-143],
+    @Double[5.9171],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.288; [cost=5.5334ms] result=@ArrayList[
+    @Long[1789900756288],
+    @String[http-nio-8080-exec-142],
+    @Double[5.5334],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.288; [cost=5.7847ms] result=@ArrayList[
+    @Long[1789900756288],
+    @String[http-nio-8080-exec-142],
+    @Double[5.7847],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.288; [cost=3.6083ms] result=@ArrayList[
+    @Long[1789900756288],
+    @String[http-nio-8080-exec-161],
+    @Double[3.6083],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.289; [cost=3.5355ms] result=@ArrayList[
+    @Long[1789900756289],
+    @String[http-nio-8080-exec-165],
+    @Double[3.5355],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.289; [cost=3.8906ms] result=@ArrayList[
+    @Long[1789900756289],
+    @String[http-nio-8080-exec-161],
+    @Double[3.8906],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.289; [cost=3.8089ms] result=@ArrayList[
+    @Long[1789900756289],
+    @String[http-nio-8080-exec-165],
+    @Double[3.8089],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.289; [cost=4.0975ms] result=@ArrayList[
+    @Long[1789900756289],
+    @String[http-nio-8080-exec-169],
+    @Double[4.0975],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.289; [cost=4.3907ms] result=@ArrayList[
+    @Long[1789900756289],
+    @String[http-nio-8080-exec-163],
+    @Double[4.3907],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.289; [cost=4.3913ms] result=@ArrayList[
+    @Long[1789900756289],
+    @String[http-nio-8080-exec-169],
+    @Double[4.3913],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.289; [cost=4.677ms] result=@ArrayList[
+    @Long[1789900756289],
+    @String[http-nio-8080-exec-163],
+    @Double[4.677],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.289; [cost=4.7344ms] result=@ArrayList[
+    @Long[1789900756289],
+    @String[http-nio-8080-exec-162],
+    @Double[4.7344],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.289; [cost=5.0486ms] result=@ArrayList[
+    @Long[1789900756289],
+    @String[http-nio-8080-exec-162],
+    @Double[5.0486],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.290; [cost=5.0656ms] result=@ArrayList[
+    @Long[1789900756290],
+    @String[http-nio-8080-exec-164],
+    @Double[5.0656],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.290; [cost=5.5971ms] result=@ArrayList[
+    @Long[1789900756290],
+    @String[http-nio-8080-exec-164],
+    @Double[5.5971],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.292; [cost=7.6313ms] result=@ArrayList[
+    @Long[1789900756292],
+    @String[http-nio-8080-exec-166],
+    @Double[7.6313],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.292; [cost=7.7384ms] result=@ArrayList[
+    @Long[1789900756292],
+    @String[http-nio-8080-exec-168],
+    @Double[7.7384],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.292; [cost=8.0792ms] result=@ArrayList[
+    @Long[1789900756292],
+    @String[http-nio-8080-exec-166],
+    @Double[8.0792],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.292; [cost=8.0241ms] result=@ArrayList[
+    @Long[1789900756292],
+    @String[http-nio-8080-exec-168],
+    @Double[8.0241],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=2.6331ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-155],
+    @Double[2.6331],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=1.8377ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-170],
+    @Double[1.8377],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=3.1153ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-147],
+    @Double[3.1153],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=2.2264ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-150],
+    @Double[2.2264],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=3.2447ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-159],
+    @Double[3.2447],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=0.6198ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-160],
+    @Double[0.6198],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=3.0242ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-155],
+    @Double[3.0242],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=3.698ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-147],
+    @Double[3.698],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=2.3303ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-170],
+    @Double[2.3303],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=2.8039ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-150],
+    @Double[2.8039],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=3.5885ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-159],
+    @Double[3.5885],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=1.0489ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-160],
+    @Double[1.0489],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=1.6236ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-163],
+    @Double[1.6236],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.294; [cost=2.5042ms] result=@ArrayList[
+    @Long[1789900756294],
+    @String[http-nio-8080-exec-149],
+    @Double[2.5042],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.296; [cost=1.9705ms] result=@ArrayList[
+    @Long[1789900756296],
+    @String[http-nio-8080-exec-163],
+    @Double[1.9705],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.296; [cost=2.161ms] result=@ArrayList[
+    @Long[1789900756296],
+    @String[http-nio-8080-exec-145],
+    @Double[2.161],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.296; [cost=2.9485ms] result=@ArrayList[
+    @Long[1789900756296],
+    @String[http-nio-8080-exec-149],
+    @Double[2.9485],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.296; [cost=3.2775ms] result=@ArrayList[
+    @Long[1789900756296],
+    @String[http-nio-8080-exec-143],
+    @Double[3.2775],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.296; [cost=1.4746ms] result=@ArrayList[
+    @Long[1789900756296],
+    @String[http-nio-8080-exec-162],
+    @Double[1.4746],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.296; [cost=0.0033ms] result=@ArrayList[
+    @Long[1789900756296],
+    @String[http-nio-8080-exec-170],
+    @Double[0.0033],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.296; [cost=2.7795ms] result=@ArrayList[
+    @Long[1789900756296],
+    @String[http-nio-8080-exec-145],
+    @Double[2.7795],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.296; [cost=0.0025ms] result=@ArrayList[
+    @Long[1789900756296],
+    @String[http-nio-8080-exec-147],
+    @Double[0.0025],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.296; [cost=1.9979ms] result=@ArrayList[
+    @Long[1789900756296],
+    @String[http-nio-8080-exec-162],
+    @Double[1.9979],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.296; [cost=11.3042ms] result=@ArrayList[
+    @Long[1789900756296],
+    @String[http-nio-8080-exec-167],
+    @Double[11.3042],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.296; [cost=0.0025ms] result=@ArrayList[
+    @Long[1789900756296],
+    @String[http-nio-8080-exec-155],
+    @Double[0.0025],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.296; [cost=3.7357ms] result=@ArrayList[
+    @Long[1789900756296],
+    @String[http-nio-8080-exec-143],
+    @Double[3.7357],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.297; [cost=11.5568ms] result=@ArrayList[
+    @Long[1789900756297],
+    @String[http-nio-8080-exec-167],
+    @Double[11.5568],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.297; [cost=0.0026ms] result=@ArrayList[
+    @Long[1789900756297],
+    @String[http-nio-8080-exec-159],
+    @Double[0.0026],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.297; [cost=0.0047ms] result=@ArrayList[
+    @Long[1789900756297],
+    @String[http-nio-8080-exec-150],
+    @Double[0.0047],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.297; [cost=2.0526ms] result=@ArrayList[
+    @Long[1789900756297],
+    @String[http-nio-8080-exec-154],
+    @Double[2.0526],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.297; [cost=0.0051ms] result=@ArrayList[
+    @Long[1789900756297],
+    @String[http-nio-8080-exec-160],
+    @Double[0.0051],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.297; [cost=1.2811ms] result=@ArrayList[
+    @Long[1789900756297],
+    @String[http-nio-8080-exec-166],
+    @Double[1.2811],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.297; [cost=2.7992ms] result=@ArrayList[
+    @Long[1789900756297],
+    @String[http-nio-8080-exec-164],
+    @Double[2.7992],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.297; [cost=2.4467ms] result=@ArrayList[
+    @Long[1789900756297],
+    @String[http-nio-8080-exec-154],
+    @Double[2.4467],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=4.3693ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-161],
+    @Double[4.3693],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=1.735ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-166],
+    @Double[1.735],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=0.0025ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-163],
+    @Double[0.0025],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=2.6704ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-142],
+    @Double[2.6704],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=0.0107ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-147],
+    @Double[0.0107],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=0.0071ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-155],
+    @Double[0.0071],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=3.1927ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-164],
+    @Double[3.1927],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=0.0117ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-159],
+    @Double[0.0117],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=0.25ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-155],
+    @Double[0.25],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=0.2237ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-147],
+    @Double[0.2237],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=4.8871ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-161],
+    @Double[4.8871],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=0.3827ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-159],
+    @Double[0.3827],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=3.012ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-142],
+    @Double[3.012],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=0.3327ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-170],
+    @Double[0.3327],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=0.0024ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-149],
+    @Double[0.0024],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=0.006ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-145],
+    @Double[0.006],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=0.6601ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-170],
+    @Double[0.6601],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.298; [cost=0.0045ms] result=@ArrayList[
+    @Long[1789900756298],
+    @String[http-nio-8080-exec-162],
+    @Double[0.0045],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.299; [cost=0.0029ms] result=@ArrayList[
+    @Long[1789900756299],
+    @String[http-nio-8080-exec-143],
+    @Double[0.0029],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.299; [cost=1.9839ms] result=@ArrayList[
+    @Long[1789900756299],
+    @String[http-nio-8080-exec-165],
+    @Double[1.9839],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.299; [cost=2.407ms] result=@ArrayList[
+    @Long[1789900756299],
+    @String[http-nio-8080-exec-165],
+    @Double[2.407],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.299; [cost=0.0117ms] result=@ArrayList[
+    @Long[1789900756299],
+    @String[http-nio-8080-exec-143],
+    @Double[0.0117],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.299; [cost=0.0116ms] result=@ArrayList[
+    @Long[1789900756299],
+    @String[http-nio-8080-exec-162],
+    @Double[0.0116],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.300; [cost=0.2567ms] result=@ArrayList[
+    @Long[1789900756300],
+    @String[http-nio-8080-exec-143],
+    @Double[0.2567],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.300; [cost=0.2891ms] result=@ArrayList[
+    @Long[1789900756300],
+    @String[http-nio-8080-exec-162],
+    @Double[0.2891],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.300; [cost=0.003ms] result=@ArrayList[
+    @Long[1789900756300],
+    @String[http-nio-8080-exec-154],
+    @Double[0.003],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.300; [cost=0.0024ms] result=@ArrayList[
+    @Long[1789900756300],
+    @String[http-nio-8080-exec-166],
+    @Double[0.0024],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.300; [cost=0.8783ms] result=@ArrayList[
+    @Long[1789900756300],
+    @String[http-nio-8080-exec-163],
+    @Double[0.8783],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.300; [cost=0.0029ms] result=@ArrayList[
+    @Long[1789900756300],
+    @String[http-nio-8080-exec-164],
+    @Double[0.0029],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.300; [cost=3.2564ms] result=@ArrayList[
+    @Long[1789900756300],
+    @String[http-nio-8080-exec-168],
+    @Double[3.2564],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.300; [cost=1.0968ms] result=@ArrayList[
+    @Long[1789900756300],
+    @String[http-nio-8080-exec-163],
+    @Double[1.0968],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.301; [cost=0.0028ms] result=@ArrayList[
+    @Long[1789900756301],
+    @String[http-nio-8080-exec-161],
+    @Double[0.0028],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,username,display_name,role,group_id,active,created_at,updated_at FROM agent WHERE id=4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.301; [cost=3.623ms] result=@ArrayList[
+    @Long[1789900756301],
+    @String[http-nio-8080-exec-168],
+    @Double[3.623],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.301; [cost=0.0031ms] result=@ArrayList[
+    @Long[1789900756301],
+    @String[http-nio-8080-exec-142],
+    @Double[0.0031],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.302; [cost=0.0499ms] result=@ArrayList[
+    @Long[1789900756302],
+    @String[http-nio-8080-exec-166],
+    @Double[0.0499],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.302; [cost=0.0143ms] result=@ArrayList[
+    @Long[1789900756302],
+    @String[http-nio-8080-exec-161],
+    @Double[0.0143],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.302; [cost=0.3242ms] result=@ArrayList[
+    @Long[1789900756302],
+    @String[http-nio-8080-exec-161],
+    @Double[0.3242],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.302; [cost=0.281ms] result=@ArrayList[
+    @Long[1789900756302],
+    @String[http-nio-8080-exec-166],
+    @Double[0.281],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.303; [cost=1.2685ms] result=@ArrayList[
+    @Long[1789900756303],
+    @String[http-nio-8080-exec-169],
+    @Double[1.2685],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.303; [cost=1.7812ms] result=@ArrayList[
+    @Long[1789900756303],
+    @String[http-nio-8080-exec-169],
+    @Double[1.7812],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.303; [cost=0.0033ms] result=@ArrayList[
+    @Long[1789900756303],
+    @String[http-nio-8080-exec-165],
+    @Double[0.0033],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.303; [cost=0.6993ms] result=@ArrayList[
+    @Long[1789900756303],
+    @String[http-nio-8080-exec-155],
+    @Double[0.6993],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.303; [cost=2.2577ms] result=@ArrayList[
+    @Long[1789900756303],
+    @String[http-nio-8080-exec-164],
+    @Double[2.2577],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.303; [cost=1.053ms] result=@ArrayList[
+    @Long[1789900756303],
+    @String[http-nio-8080-exec-155],
+    @Double[1.053],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariPool.getConnection location=AtExit
+ts=2026-09-20 18:39:16.303; [cost=2.4742ms] result=@ArrayList[
+    @Long[1789900756303],
+    @String[http-nio-8080-exec-164],
+    @Double[2.4742],
+    @String[getConnection],
+    @String[getConnection],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.303; [cost=2.1114ms] result=@ArrayList[
+    @Long[1789900756303],
+    @String[http-nio-8080-exec-150],
+    @Double[2.1114],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.297348'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.305; [cost=2.5409ms] result=@ArrayList[
+    @Long[1789900756305],
+    @String[http-nio-8080-exec-150],
+    @Double[2.5409],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.297348'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.305; [cost=0.003ms] result=@ArrayList[
+    @Long[1789900756305],
+    @String[http-nio-8080-exec-168],
+    @Double[0.003],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.306; [cost=0.8266ms] result=@ArrayList[
+    @Long[1789900756306],
+    @String[http-nio-8080-exec-167],
+    @Double[0.8266],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.306; [cost=0.6247ms] result=@ArrayList[
+    @Long[1789900756306],
+    @String[http-nio-8080-exec-147],
+    @Double[0.6247],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.306; [cost=0.7348ms] result=@ArrayList[
+    @Long[1789900756306],
+    @String[http-nio-8080-exec-159],
+    @Double[0.7348],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.308; [cost=0.0032ms] result=@ArrayList[
+    @Long[1789900756308],
+    @String[http-nio-8080-exec-169],
+    @Double[0.0032],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.308; [cost=1.4817ms] result=@ArrayList[
+    @Long[1789900756308],
+    @String[http-nio-8080-exec-167],
+    @Double[1.4817],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.308; [cost=1.2116ms] result=@ArrayList[
+    @Long[1789900756308],
+    @String[http-nio-8080-exec-147],
+    @Double[1.2116],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.308; [cost=0.7536ms] result=@ArrayList[
+    @Long[1789900756308],
+    @String[http-nio-8080-exec-170],
+    @Double[0.7536],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.308; [cost=1.4647ms] result=@ArrayList[
+    @Long[1789900756308],
+    @String[http-nio-8080-exec-159],
+    @Double[1.4647],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.308; [cost=0.0037ms] result=@ArrayList[
+    @Long[1789900756308],
+    @String[http-nio-8080-exec-155],
+    @Double[0.0037],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.308; [cost=1.4304ms] result=@ArrayList[
+    @Long[1789900756308],
+    @String[http-nio-8080-exec-170],
+    @Double[1.4304],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.308; [cost=1.1919ms] result=@ArrayList[
+    @Long[1789900756308],
+    @String[http-nio-8080-exec-162],
+    @Double[1.1919],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.309; [cost=0.843ms] result=@ArrayList[
+    @Long[1789900756309],
+    @String[http-nio-8080-exec-143],
+    @Double[0.843],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.309; [cost=1.6006ms] result=@ArrayList[
+    @Long[1789900756309],
+    @String[http-nio-8080-exec-162],
+    @Double[1.6006],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.309; [cost=1.1948ms] result=@ArrayList[
+    @Long[1789900756309],
+    @String[http-nio-8080-exec-143],
+    @Double[1.1948],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.309; [cost=0.9183ms] result=@ArrayList[
+    @Long[1789900756309],
+    @String[http-nio-8080-exec-163],
+    @Double[0.9183],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.310; [cost=0.6649ms] result=@ArrayList[
+    @Long[1789900756309],
+    @String[http-nio-8080-exec-164],
+    @Double[0.6649],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.310; [cost=1.2254ms] result=@ArrayList[
+    @Long[1789900756310],
+    @String[http-nio-8080-exec-163],
+    @Double[1.2254],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.310; [cost=1.0033ms] result=@ArrayList[
+    @Long[1789900756310],
+    @String[http-nio-8080-exec-164],
+    @Double[1.0033],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.310; [cost=0.7343ms] result=@ArrayList[
+    @Long[1789900756310],
+    @String[http-nio-8080-exec-161],
+    @Double[0.7343],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.310; [cost=0.0034ms] result=@ArrayList[
+    @Long[1789900756310],
+    @String[http-nio-8080-exec-167],
+    @Double[0.0034],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.311; [cost=0.0048ms] result=@ArrayList[
+    @Long[1789900756311],
+    @String[http-nio-8080-exec-147],
+    @Double[0.0048],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.311; [cost=0.8017ms] result=@ArrayList[
+    @Long[1789900756311],
+    @String[http-nio-8080-exec-166],
+    @Double[0.8017],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.311; [cost=0.0031ms] result=@ArrayList[
+    @Long[1789900756311],
+    @String[http-nio-8080-exec-159],
+    @Double[0.0031],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.311; [cost=1.337ms] result=@ArrayList[
+    @Long[1789900756311],
+    @String[http-nio-8080-exec-161],
+    @Double[1.337],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.311; [cost=1.4264ms] result=@ArrayList[
+    @Long[1789900756311],
+    @String[http-nio-8080-exec-166],
+    @Double[1.4264],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.311; [cost=0.0026ms] result=@ArrayList[
+    @Long[1789900756311],
+    @String[http-nio-8080-exec-170],
+    @Double[0.0026],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.312; [cost=0.0059ms] result=@ArrayList[
+    @Long[1789900756312],
+    @String[http-nio-8080-exec-162],
+    @Double[0.0059],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.312; [cost=0.0026ms] result=@ArrayList[
+    @Long[1789900756312],
+    @String[http-nio-8080-exec-143],
+    @Double[0.0026],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.312; [cost=0.0029ms] result=@ArrayList[
+    @Long[1789900756312],
+    @String[http-nio-8080-exec-163],
+    @Double[0.0029],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.313; [cost=0.0028ms] result=@ArrayList[
+    @Long[1789900756313],
+    @String[http-nio-8080-exec-164],
+    @Double[0.0028],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.314; [cost=0.0063ms] result=@ArrayList[
+    @Long[1789900756314],
+    @String[http-nio-8080-exec-161],
+    @Double[0.0063],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.314; [cost=1.2647ms] result=@ArrayList[
+    @Long[1789900756314],
+    @String[http-nio-8080-exec-150],
+    @Double[1.2647],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', 'fbf6e1e62dc348f5', '2026-09-20 18:39:16.308263'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.getConnection location=AtExit
+ts=2026-09-20 18:39:16.314; [cost=0.0035ms] result=@ArrayList[
+    @Long[1789900756314],
+    @String[http-nio-8080-exec-166],
+    @Double[0.0035],
+    @String[getConnection],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: SELECT id,ticket_no,title,content,category,priority,status,customer_id,group_id,assignee_id,created_by,sla_deadline,escalated_at,closed_at,deleted,created_at,updated_at FROM ticket WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.314; [cost=1.6919ms] result=@ArrayList[
+    @Long[1789900756314],
+    @String[http-nio-8080-exec-150],
+    @Double[1.6919],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', 'fbf6e1e62dc348f5', '2026-09-20 18:39:16.308263'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.320; [cost=3.4746ms] result=@ArrayList[
+    @Long[1789900756320],
+    @String[http-nio-8080-exec-150],
+    @Double[3.4746],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@151d89b4],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.320; [cost=16.9376ms] result=@ArrayList[
+    @Long[1789900756320],
+    @String[http-nio-8080-exec-160],
+    @Double[16.9376],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.297348'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.320; [cost=3.9946ms] result=@ArrayList[
+    @Long[1789900756320],
+    @String[http-nio-8080-exec-150],
+    @Double[3.9946],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@151d89b4],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.321; [cost=17.5435ms] result=@ArrayList[
+    @Long[1789900756321],
+    @String[http-nio-8080-exec-160],
+    @Double[17.5435],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.297348'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.324; [cost=1.2586ms] result=@ArrayList[
+    @Long[1789900756323],
+    @String[http-nio-8080-exec-160],
+    @Double[1.2586],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '3dae9f65a0bd441e', '2026-09-20 18:39:16.321269'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.324; [cost=1.8752ms] result=@ArrayList[
+    @Long[1789900756324],
+    @String[http-nio-8080-exec-160],
+    @Double[1.8752],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '3dae9f65a0bd441e', '2026-09-20 18:39:16.321269'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.330; [cost=4.4813ms] result=@ArrayList[
+    @Long[1789900756330],
+    @String[http-nio-8080-exec-160],
+    @Double[4.4813],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@937ddc3],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.330; [cost=5.0296ms] result=@ArrayList[
+    @Long[1789900756330],
+    @String[http-nio-8080-exec-160],
+    @Double[5.0296],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@937ddc3],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.330; [cost=24.8974ms] result=@ArrayList[
+    @Long[1789900756330],
+    @String[http-nio-8080-exec-149],
+    @Double[24.8974],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.29848'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.330; [cost=25.4508ms] result=@ArrayList[
+    @Long[1789900756330],
+    @String[http-nio-8080-exec-149],
+    @Double[25.4508],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.29848'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.333; [cost=1.8332ms] result=@ArrayList[
+    @Long[1789900756333],
+    @String[http-nio-8080-exec-149],
+    @Double[1.8332],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', 'db91558991a94704', '2026-09-20 18:39:16.33148'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.334; [cost=2.4296ms] result=@ArrayList[
+    @Long[1789900756334],
+    @String[http-nio-8080-exec-149],
+    @Double[2.4296],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', 'db91558991a94704', '2026-09-20 18:39:16.33148'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.342; [cost=6.5561ms] result=@ArrayList[
+    @Long[1789900756342],
+    @String[http-nio-8080-exec-149],
+    @Double[6.5561],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@30575995],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.342; [cost=36.8043ms] result=@ArrayList[
+    @Long[1789900756342],
+    @String[http-nio-8080-exec-145],
+    @Double[36.8043],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.29848'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.342; [cost=7.0831ms] result=@ArrayList[
+    @Long[1789900756342],
+    @String[http-nio-8080-exec-149],
+    @Double[7.0831],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@30575995],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.342; [cost=37.4147ms] result=@ArrayList[
+    @Long[1789900756342],
+    @String[http-nio-8080-exec-145],
+    @Double[37.4147],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.29848'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.346; [cost=2.0893ms] result=@ArrayList[
+    @Long[1789900756346],
+    @String[http-nio-8080-exec-145],
+    @Double[2.0893],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '10a5542241d94864', '2026-09-20 18:39:16.343332'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.346; [cost=2.7946ms] result=@ArrayList[
+    @Long[1789900756346],
+    @String[http-nio-8080-exec-145],
+    @Double[2.7946],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '10a5542241d94864', '2026-09-20 18:39:16.343332'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.352; [cost=4.2885ms] result=@ArrayList[
+    @Long[1789900756352],
+    @String[http-nio-8080-exec-145],
+    @Double[4.2885],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@546e5543],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.352; [cost=45.0851ms] result=@ArrayList[
+    @Long[1789900756352],
+    @String[http-nio-8080-exec-154],
+    @Double[45.0851],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.300895'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.353; [cost=4.9976ms] result=@ArrayList[
+    @Long[1789900756353],
+    @String[http-nio-8080-exec-145],
+    @Double[4.9976],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@546e5543],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.353; [cost=45.7883ms] result=@ArrayList[
+    @Long[1789900756353],
+    @String[http-nio-8080-exec-154],
+    @Double[45.7883],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.300895'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.357; [cost=1.8173ms] result=@ArrayList[
+    @Long[1789900756357],
+    @String[http-nio-8080-exec-154],
+    @Double[1.8173],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '1d4a5036deea425f', '2026-09-20 18:39:16.354452'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.357; [cost=2.7289ms] result=@ArrayList[
+    @Long[1789900756357],
+    @String[http-nio-8080-exec-154],
+    @Double[2.7289],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '1d4a5036deea425f', '2026-09-20 18:39:16.354452'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.363; [cost=4.6142ms] result=@ArrayList[
+    @Long[1789900756363],
+    @String[http-nio-8080-exec-154],
+    @Double[4.6142],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@6d7242f5],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.363; [cost=54.5026ms] result=@ArrayList[
+    @Long[1789900756363],
+    @String[http-nio-8080-exec-142],
+    @Double[54.5026],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.3024'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.363; [cost=5.18ms] result=@ArrayList[
+    @Long[1789900756363],
+    @String[http-nio-8080-exec-154],
+    @Double[5.18],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@6d7242f5],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.365; [cost=55.1735ms] result=@ArrayList[
+    @Long[1789900756365],
+    @String[http-nio-8080-exec-142],
+    @Double[55.1735],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.3024'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.370; [cost=2.8223ms] result=@ArrayList[
+    @Long[1789900756370],
+    @String[http-nio-8080-exec-142],
+    @Double[2.8223],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', 'c9236ca2dc564cb0', '2026-09-20 18:39:16.366123'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.370; [cost=3.7815ms] result=@ArrayList[
+    @Long[1789900756370],
+    @String[http-nio-8080-exec-142],
+    @Double[3.7815],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', 'c9236ca2dc564cb0', '2026-09-20 18:39:16.366123'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.375; [cost=4.3393ms] result=@ArrayList[
+    @Long[1789900756375],
+    @String[http-nio-8080-exec-142],
+    @Double[4.3393],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@18c16cfc],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.376; [cost=66.0807ms] result=@ArrayList[
+    @Long[1789900756376],
+    @String[http-nio-8080-exec-165],
+    @Double[66.0807],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.303984'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.376; [cost=4.862ms] result=@ArrayList[
+    @Long[1789900756376],
+    @String[http-nio-8080-exec-142],
+    @Double[4.862],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@18c16cfc],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.376; [cost=66.5485ms] result=@ArrayList[
+    @Long[1789900756376],
+    @String[http-nio-8080-exec-165],
+    @Double[66.5485],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.303984'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.380; [cost=1.6758ms] result=@ArrayList[
+    @Long[1789900756380],
+    @String[http-nio-8080-exec-165],
+    @Double[1.6758],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '5c7c70b1341a441f', '2026-09-20 18:39:16.376728'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.380; [cost=2.3286ms] result=@ArrayList[
+    @Long[1789900756380],
+    @String[http-nio-8080-exec-165],
+    @Double[2.3286],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '5c7c70b1341a441f', '2026-09-20 18:39:16.376728'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.387; [cost=5.4697ms] result=@ArrayList[
+    @Long[1789900756387],
+    @String[http-nio-8080-exec-165],
+    @Double[5.4697],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@20a967e8],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.387; [cost=75.5368ms] result=@ArrayList[
+    @Long[1789900756387],
+    @String[http-nio-8080-exec-168],
+    @Double[75.5368],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.305916'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.387; [cost=5.9682ms] result=@ArrayList[
+    @Long[1789900756387],
+    @String[http-nio-8080-exec-165],
+    @Double[5.9682],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@20a967e8],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.387; [cost=76.1358ms] result=@ArrayList[
+    @Long[1789900756387],
+    @String[http-nio-8080-exec-168],
+    @Double[76.1358],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.305916'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.390; [cost=1.558ms] result=@ArrayList[
+    @Long[1789900756390],
+    @String[http-nio-8080-exec-168],
+    @Double[1.558],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '0c701da481214c7f', '2026-09-20 18:39:16.388473'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.392; [cost=2.329ms] result=@ArrayList[
+    @Long[1789900756392],
+    @String[http-nio-8080-exec-168],
+    @Double[2.329],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '0c701da481214c7f', '2026-09-20 18:39:16.388473'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.398; [cost=5.0638ms] result=@ArrayList[
+    @Long[1789900756397],
+    @String[http-nio-8080-exec-168],
+    @Double[5.0638],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@742dda05],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.398; [cost=85.8131ms] result=@ArrayList[
+    @Long[1789900756398],
+    @String[http-nio-8080-exec-169],
+    @Double[85.8131],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.308263'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.398; [cost=5.676ms] result=@ArrayList[
+    @Long[1789900756398],
+    @String[http-nio-8080-exec-168],
+    @Double[5.676],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@742dda05],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.398; [cost=86.3885ms] result=@ArrayList[
+    @Long[1789900756398],
+    @String[http-nio-8080-exec-169],
+    @Double[86.3885],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.308263'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.402; [cost=1.2483ms] result=@ArrayList[
+    @Long[1789900756402],
+    @String[http-nio-8080-exec-169],
+    @Double[1.2483],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '5cdd1f9ef2804e13', '2026-09-20 18:39:16.399402'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.402; [cost=1.912ms] result=@ArrayList[
+    @Long[1789900756402],
+    @String[http-nio-8080-exec-169],
+    @Double[1.912],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '5cdd1f9ef2804e13', '2026-09-20 18:39:16.399402'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.407; [cost=4.179ms] result=@ArrayList[
+    @Long[1789900756407],
+    @String[http-nio-8080-exec-169],
+    @Double[4.179],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@120ac23f],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.407; [cost=94.3929ms] result=@ArrayList[
+    @Long[1789900756407],
+    @String[http-nio-8080-exec-155],
+    @Double[94.3929],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=4, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.30927'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.407; [cost=4.6359ms] result=@ArrayList[
+    @Long[1789900756407],
+    @String[http-nio-8080-exec-169],
+    @Double[4.6359],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@120ac23f],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.408; [cost=94.8866ms] result=@ArrayList[
+    @Long[1789900756408],
+    @String[http-nio-8080-exec-155],
+    @Double[94.8866],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=4, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.30927'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.411; [cost=1.2748ms] result=@ArrayList[
+    @Long[1789900756410],
+    @String[http-nio-8080-exec-155],
+    @Double[1.2748],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 4, '坐席B', 'MANUAL', '抢单', '01b9a87d99ff45c1', '2026-09-20 18:39:16.408658'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.411; [cost=2.0819ms] result=@ArrayList[
+    @Long[1789900756411],
+    @String[http-nio-8080-exec-155],
+    @Double[2.0819],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 4, '坐席B', 'MANUAL', '抢单', '01b9a87d99ff45c1', '2026-09-20 18:39:16.408658'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.422; [cost=9.1204ms] result=@ArrayList[
+    @Long[1789900756422],
+    @String[http-nio-8080-exec-155],
+    @Double[9.1204],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@582a3453],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.422; [cost=106.8551ms] result=@ArrayList[
+    @Long[1789900756422],
+    @String[http-nio-8080-exec-167],
+    @Double[106.8551],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.311272'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.422; [cost=9.7544ms] result=@ArrayList[
+    @Long[1789900756422],
+    @String[http-nio-8080-exec-155],
+    @Double[9.7544],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@582a3453],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.422; [cost=107.3032ms] result=@ArrayList[
+    @Long[1789900756422],
+    @String[http-nio-8080-exec-167],
+    @Double[107.3032],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=3, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.311272'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.426; [cost=1.8685ms] result=@ArrayList[
+    @Long[1789900756426],
+    @String[http-nio-8080-exec-167],
+    @Double[1.8685],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '1a599a17ca49420c', '2026-09-20 18:39:16.423144'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.427; [cost=2.6694ms] result=@ArrayList[
+    @Long[1789900756427],
+    @String[http-nio-8080-exec-167],
+    @Double[2.6694],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 3, '坐席A', 'MANUAL', '抢单', '1a599a17ca49420c', '2026-09-20 18:39:16.423144'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.432; [cost=4.0662ms] result=@ArrayList[
+    @Long[1789900756432],
+    @String[http-nio-8080-exec-167],
+    @Double[4.0662],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@8e5936b],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.432; [cost=116.2585ms] result=@ArrayList[
+    @Long[1789900756432],
+    @String[http-nio-8080-exec-159],
+    @Double[116.2585],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=4, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.311272'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.432; [cost=4.6022ms] result=@ArrayList[
+    @Long[1789900756432],
+    @String[http-nio-8080-exec-167],
+    @Double[4.6022],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@8e5936b],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.432; [cost=116.6674ms] result=@ArrayList[
+    @Long[1789900756432],
+    @String[http-nio-8080-exec-159],
+    @Double[116.6674],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=4, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.311272'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.436; [cost=1.6858ms] result=@ArrayList[
+    @Long[1789900756436],
+    @String[http-nio-8080-exec-159],
+    @Double[1.6858],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 4, '坐席B', 'MANUAL', '抢单', '38ed3ca8e8614ffc', '2026-09-20 18:39:16.433096'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.436; [cost=2.3113ms] result=@ArrayList[
+    @Long[1789900756436],
+    @String[http-nio-8080-exec-159],
+    @Double[2.3113],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 4, '坐席B', 'MANUAL', '抢单', '38ed3ca8e8614ffc', '2026-09-20 18:39:16.433096'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.442; [cost=5.0603ms] result=@ArrayList[
+    @Long[1789900756442],
+    @String[http-nio-8080-exec-159],
+    @Double[5.0603],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@fc3fa35],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.442; [cost=127.1141ms] result=@ArrayList[
+    @Long[1789900756442],
+    @String[http-nio-8080-exec-147],
+    @Double[127.1141],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=4, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.311272'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.442; [cost=5.5811ms] result=@ArrayList[
+    @Long[1789900756442],
+    @String[http-nio-8080-exec-159],
+    @Double[5.5811],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@fc3fa35],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.442; [cost=127.7135ms] result=@ArrayList[
+    @Long[1789900756442],
+    @String[http-nio-8080-exec-147],
+    @Double[127.7135],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=4, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.311272'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.446; [cost=1.359ms] result=@ArrayList[
+    @Long[1789900756446],
+    @String[http-nio-8080-exec-147],
+    @Double[1.359],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 4, '坐席B', 'MANUAL', '抢单', 'eccdbcba63b540c6', '2026-09-20 18:39:16.44344'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.446; [cost=1.9508ms] result=@ArrayList[
+    @Long[1789900756446],
+    @String[http-nio-8080-exec-147],
+    @Double[1.9508],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 4, '坐席B', 'MANUAL', '抢单', 'eccdbcba63b540c6', '2026-09-20 18:39:16.44344'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.450; [cost=3.2887ms] result=@ArrayList[
+    @Long[1789900756450],
+    @String[http-nio-8080-exec-147],
+    @Double[3.2887],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@3bcbbe3f],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.450; [cost=134.8323ms] result=@ArrayList[
+    @Long[1789900756450],
+    @String[http-nio-8080-exec-170],
+    @Double[134.8323],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=4, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.311272'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.451; [cost=3.7306ms] result=@ArrayList[
+    @Long[1789900756451],
+    @String[http-nio-8080-exec-147],
+    @Double[3.7306],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@3bcbbe3f],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.451; [cost=135.3491ms] result=@ArrayList[
+    @Long[1789900756451],
+    @String[http-nio-8080-exec-170],
+    @Double[135.3491],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=4, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.311272'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.454; [cost=1.8729ms] result=@ArrayList[
+    @Long[1789900756454],
+    @String[http-nio-8080-exec-170],
+    @Double[1.8729],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 4, '坐席B', 'MANUAL', '抢单', '8041acbec4d7436a', '2026-09-20 18:39:16.451419'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.454; [cost=2.4856ms] result=@ArrayList[
+    @Long[1789900756454],
+    @String[http-nio-8080-exec-170],
+    @Double[2.4856],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 4, '坐席B', 'MANUAL', '抢单', '8041acbec4d7436a', '2026-09-20 18:39:16.451419'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.458; [cost=3.1904ms] result=@ArrayList[
+    @Long[1789900756458],
+    @String[http-nio-8080-exec-170],
+    @Double[3.1904],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@867cd27],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.459; [cost=3.5947ms] result=@ArrayList[
+    @Long[1789900756459],
+    @String[http-nio-8080-exec-170],
+    @Double[3.5947],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@867cd27],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.459; [cost=143.3783ms] result=@ArrayList[
+    @Long[1789900756459],
+    @String[http-nio-8080-exec-162],
+    @Double[143.3783],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=4, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.312271'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.459; [cost=144.0175ms] result=@ArrayList[
+    @Long[1789900756459],
+    @String[http-nio-8080-exec-162],
+    @Double[144.0175],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=4, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.312271'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.463; [cost=1.97ms] result=@ArrayList[
+    @Long[1789900756463],
+    @String[http-nio-8080-exec-162],
+    @Double[1.97],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 4, '坐席B', 'MANUAL', '抢单', 'd23b67a6b31e4fae', '2026-09-20 18:39:16.460686'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.464; [cost=2.9018ms] result=@ArrayList[
+    @Long[1789900756464],
+    @String[http-nio-8080-exec-162],
+    @Double[2.9018],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 4, '坐席B', 'MANUAL', '抢单', 'd23b67a6b31e4fae', '2026-09-20 18:39:16.460686'  )],
+]
+method=com.zaxxer.hikari.pool.ProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.471; [cost=5.7442ms] result=@ArrayList[
+    @Long[1789900756471],
+    @String[http-nio-8080-exec-162],
+    @Double[5.7442],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@4fdfbc07],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.471; [cost=154.6009ms] result=@ArrayList[
+    @Long[1789900756471],
+    @String[http-nio-8080-exec-143],
+    @Double[154.6009],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=4, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.312271'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.HikariProxyConnection.commit location=AtExit
+ts=2026-09-20 18:39:16.471; [cost=6.2692ms] result=@ArrayList[
+    @Long[1789900756471],
+    @String[http-nio-8080-exec-162],
+    @Double[6.2692],
+    @String[commit],
+    @String[com.mysql.cj.jdbc.ConnectionImpl@4fdfbc07],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.471; [cost=155.2162ms] result=@ArrayList[
+    @Long[1789900756471],
+    @String[http-nio-8080-exec-143],
+    @Double[155.2162],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: UPDATE ticket  SET ticket_no='T20260920-7D75D308', title='perf grab target 20260920-183915', content='JMeter 抢单靶子', category='OTHER', priority='P2', status='ASSIGNED', customer_id=4488, group_id=1, assignee_id=4, created_by=1, sla_deadline='2026-09-20 22:39:15.712',  closed_at=NULL, created_at='2026-09-20 18:39:15.712', updated_at='2026-09-20 18:39:16.312271'  WHERE id=8238 AND deleted=0],
+]
+method=com.zaxxer.hikari.pool.ProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.475; [cost=1.38ms] result=@ArrayList[
+    @Long[1789900756475],
+    @String[http-nio-8080-exec-143],
+    @Double[1.38],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 4, '坐席B', 'MANUAL', '抢单', '0e012645e9634a0b', '2026-09-20 18:39:16.472464'  )],
+]
+method=com.zaxxer.hikari.pool.HikariProxyPreparedStatement.execute location=AtExit
+ts=2026-09-20 18:39:16.475; [cost=2.1192ms] result=@ArrayList[
+    @Long[1789900756475],
+    @String[http-nio-8080-exec-143],
+    @Double[2.1192],
+    @String[execute],
+    @String[com.mysql.cj.jdbc.ClientPreparedStatement: INSERT INTO ticket_audit_log  ( ticket_id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, created_at )  VALUES (  8238, 'PENDING', 'ASSIGNED', 4, '坐席B', 'MANUAL', '抢单', '0e012645e9634a0b', '2026-09-20 18:39:16.472464'  )],
+]
+Command execution times exceed limit: 260, so command will exit. You can set it with -n option.
+[arthas@15936]$ 

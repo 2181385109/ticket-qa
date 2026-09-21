@@ -1,0 +1,75 @@
+=== 2026-09-21 01:46:38 清库(与修复前 step4 相同:五张业务表 TRUNCATE,坐席保留)
+before: (4342, 7420, 14606)
+after (tickets, agents): (0, 6)
+=== 2026-09-21 01:46:44 create t=10
+=== 01:46:44 ticket_create.jmx threads=10 rampup=2s duration=60s tag=fix_create_t10
+summary =   8586 in 00:01:00 =  142.9/s Avg:    68 Min:    22 Max:   168 Err:     0 (0.00%)
+... end of run
+报告: results/fix_create_t10_report.md
+=== 2026-09-21 01:48:02 create t=20
+=== 01:48:02 ticket_create.jmx threads=20 rampup=4s duration=60s tag=fix_create_t20
+summary =  15816 in 00:01:00 =  263.2/s Avg:    73 Min:    25 Max:   120 Err:     0 (0.00%)
+... end of run
+报告: results/fix_create_t20_report.md
+=== 2026-09-21 01:49:21 create t=50
+=== 01:49:21 ticket_create.jmx threads=50 rampup=10s duration=60s tag=fix_create_t50
+summary =  20894 in 00:01:00 =  347.3/s Avg:   131 Min:    38 Max:   417 Err:     0 (0.00%)
+... end of run
+报告: results/fix_create_t50_report.md
+=== 2026-09-21 01:50:41 create t=100
+=== 01:50:41 ticket_create.jmx threads=100 rampup=20s duration=60s tag=fix_create_t100
+summary =  20893 in 00:01:00 =  346.6/s Avg:   240 Min:    59 Max:  1286 Err:     0 (0.00%)
+... end of run
+报告: results/fix_create_t100_report.md
+=== 2026-09-21 01:52:00 create t=200
+=== 01:52:00 ticket_create.jmx threads=200 rampup=40s duration=60s tag=fix_create_t200
+summary =  21001 in 00:01:01 =  346.8/s Avg:   384 Min:    58 Max:  2997 Err:     0 (0.00%)
+... end of run
+报告: results/fix_create_t200_report.md
+=== 2026-09-21 01:53:19 grab t=10 前置:重置上一轮 + 重导 id 池
+reset 0 ASSIGNED -> PENDING (+0 audit rows)
+exported 43568 ids -> results/ticket_ids.csv
+=== 01:53:20 grab_throughput.jmx threads=10 rampup=2s duration=20s tag=fix_grab_t10
+summary =   7881 in 00:00:20 =  393.3/s Avg:    23 Min:    14 Max:    48 Err:     0 (0.00%)
+... end of run
+报告: results/fix_grab_t10_report.md
+=== 2026-09-21 01:53:59 grab t=20 前置:重置上一轮 + 重导 id 池
+reset 7881 ASSIGNED -> PENDING (+7881 audit rows)
+exported 43568 ids -> results/ticket_ids.csv
+=== 01:54:00 grab_throughput.jmx threads=20 rampup=4s duration=20s tag=fix_grab_t20
+summary =   8482 in 00:00:20 =  422.9/s Avg:    41 Min:    12 Max:    60 Err:     0 (0.00%)
+... end of run
+报告: results/fix_grab_t20_report.md
+=== 2026-09-21 01:54:38 grab t=50 前置:重置上一轮 + 重导 id 池
+reset 8482 ASSIGNED -> PENDING (+8482 audit rows)
+exported 43568 ids -> results/ticket_ids.csv
+=== 01:54:39 grab_throughput.jmx threads=50 rampup=10s duration=20s tag=fix_grab_t50
+summary =   8991 in 00:00:20 =  446.8/s Avg:    83 Min:    13 Max:   184 Err:     0 (0.00%)
+... end of run
+报告: results/fix_grab_t50_report.md
+=== 2026-09-21 01:55:18 grab t=100 前置:重置上一轮 + 重导 id 池
+reset 8991 ASSIGNED -> PENDING (+8991 audit rows)
+exported 43568 ids -> results/ticket_ids.csv
+=== 01:55:19 grab_throughput.jmx threads=100 rampup=20s duration=60s tag=fix_grab_t100
+summary =  29252 in 00:01:00 =  485.7/s Avg:   171 Min:    14 Max:   478 Err:     0 (0.00%)
+... end of run
+报告: results/fix_grab_t100_report.md
+=== 2026-09-21 01:56:38 grab t=200 前置:重置上一轮 + 重导 id 池
+reset 29252 ASSIGNED -> PENDING (+29252 audit rows)
+exported 43568 ids -> results/ticket_ids.csv
+=== 01:56:40 grab_throughput.jmx threads=200 rampup=40s duration=60s tag=fix_grab_t200
+summary =  29268 in 00:01:00 =  484.1/s Avg:   274 Min:    13 Max:  1103 Err:     0 (0.00%)
+... end of run
+报告: results/fix_grab_t200_report.md
+=== 2026-09-21 01:57:59 汇总
+fix_create_t10  fix_create_t10.jtl: samples=8586 wall=60.0s qps=143.2 avg=68.2 p50=67 p95=78 p99=87 max=168 errors=0 (0.00%) codes={'201': 8586}
+fix_create_t100  fix_create_t100.jtl: samples=20893 wall=60.1s qps=347.5 avg=240.0 p50=197 p95=475 p99=660 max=1286 errors=0 (0.00%) codes={'201': 20893}
+fix_create_t20  fix_create_t20.jtl: samples=15816 wall=60.0s qps=263.6 avg=73.1 p50=72 p95=84 p99=92 max=120 errors=0 (0.00%) codes={'201': 15816}
+fix_create_t200  fix_create_t200.jtl: samples=21001 wall=60.4s qps=347.9 avg=384.2 p50=315 p95=966 p99=1423 max=2997 errors=0 (0.00%) codes={'201': 21001}
+fix_create_t50  fix_create_t50.jtl: samples=20894 wall=60.0s qps=348.1 avg=131.6 p50=127 p95=183 p99=226 max=417 errors=0 (0.00%) codes={'201': 20894}
+fix_grab_t10  fix_grab_t10.jtl: samples=7881 wall=19.9s qps=395.7 avg=23.3 p50=23 p95=28 p99=32 max=48 errors=0 (0.00%) codes={'200': 7881}
+fix_grab_t100  fix_grab_t100.jtl: samples=29252 wall=60.1s qps=487.0 avg=171.0 p50=195 p95=206 p99=213 max=478 errors=0 (0.00%) codes={'200': 29252}
+fix_grab_t20  fix_grab_t20.jtl: samples=8482 wall=19.9s qps=425.6 avg=41.8 p50=43 p95=49 p99=53 max=60 errors=0 (0.00%) codes={'200': 8482}
+fix_grab_t200  fix_grab_t200.jtl: samples=29268 wall=60.3s qps=485.8 avg=275.0 p50=308 p95=404 p99=426 max=1103 errors=0 (0.00%) codes={'200': 29268}
+fix_grab_t50  fix_grab_t50.jtl: samples=8991 wall=20.0s qps=449.9 avg=83.4 p50=96 p95=111 p99=121 max=184 errors=0 (0.00%) codes={'200': 8991}
+=== 2026-09-21 01:58:01 完成

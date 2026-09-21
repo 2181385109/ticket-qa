@@ -1,0 +1,35 @@
+# 2026-09-20 18:44:37  arthas pid=15936
+# 命令: thread -b; thread --state BLOCKED; thread --state RUNNABLE
+[arthas@15936]$ thread -b | plaintext
+No most blocking thread found!
+[arthas@15936]$ thread --state BLOCKED | plaintext
+Threads Total: 100, NEW: 0, RUNNABLE: 55, BLOCKED: 0, WAITING: 24, TIMED_WAITING
+: 21, TERMINATED: 0                                                             
+ID NAME                GROUP     PRIORI STATE  %CPU  DELTA_ TIME   INTER DAEMON 
+                                                                                
+[arthas@15936]$ thread --state RUNNABLE | plaintext
+Threads Total: 100, NEW: 0, RUNNABLE: 55, BLOCKED: 0, WAITING: 24, TIMED_WAITING
+: 21, TERMINATED: 0                                                             
+ID NAME                GROUP     PRIORI STATE  %CPU  DELTA_ TIME   INTER DAEMON 
+2  Reference Handler   system    10     RUNNAB 0.0   0.000  0:0.01 false true   
+4  Signal Dispatcher   system    9      RUNNAB 0.0   0.000  0:0.00 false true   
+5  Attach Listener     system    5      RUNNAB 0.0   0.000  0:0.01 false true   
+21 Notification Thread system    9      RUNNAB 0.0   0.000  0:0.07 false true   
+66 arthas-NettyHttpTel system    5      RUNNAB 0.0   0.000  0:0.14 false true   
+67 arthas-NettyWebsock system    5      RUNNAB 0.0   0.000  0:0.01 false true   
+68 arthas-NettyWebsock system    5      RUNNAB 0.0   0.000  0:0.00 false true   
+74 arthas-NettyWebsock system    5      RUNNAB 0.0   0.000  0:0.06 false true   
+75 arthas-TermServer-1 system    5      RUNNAB 0.0   0.000  0:0.06 false true   
+76 arthas-command-exec system    5      RUNNAB 0.0   0.000  0:1.01 false true   
+77 arthas-NettyWebsock system    5      RUNNAB 0.0   0.000  0:0.00 false true   
+78 arthas-TermServer-1 system    5      RUNNAB 0.0   0.000  0:0.03 false true   
+84 arthas-NettyHttpTel system    5      RUNNAB 0.0   0.000  0:0.10 false true   
+84 arthas-NettyHttpTel system    5      RUNNAB 0.0   0.000  0:0.07 false true   
+84 arthas-NettyHttpTel system    5      RUNNAB 0.0   0.000  0:0.01 false true   
+84 arthas-NettyHttpTel system    5      RUNNAB 0.0   0.000  0:0.06 false true   
+84 arthas-NettyHttpTel system    5      RUNNAB 0.0   0.000  0:0.01 false true   
+84 arthas-NettyHttpTel system    5      RUNNAB 0.0   0.000  0:0.14 false true   
+84 arthas-NettyHttpTel system    5      RUNNAB 0.0   0.000  0:0.06 false true   
+84 arthas-NettyHttpTel system    5      RUNNAB 0.0   0.000  0:0.03 false true   
+84 arthas-NettyHttpTel system    5      RUNNAB 0.0   0.000  0:0.04 false true   
+[arthas@15936]$ 

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ticket-qa 质量数据平台</title>
+<!-- Vue 3 + Chart.js 走 CDN:没有 node_modules、没有构建步骤,一张页面三个功能(ADR-022)。UI 能看就行。 -->
+<script src="https://cdn.jsdelivr.net/npm/vue@3.4.38/dist/vue.global.prod.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+  :root { --bg:#fff; --fg:#1f2328; --muted:#656d76; --line:#d0d7de; --red:#cf222e; --redbg:#ffebe9; --green:#1a7f37; --greenbg:#dafbe1; --yellow:#9a6700; --yellowbg:#fff8c5; --card:#f6f8fa; }
+  body { margin:0; font:14px/1.5 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; color:var(--fg); background:var(--bg); }
+  header { padding:12px 20px; border-bottom:1px solid var(--line); display:flex; gap:20px; align-items:baseline; }
+  header h1 { font-size:16px; margin:0; }
+  header nav a { margin-right:14px; cursor:pointer; color:var(--muted); }
+  header nav a.on { color:var(--fg); font-weight:600; border-bottom:2px solid var(--fg); }
+  main { padding:16px 20px; max-width:1300px; }
+  table { border-collapse:collapse; width:100%; font-size:13px; }
+  th, td { border:1px solid var(--line); padding:5px 8px; text-align:left; white-space:nowrap; }
+  th { background:var(--card); }
+  .num { text-align:right; font-variant-numeric:tabular-nums; }
+  .red { background:var(--redbg); color:var(--red); font-weight:600; }
+  .green { background:var(--greenbg); color:var(--green); }
+  .yellow { background:var(--yellowbg); color:var(--yellow); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:6px; padding:12px 14px; margin-bottom:14px; }
+  .row { display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+  select, input, button, textarea { font:inherit; padding:4px 8px; border:1px solid var(--line); border-radius:4px; background:#fff; }
+  button { cursor:pointer; }
+  button.primary { background:var(--fg); color:#fff; border-color:var(--fg); }
+  textarea { width:100%; min-height:140px; font-family:ui-monospace,Consolas,monospace; font-size:12px; }
+  .muted { color:var(--muted); }
+  .charts { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:900px) { .charts { grid-template-columns:1fr; } }
+  canvas { background:#fff; border:1px solid var(--line); border-radius:6px; }
+  pre { background:var(--card); padding:8px; overflow:auto; font-size:12px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-weight:600; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>ticket-qa 质量数据平台</h1>
+    <nav>
+      <a :class="{on: tab==='runs'}" @click="tab='runs'">执行记录</a>
+      <a :class="{on: tab==='trend'}" @click="tab='trend'; loadTrend()">趋势</a>
+      <a :class="{on: tab==='perf'}" @click="tab='perf'; loadPerf()">性能基线对比</a>
+    </nav>
+    <span class="muted">{{ status }}</span>
+  </header>
+
+  <main>
+    <!-- ================= 执行记录 ================= -->
+    <section v-if="tab==='runs'">
+      <div class="card">
+        <div class="row">
+          <label>套件 <select v-model="runSuite" @change="loadRuns"><option value="">全部</option><option>unit</option><option>api</option><option>security</option><option>all</option></select></label>
+          <button @click="loadRuns">刷新</button>
+          <button @click="showImport = !showImport">{{ showImport ? '收起导入' : '手动导入(JSON)' }}</button>
+          <span class="muted">CI / 本地脚本走 POST /api/runs;格式见 platform/README.md</span>
+        </div>
+        <div v-if="showImport" style="margin-top:10px">
+          <textarea v-model="runJson"></textarea>
+          <div class="row" style="margin-top:6px"><button class="primary" @click="importRun">POST /api/runs</button><span class="muted">{{ importMsg }}</span></div>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>批次</th><th>套件</th><th>来源</th><th>提交</th><th>开始时间</th><th class="num">耗时 s</th><th class="num">用例数</th><th class="num">通过</th><th class="num">失败</th><th class="num">跳过</th><th class="num">xfail</th><th class="num">通过率 %</th><th class="num">行覆盖 %</th><th class="num">分支覆盖 %</th><th>备注</th></tr></thead>
+        <tbody>
+          <tr v-for="r in runs" :key="r.id">
+            <td>{{ r.batchNo }}</td><td>{{ r.suite }}</td><td>{{ r.source }}</td><td>{{ (r.commitSha||'').slice(0,8) }}</td><td>{{ r.startedAt }}</td>
+            <td class="num">{{ (r.durationMs/1000).toFixed(0) }}</td><td class="num">{{ r.total }}</td><td class="num">{{ r.passed }}</td>
+            <td class="num" :class="{red: r.failed>0}">{{ r.failed }}</td><td class="num">{{ r.skipped }}</td><td class="num">{{ r.xfailed }}</td>
+            <td class="num" :class="r.passRate>=100 ? 'green' : 'red'">{{ r.passRate }}</td>
+            <td class="num">{{ r.lineCoverage ?? '—' }}</td><td class="num">{{ r.branchCoverage ?? '—' }}</td><td class="muted">{{ r.note }}</td>
+          </tr>
+          <tr v-if="!runs.length"><td colspan="15" class="muted">还没有记录。用 tests/tools/publish_run.py 或右上角手动导入。</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ================= 趋势 ================= -->
+    <section v-if="tab==='trend'">
+      <div class="card row">
+        <label>套件 <select v-model="trendSuite" @change="loadTrend"><option value="">全部</option><option>unit</option><option>api</option><option>security</option><option>all</option></select></label>
+        <label>最近 <input type="number" v-model.number="trendLimit" style="width:70px" @change="loadTrend"> 批</label>
+        <span class="muted">横轴按开始时间升序;覆盖率为空的批次在图上留空</span>
+      </div>
+      <div class="charts">
+        <canvas id="passChart" height="120"></canvas>
+        <canvas id="covChart" height="120"></canvas>
+      </div>
+    </section>
+
+    <!-- ================= 性能基线对比 ================= -->
+    <section v-if="tab==='perf'">
+      <div class="card">
+        <div class="row">
+          <label>场景 <select v-model="perfScenario" @change="loadPerf"><option value="">全部</option><option v-for="s in scenarios" :key="s">{{ s }}</option></select></label>
+          <button @click="loadPerf">刷新</button>
+          <span class="muted">阈值:QPS 下降 ≥ {{ thresholds.qps }}% 或 P99 上升 ≥ {{ thresholds.p99 }}% 标红;环境状态显著不同 → 结论降级为「不可信」(KI-010)</span>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>tag</th><th>场景</th><th class="num">线程</th><th>执行时间</th><th>提交</th><th class="num">样本</th><th class="num">QPS</th><th class="num">P50</th><th class="num">P95</th><th class="num">P99</th><th class="num">错误 %</th><th class="num">起跑池</th><th class="num">数据量</th><th>基线</th><th>操作</th></tr></thead>
+        <tbody>
+          <tr v-for="p in perfRuns" :key="p.id">
+            <td>{{ p.tag }}</td><td>{{ p.scenario }}</td><td class="num">{{ p.threads }}</td><td>{{ p.executedAt }}</td><td>{{ (p.commitSha||'').slice(0,8) }}</td>
+            <td class="num">{{ p.samples }}</td><td class="num">{{ p.qps }}</td><td class="num">{{ p.p50Ms }}</td><td class="num">{{ p.p95Ms }}</td><td class="num">{{ p.p99Ms }}</td><td class="num">{{ p.errorRate }}</td>
+            <td class="num">{{ env(p,'hikari','total') }}</td><td class="num">{{ env(p,'mysql','ticket_rows') }}</td>
+            <td><span v-if="p.baseline" class="badge green">基线</span><button v-else @click="markBaseline(p)">设为基线</button></td>
+            <td><button :disabled="p.baseline" @click="compare(p)">vs 基线</button></td>
+          </tr>
+          <tr v-if="!perfRuns.length"><td colspan="15" class="muted">还没有压测记录。用 tests/perf/tools/to_platform.py &lt;tag&gt; --post 导入。</td></tr>
+        </tbody>
+      </table>
+
+      <div v-if="cmp" class="card" style="margin-top:14px">
+        <div class="row">
+          <strong>{{ cmp.current.tag }}</strong> vs 基线 <strong>{{ cmp.baseline.tag }}</strong>
+          <span class="badge" :class="{red: cmp.verdict==='RED', green: cmp.verdict==='GREEN', yellow: cmp.verdict==='UNRELIABLE'}">
+            {{ {RED:'退化', GREEN:'未退化', UNRELIABLE:'环境不同,对比不可信'}[cmp.verdict] }}
+          </span>
+          <button @click="cmp=null">关闭</button>
+        </div>
+        <table style="margin-top:10px; width:auto">
+          <thead><tr><th></th><th class="num">基线</th><th class="num">本轮</th><th class="num">变化</th></tr></thead>
+          <tbody>
+            <tr><td>QPS</td><td class="num">{{ cmp.baseline.qps }}</td><td class="num">{{ cmp.current.qps }}</td><td class="num" :class="{red: cmp.qpsRed}">{{ pct(cmp.qpsDeltaPct) }}</td></tr>
+            <tr><td>P50 ms</td><td class="num">{{ cmp.baseline.p50Ms }}</td><td class="num">{{ cmp.current.p50Ms }}</td><td class="num">{{ pct(cmp.p50DeltaPct) }}</td></tr>
+            <tr><td>P95 ms</td><td class="num">{{ cmp.baseline.p95Ms }}</td><td class="num">{{ cmp.current.p95Ms }}</td><td class="num">{{ pct(cmp.p95DeltaPct) }}</td></tr>
+            <tr><td>P99 ms</td><td class="num">{{ cmp.baseline.p99Ms }}</td><td class="num">{{ cmp.current.p99Ms }}</td><td class="num" :class="{red: cmp.p99Red}">{{ pct(cmp.p99DeltaPct) }}</td></tr>
+            <tr><td>错误 %</td><td class="num">{{ cmp.baseline.errorRate }}</td><td class="num">{{ cmp.current.errorRate }}</td><td></td></tr>
+          </tbody>
+        </table>
+        <h4 style="margin:12px 0 6px">环境状态差异(基线 → 本轮)</h4>
+        <p v-if="!cmp.envDiffs.length" class="muted">两轮的池大小、堆、数据量、后台任务、MQ 积压、MySQL 配置全部一致——这个对比可信。</p>
+        <table v-else style="width:auto">
+          <thead><tr><th>项</th><th>基线</th><th>本轮</th><th>显著</th><th>为什么重要</th></tr></thead>
+          <tbody>
+            <tr v-for="d in cmp.envDiffs" :key="d.key" :class="{yellow: d.significant}">
+              <td>{{ d.key }}</td><td>{{ d.baseline ?? '—' }}</td><td>{{ d.current ?? '—' }}</td><td>{{ d.significant ? '是' : '否' }}</td><td class="muted">{{ d.why }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <details style="margin-top:10px"><summary class="muted">两轮完整的环境快照</summary>
+          <div class="charts"><pre>{{ JSON.stringify(cmp.baseline.env, null, 1) }}</pre><pre>{{ JSON.stringify(cmp.current.env, null, 1) }}</pre></div>
+        </details>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const { createApp } = Vue;
+createApp({
+  data() {
+    return {
+      tab: 'runs', status: '',
+      runs: [], runSuite: '', showImport: false, importMsg: '',
+      runJson: JSON.stringify({ batchNo: 'local-' + new Date().toISOString().slice(0,19).replace(/[-:T]/g,''), suite: 'api', source: 'local',
+        commitSha: '', branch: 'main', startedAt: new Date().toISOString().slice(0,19).replace('T',' '), durationMs: 0,
+        total: 0, passed: 0, failed: 0, skipped: 0, xfailed: 0, lineCoverage: null, branchCoverage: null, coverageSource: null, note: '' }, null, 2),
+      trendSuite: '', trendLimit: 50, passChart: null, covChart: null,
+      perfRuns: [], perfScenario: '', scenarios: [], cmp: null, thresholds: { qps: 10, p99: 20 },
+    };
+  },
+  mounted() { this.loadRuns(); },
+  methods: {
+    async api(path, opts) {
+      const r = await fetch(path, Object.assign({ headers: { 'Content-Type': 'application/json' } }, opts || {}));
+      const body = await r.json();
+      if (!r.ok || body.code !== 0) throw new Error(body.message || ('HTTP ' + r.status));
+      return body.data;
+    },
+    async loadRuns() {
+      try { this.runs = await this.api('/api/runs?limit=100&suite=' + this.runSuite); this.status = ''; }
+      catch (e) { this.status = '加载失败: ' + e.message; }
+    },
+    async importRun() {
+      try { await this.api('/api/runs', { method: 'POST', body: this.runJson }); this.importMsg = '已导入'; this.loadRuns(); }
+      catch (e) { this.importMsg = '失败: ' + e.message; }
+    },
+    async loadTrend() {
+      try {
+        const pts = await this.api('/api/runs/trend?limit=' + this.trendLimit + '&suite=' + this.trendSuite);
+        const labels = pts.map(p => p.batchNo);
+        this.$nextTick(() => {
+          if (this.passChart) this.passChart.destroy();
+          if (this.covChart) this.covChart.destroy();
+          this.passChart = new Chart(document.getElementById('passChart'), { type: 'line',
+            data: { labels, datasets: [{ label: '通过率 %', data: pts.map(p => p.passRate), borderColor: '#1a7f37', tension: 0.2 }] },
+            options: { scales: { y: { min: 0, max: 100 } }, plugins: { title: { display: true, text: '通过率趋势' } } } });
+          this.covChart = new Chart(document.getElementById('covChart'), { type: 'line',
+            data: { labels, datasets: [
+              { label: '行覆盖 %', data: pts.map(p => p.lineCoverage), borderColor: '#0969da', tension: 0.2, spanGaps: false },
+              { label: '分支覆盖 %', data: pts.map(p => p.branchCoverage), borderColor: '#9a6700', tension: 0.2, spanGaps: false } ] },
+            options: { scales: { y: { min: 0, max: 100 } }, plugins: { title: { display: true, text: '覆盖率趋势' } } } });
+        });
+      } catch (e) { this.status = '加载失败: ' + e.message; }
+    },
+    async loadPerf() {
+      try {
+        this.perfRuns = await this.api('/api/perf-runs?limit=200&scenario=' + this.perfScenario);
+        if (!this.perfScenario) this.scenarios = [...new Set(this.perfRuns.map(p => p.scenario))];
+        this.status = '';
+      } catch (e) { this.status = '加载失败: ' + e.message; }
+    },
+    async markBaseline(p) {
+      try { await this.api('/api/perf-runs/' + p.id + '/baseline', { method: 'PUT' }); this.loadPerf(); }
+      catch (e) { this.status = e.message; }
+    },
+    async compare(p) {
+      try { this.cmp = await this.api('/api/perf-runs/' + p.id + '/compare'); this.thresholds = { qps: this.cmp.qpsDropRedPct, p99: this.cmp.p99RiseRedPct }; this.status = ''; }
+      catch (e) { this.status = e.message; }
+    },
+    env(p, group, key) { const g = p.env && p.env[group]; return g && g[key] != null ? g[key] : '—'; },
+    pct(v) { return v == null ? '—' : (v > 0 ? '+' : '') + v + '%'; },
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

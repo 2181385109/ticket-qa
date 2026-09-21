@@ -1,0 +1,65 @@
+{
+  "mappings": [
+    {
+      "name": "classify | 退款类关键词 → REFUND / P1",
+      "priority": 5,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/classify",
+        "bodyPatterns": [
+          { "matches": "(?is).*(退款|退钱|退费|refund).*" }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "model": "mock-classifier-v1", "category": "REFUND", "priority": "P1" }
+      }
+    },
+    {
+      "name": "classify | 账单类关键词 → BILLING / P1",
+      "priority": 5,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/classify",
+        "bodyPatterns": [
+          { "matches": "(?is).*(账单|扣费|发票|billing|invoice|charged).*" }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "model": "mock-classifier-v1", "category": "BILLING", "priority": "P1" }
+      }
+    },
+    {
+      "name": "classify | 技术故障关键词 → TECH / P0",
+      "priority": 5,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/classify",
+        "bodyPatterns": [
+          { "matches": "(?is).*(报错|崩溃|无法登录|打不开|闪退|bug|crash|error|login).*" }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "model": "mock-classifier-v1", "category": "TECH", "priority": "P0" }
+      }
+    },
+    {
+      "name": "classify | 兜底 → OTHER / P2",
+      "priority": 9,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/classify"
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "model": "mock-classifier-v1", "category": "OTHER", "priority": "P2" }
+      }
+    }
+  ]
+}

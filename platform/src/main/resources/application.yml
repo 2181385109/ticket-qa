@@ -1,0 +1,51 @@
+# 质量数据平台配置。复用被测服务的 MySQL(同一个库,表名 qa_ 前缀),表在启动时按 schema.sql 幂等建出。
+server:
+  port: ${PLATFORM_PORT:8081}
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  application:
+    name: ticket-qa-platform
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:ticket_qa}?useUnicode=true&characterEncoding=utf8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    username: ${MYSQL_USER:ticketqa}
+    password: ${MYSQL_PASSWORD:ticketqa123}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 5
+  sql:
+    init:
+      # 每次启动执行 schema.sql(全部 CREATE TABLE IF NOT EXISTS),不依赖 docker 卷的初始化脚本
+      mode: always
+      schema-locations: classpath:schema.sql
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: non_null
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+    db-config:
+      id-type: auto
+
+# 性能对比的判定阈值(ADR-022):QPS 下降超过 10% 或 P99 上升超过 20% 标红
+platform:
+  compare:
+    qps-drop-red-pct: 10
+    p99-rise-red-pct: 20
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+logging:
+  level:
+    root: INFO

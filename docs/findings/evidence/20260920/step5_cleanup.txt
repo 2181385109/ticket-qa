@@ -1,0 +1,4 @@
+cleanup_at	tickets_before	audit_before	dedup_before
+2026-09-20 21:44:18.063	90627	328931	563023
+tickets_after	agents_kept
+0	6

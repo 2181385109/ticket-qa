@@ -1,0 +1,151 @@
+# 本地编排:MySQL 8 / Redis 7 / RabbitMQ / WireMock(LLM 挡板)/ Prometheus
+# 端口与密码全部来自同目录的 .env(由 .env.example 复制而来)。
+#
+# 常用命令(在 ops/ 目录下执行):
+#   docker compose up -d            # 起全部基础设施
+#   docker compose ps               # 看健康状态,mysql/rabbitmq 需等待 healthy
+#   docker compose logs -f mysql    # 看初始化 SQL 是否执行
+#   docker compose down -v          # 连数据卷一起删,重新初始化建表
+#
+# 故障注入(手动):docker compose stop rabbitmq / redis / wiremock
+#   (restart: unless-stopped 对手动 stop 的容器不生效,故障注入不受影响;
+#    它只在 Docker 守护进程重启时把容器拉起来——WSL 里的 VM 空闲关机后重新进入就靠它)
+#
+# 可选:docker compose --profile app up -d --build  把 Spring 服务也放进容器
+
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    container_name: ticketqa-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+08:00
+      - --innodb-buffer-pool-size=256M
+    ports:
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # 官方镜像会在首次初始化时按文件名顺序执行该目录下的 .sql
+      - ./mysql/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    container_name: ticketqa-redis
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", "--appendonly", "no"]
+    ports:
+      - "${REDIS_PORT}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    restart: unless-stopped
+    container_name: ticketqa-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_MGMT_PORT}:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  wiremock:
+    image: wiremock/wiremock:3.9.1
+    restart: unless-stopped
+    container_name: ticketqa-wiremock
+    command: ["--global-response-templating", "--verbose"]
+    ports:
+      - "${WIREMOCK_PORT}:8080"
+    volumes:
+      # mappings/ 里是 LLM 挡板的桩定义,__files/ 放大响应体
+      - ./wiremock:/home/wiremock:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/__admin/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    restart: unless-stopped
+    container_name: ticketqa-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+    ports:
+      - "${PROMETHEUS_PORT}:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    extra_hosts:
+      # Linux 上让容器内的 host.docker.internal 指向宿主机;Mac/Windows 的 Docker Desktop 自带
+      - "host.docker.internal:host-gateway"
+
+  # ---- 可选:把被测服务也放进 compose(profile=app) ----
+  app:
+    profiles: ["app"]
+    build:
+      context: ../service
+      dockerfile: Dockerfile
+    container_name: ticketqa-app
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      WIREMOCK_BASE_URL: http://wiremock:8080
+      LLM_MODE: mock
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_MODEL: ${LLM_MODEL}
+      APP_ATTACHMENT_DIR: /data/attachments
+    ports:
+      - "8080:8080"
+    volumes:
+      - attachment-data:/data/attachments
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      wiremock:
+        condition: service_healthy
+
+volumes:
+  mysql-data:
+  rabbitmq-data:
+  prometheus-data:
+  attachment-data:

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+      依赖清单严格对应 CLAUDE.md §3 技术栈表。没有 Lombok / Spring Security / Resilience4j /
+      MapStruct,取舍见 docs/adr/ADR-010-依赖取舍.md。
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.5</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.ticketqa</groupId>
+    <artifactId>ticket-qa-service</artifactId>
+    <version>0.1.0</version>
+    <name>ticket-qa-service</name>
+    <description>智能客服工单系统 · 被测服务</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <mybatis-plus.version>3.5.7</mybatis-plus.version>
+        <jacoco.version>0.8.12</jacoco.version>
+        <!-- 全量覆盖率兜底线(ADR-011):行 70% / 分支 60%。增量门禁 80% 在 CI 里由 diff-cover 执行 -->
+        <jacoco.line.minimum>0.70</jacoco.line.minimum>
+        <jacoco.branch.minimum>0.60</jacoco.branch.minimum>
+    </properties>
+
+    <dependencies>
+        <!-- Web + Bean Validation -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- 持久层:MyBatis-Plus + MySQL 8 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- 缓存:Redis 7(Spring Cache 抽象 + Lettuce 客户端) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+        <!-- 消息队列:RabbitMQ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+        <!-- 指标:Actuator + Micrometer → Prometheus 端点 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <!-- 测试:JUnit 5 + Mockito(spring-boot-starter-test 已包含) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.amqp</groupId>
+            <artifactId>spring-rabbit-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!--
+          测试阶段(v0.2-tests)新增的两个 test 依赖(ADR-013):
+          @MybatisPlusTest 切片 + 内存 H2(MySQL 兼容模式)只用于跑 TicketMapper 里两条手写 SQL 的
+          闭区间边界(sla_deadline <= now)和去重表唯一键——这两处语义写在 SQL 里,Mockito 测不到。
+          其余单测一律 Mockito,不起容器。
+        -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter-test</artifactId>
+            <version>${mybatis-plus.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!--
+              Surefire:JaCoCo 的 prepare-agent 会把 javaagent 参数写进 ${argLine},
+              这里用 @{argLine} 把它接上,再补 UTF-8——Windows 上 JVM 默认 GBK,含中文的断言消息会乱码。
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>@{argLine} -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai</argLine>
+                </configuration>
+            </plugin>
+            <!--
+              JaCoCo 三件事(ADR-011):
+              1. prepare-agent  挂探针
+              2. report         出 HTML + XML;XML 给 CI 里的 diff-cover 算"增量覆盖率"
+              3. check          全量兜底线——只是防止"删测试"的护栏,真正的门禁是 CI 里对改动行算的增量覆盖率
+              排除项:实体 / DTO / 配置 / 启动类——getter/setter 和 @Bean 方法的覆盖率没有信息量,
+              留在分母里只会把数字稀释。排除的理由逐条写在 ADR-011。
+            -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>com/ticketqa/TicketQaApplication.class</exclude>
+                        <exclude>com/ticketqa/domain/entity/**</exclude>
+                        <exclude>com/ticketqa/**/dto/**</exclude>
+                        <exclude>com/ticketqa/config/**</exclude>
+                        <exclude>com/ticketqa/llm/OpenAiCompatibleLlmClient.class</exclude>
+                        <exclude>com/ticketqa/llm/LlmClientConfig.class</exclude>
+                        <exclude>com/ticketqa/mq/message/**</exclude>
+                        <exclude>com/ticketqa/agent/AgentSnapshot.class</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>${jacoco.line.minimum}</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>${jacoco.branch.minimum}</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

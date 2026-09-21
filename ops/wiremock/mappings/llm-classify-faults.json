@@ -1,0 +1,69 @@
+{
+  "mappings": [
+    {
+      "name": "classify | 标题含 [SLOW] → 延迟 5s,触发服务侧 3s 超时降级",
+      "priority": 1,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/classify",
+        "bodyPatterns": [
+          { "matchesJsonPath": { "expression": "$.title", "contains": "[SLOW]" } }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "fixedDelayMilliseconds": 5000,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "model": "mock-classifier-v1", "category": "TECH", "priority": "P1" }
+      }
+    },
+    {
+      "name": "classify | 标题含 [ERROR] → 500,连续 5 次触发熔断",
+      "priority": 1,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/classify",
+        "bodyPatterns": [
+          { "matchesJsonPath": { "expression": "$.title", "contains": "[ERROR]" } }
+        ]
+      },
+      "response": {
+        "status": 500,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "error": "mock upstream failure" }
+      }
+    },
+    {
+      "name": "classify | 标题含 [BAD_CATEGORY] → 返回枚举外分类 SPAM,契约越界落 OTHER",
+      "priority": 1,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/classify",
+        "bodyPatterns": [
+          { "matchesJsonPath": { "expression": "$.title", "contains": "[BAD_CATEGORY]" } }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "model": "mock-classifier-v1", "category": "SPAM", "priority": "P1" }
+      }
+    },
+    {
+      "name": "classify | 标题含 [BAD_JSON] → 非 JSON 响应体,解析失败降级",
+      "priority": 1,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/classify",
+        "bodyPatterns": [
+          { "matchesJsonPath": { "expression": "$.title", "contains": "[BAD_JSON]" } }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "text/plain" },
+        "body": "I am not JSON"
+      }
+    }
+  ]
+}

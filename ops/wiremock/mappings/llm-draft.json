@@ -1,0 +1,54 @@
+{
+  "mappings": [
+    {
+      "name": "draft | 标题含 [SLOW] → 延迟 5s,触发超时降级到模板草稿",
+      "priority": 1,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/draft",
+        "bodyPatterns": [
+          { "matchesJsonPath": { "expression": "$.title", "contains": "[SLOW]" } }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "fixedDelayMilliseconds": 5000,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "model": "mock-writer-v1", "draft": "too late" }
+      }
+    },
+    {
+      "name": "draft | 标题含 [ERROR] → 500",
+      "priority": 1,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/draft",
+        "bodyPatterns": [
+          { "matchesJsonPath": { "expression": "$.title", "contains": "[ERROR]" } }
+        ]
+      },
+      "response": {
+        "status": 500,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "error": "mock upstream failure" }
+      }
+    },
+    {
+      "name": "draft | 正常:用响应模板把标题回填进草稿",
+      "priority": 9,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/draft"
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "transformers": ["response-template"],
+        "jsonBody": {
+          "model": "mock-writer-v1",
+          "draft": "您好,关于您反馈的「{{jsonPath request.body '$.title'}}」({{jsonPath request.body '$.category'}} 类问题),我们已经核实并开始处理,预计在 SLA 时限内给您答复。如有补充信息请直接回复本工单。"
+        }
+      }
+    }
+  ]
+}

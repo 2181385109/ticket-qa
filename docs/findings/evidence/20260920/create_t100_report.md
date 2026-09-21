@@ -1,0 +1,85 @@
+# 压测轮次 create_t100
+
+脚本 `ticket_create.jmx`,线程 100,ramp-up 20s,持续 60s,额外参数 ``,执行时间 2026-09-20 19:11:08
+JMeter 与被测服务同机(Ryzen 7 7840H 8C16T / 16 GB);MySQL/Redis/RabbitMQ/WireMock 在 WSL2 Docker(4 vCPU)
+
+## 环境状态(压测前)
+
+| 环境状态 | 值 |
+|---|---|
+| 采集时间 | 2026-09-20 19:09:50(create_t100 之前) |
+| 服务版本 | git 92ac612,JVM uptime 4524 s |
+| HikariCP total/idle/active/pending(max) | 20/19/1/0 (20);acquire_max 0.2049813s,timeout_total 0 |
+| JVM 堆已用 / 上限 | 84.3 / 1024.0 MB |
+| GC 累计次数 / 累计停顿 / 单次最大 | 63 次 / 0.312 s / 0.003 s |
+| JVM 线程(live / blocked) | 156.0 / 0.0 |
+| SLA 后台任务 | 扫描累计 149.0 轮,升级累计 2875.0;库内待升级积压 0 张,下一批到期 10.4 分钟后 |
+| 库内行数 ticket / audit / llm_call_log / mq_dedup | 46716 / 46716 / 46716 / 29784;按状态 PENDING=46716 |
+| MySQL 持久化配置 | innodb_flush_log_at_trx_commit=1 sync_binlog=1 isolation=REPEATABLE-READ lock_wait_timeout=50 buffer_pool=268435456 max_connections=151 threads_connected=21 |
+| MySQL 慢日志 | slow_query_log=OFF long_query_time=10.000000 log_output=FILE |
+| LLM 熔断 / 降级累计 / 熔断累计 | state=0.0 fallback=0 open=0 |
+| MQ 发布 / 消费 / 发布失败;队列积压 | 61134.0 / 44167.0 / 0.0;{'q.ticket.assigned': 0, 'q.ticket.sla-escalated': 0, 'q.ticket.status-changed': 17882} |
+| HTTP 请求累计 | 55810.0 |
+
+## 环境状态(压测后)
+
+| 环境状态 | 值 |
+|---|---|
+| 采集时间 | 2026-09-20 19:11:08(create_t100 之后) |
+| 服务版本 | git 92ac612,JVM uptime 4601 s |
+| HikariCP total/idle/active/pending(max) | 20/19/1/0 (20);acquire_max 0.9822527s,timeout_total 0 |
+| JVM 堆已用 / 上限 | 530.3 / 1024.0 MB |
+| GC 累计次数 / 累计停顿 / 单次最大 | 80 次 / 0.352 s / 0.003 s |
+| JVM 线程(live / blocked) | 208.0 / 0.0 |
+| SLA 后台任务 | 扫描累计 152.0 轮,升级累计 2875.0;库内待升级积压 0 张,下一批到期 9.1 分钟后 |
+| 库内行数 ticket / audit / llm_call_log / mq_dedup | 68637 / 68637 / 68637 / 34188;按状态 PENDING=68637 |
+| MySQL 持久化配置 | innodb_flush_log_at_trx_commit=1 sync_binlog=1 isolation=REPEATABLE-READ lock_wait_timeout=50 buffer_pool=268435456 max_connections=151 threads_connected=21 |
+| MySQL 慢日志 | slow_query_log=OFF long_query_time=10.000000 log_output=FILE |
+| LLM 熔断 / 降级累计 / 熔断累计 | state=0.0 fallback=0 open=0 |
+| MQ 发布 / 消费 / 发布失败;队列积压 | 83055.0 / 48567.0 / 0.0;{'q.ticket.assigned': 0, 'q.ticket.sla-escalated': 0, 'q.ticket.status-changed': 35905} |
+| HTTP 请求累计 | 77813.0 |
+
+## JMeter 结果
+
+```
+create_t100.jtl: samples=21921 wall=60.1s qps=364.7 avg=228.7 p50=186 p95=446 p99=644 max=1199 errors=0 (0.00%) codes={'201': 21921}
+
+create_t100.jtl label 分布:
+    6576  create | http=201 code=0 category=TECH priority=P0
+    6576  create | http=201 code=0 category=OTHER priority=P2
+    4385  create | http=201 code=0 category=BILLING priority=P1
+    4384  create | http=201 code=0 category=REFUND priority=P1
+```
+
+## 服务侧指标(每秒采样,峰值 / 均值 / 差分)
+
+```
+results/create_t100_metrics.csv: 74 samples 19:09:51..19:11:08
+  hikari_active    max=   20.00 avg=   14.34
+  hikari_pending   max=   71.00 avg=   37.19
+  jvm_threads      max=  210.00 avg=  195.12
+  threads_blocked  max=    1.00 avg=    0.01
+  threads_runnable max=   69.00 avg=   57.35
+  heap_used_mb     max=  673.03 avg=  359.90
+  proc_cpu         max=    0.14 avg=    0.09
+  sys_cpu          max=    0.68 avg=    0.49
+  gc_count         delta=   17.00  (first=63.0 last=80.0)
+  gc_sum_s         delta=    0.04  (first=0.312 last=0.352)
+  llm_fallback     delta=    0.00  (first=0.0 last=0.0)
+  llm_circuit_open delta=    0.00  (first=0.0 last=0.0)
+  mq_published     delta=21921.00  (first=61134.0 last=83055.0)
+  mq_publish_failed delta=    0.00  (first=0.0 last=0.0)
+  mq_consumed      delta= 4431.00  (first=44245.0 last=48676.0)
+  http_count       delta=22003.00  (first=55811.0 last=77814.0)
+  gc_max_s         max=0.003
+```
+
+## 容器 CPU(docker stats,每 ~4 s 一次)
+
+```
+ticketqa-mysql         samples=18 avg_cpu=74.3% max_cpu=98.9%
+ticketqa-prometheus    samples=18 avg_cpu=0.0% max_cpu=0.1%
+ticketqa-rabbitmq      samples=18 avg_cpu=14.1% max_cpu=8.2%
+ticketqa-redis         samples=18 avg_cpu=2.4% max_cpu=5.2%
+ticketqa-wiremock      samples=18 avg_cpu=45.7% max_cpu=80.4%
+```

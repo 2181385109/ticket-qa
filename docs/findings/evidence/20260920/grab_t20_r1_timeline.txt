@@ -1,0 +1,196 @@
+ticket_id=8216  线程数=22  t0=2026-09-20T18:02:02.045  (+ms 相对 t0)
+线程                        +ms  mapper       阶段          内容
+http-nio-8080-exec-8#1      0  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-8#1      0  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-8#1      4  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-8#1      5  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-8#1      7  updateById   PARAMS      T20260920-9B2A245E(String), perf grab target 20260920-180201(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-8#1     25  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-8#1     25  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-8#1     27  insert       PARAMS      8216(Long), PENDING(String), ASSIGNED(String), 3(Long), 坐席A(String), MANUAL(String), 抢单(String), d6d4cd40c80e4a6c(String
+http-nio-8080-exec-8#1     28  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-6#1      0  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-6#1      0  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-6#1      4  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-6#1      5  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-6#1      8  updateById   PARAMS      T20260920-9B2A245E(String), perf grab target 20260920-180201(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-6#1     45  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-6#1     45  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-6#1     46  insert       PARAMS      8216(Long), PENDING(String), ASSIGNED(String), 4(Long), 坐席B(String), MANUAL(String), 抢单(String), 22ff43105a4c4296(String
+http-nio-8080-exec-6#1     48  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-3#1      0  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-3#1      0  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-3#1      4  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-3#1      5  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-3#1      8  updateById   PARAMS      T20260920-9B2A245E(String), perf grab target 20260920-180201(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-3#1     54  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-3#1     55  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-3#1     55  insert       PARAMS      8216(Long), PENDING(String), ASSIGNED(String), 3(Long), 坐席A(String), MANUAL(String), 抢单(String), da2740dafbc04c5b(String
+http-nio-8080-exec-3#1     57  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-5#1      0  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-5#1      0  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-5#1      4  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-5#1      5  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-5#1      7  updateById   PARAMS      T20260920-9B2A245E(String), perf grab target 20260920-180201(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-5#1     18  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-5#1     18  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-5#1     18  insert       PARAMS      8216(Long), PENDING(String), ASSIGNED(String), 4(Long), 坐席B(String), MANUAL(String), 抢单(String), ececc7f86cb84bed(String
+http-nio-8080-exec-5#1     20  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-2#1      0  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-2#1      1  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-2#1      4  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-2#1      6  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-2#1      8  updateById   PARAMS      T20260920-9B2A245E(String), perf grab target 20260920-180201(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-2#1     62  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-2#1     62  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-2#1     63  insert       PARAMS      8216(Long), PENDING(String), ASSIGNED(String), 3(Long), 坐席A(String), MANUAL(String), 抢单(String), c834db68f9fc42c7(String
+http-nio-8080-exec-2#1     65  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-1#1      0  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-1#1      1  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-1#1      4  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-1#1      5  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-1#1      7  updateById   PARAMS      T20260920-9B2A245E(String), perf grab target 20260920-180201(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-1#1     10  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-1#1     11  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-1#1     11  insert       PARAMS      8216(Long), PENDING(String), ASSIGNED(String), 3(Long), 坐席A(String), MANUAL(String), 抢单(String), 375949b80b814982(String
+http-nio-8080-exec-1#1     14  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-4#1      0  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-4#1      1  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-4#1      4  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-4#1      6  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-4#1      8  updateById   PARAMS      T20260920-9B2A245E(String), perf grab target 20260920-180201(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-4#1     71  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-4#1     71  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-4#1     72  insert       PARAMS      8216(Long), PENDING(String), ASSIGNED(String), 4(Long), 坐席B(String), MANUAL(String), 抢单(String), a8ef144dbe3b4543(String
+http-nio-8080-exec-4#1     73  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-10#1      0  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-10#1      1  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-10#1      4  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-10#1      6  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-10#1      8  updateById   PARAMS      T20260920-9B2A245E(String), perf grab target 20260920-180201(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-10#1     77  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-10#1     77  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-10#1     77  insert       PARAMS      8216(Long), PENDING(String), ASSIGNED(String), 4(Long), 坐席B(String), MANUAL(String), 抢单(String), 6b477dd538514a12(String
+http-nio-8080-exec-10#1     79  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-7#1      0  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-7#1      2  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-7#1      5  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-7#1      6  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-7#1      8  updateById   PARAMS      T20260920-9B2A245E(String), perf grab target 20260920-180201(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-7#1     83  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-7#1     84  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-7#1     84  insert       PARAMS      8216(Long), PENDING(String), ASSIGNED(String), 4(Long), 坐席B(String), MANUAL(String), 抢单(String), 4953e0d6d32a4b5a(String
+http-nio-8080-exec-7#1     86  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-9#1      0  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-9#1      2  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-9#1      5  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-9#1      7  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-9#1      9  updateById   PARAMS      T20260920-9B2A245E(String), perf grab target 20260920-180201(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-9#1     89  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-9#1     90  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-9#1     90  insert       PARAMS      8216(Long), PENDING(String), ASSIGNED(String), 4(Long), 坐席B(String), MANUAL(String), 抢单(String), 081da28163c341f9(String
+http-nio-8080-exec-9#1     91  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-11#1      0  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-11#1      2  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-11#1      5  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-11#1      7  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-11#1      7  updateById   PARAMS      T20260920-9B2A245E(String), perf grab target 20260920-180201(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-11#1     35  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-11#1     36  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-11#1     37  insert       PARAMS      8216(Long), PENDING(String), ASSIGNED(String), 3(Long), 坐席A(String), MANUAL(String), 抢单(String), 44ef2d1ad3994902(String
+http-nio-8080-exec-11#1     39  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-14#1      8  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-14#1      8  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-14#1     11  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-14#1     11  updateById   SEND        UPDATE ticket SET ticket_no=?, title=?, content=?, category=
+http-nio-8080-exec-14#1     11  updateById   PARAMS      T20260920-9B2A245E(String), perf grab target 20260920-180201(String), JMeter 抢单目标(String), OTHER(String), P2(String), AS
+http-nio-8080-exec-14#1     97  updateById   RESULT      <==    Updates: 1
+http-nio-8080-exec-14#1     97  insert       SEND        INSERT INTO ticket_audit_log ( ticket_id, from_status, to_st
+http-nio-8080-exec-14#1     98  insert       PARAMS      8216(Long), PENDING(String), ASSIGNED(String), 3(Long), 坐席A(String), MANUAL(String), 抢单(String), 9ccaedc925a94c22(String
+http-nio-8080-exec-14#1     99  insert       RESULT      <==    Updates: 1
+
+http-nio-8080-exec-16#1     19  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-16#1     20  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-16#1     21  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-16#1     30  -            REJECT      业务异常 code=40901 msg=只能抢 PENDING 状态的工单,当前为 ASSIGNED
+
+http-nio-8080-exec-12#1     25  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-12#1     27  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-12#1     29  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-12#1     31  -            REJECT      业务异常 code=40901 msg=只能抢 PENDING 状态的工单,当前为 ASSIGNED
+
+http-nio-8080-exec-15#1     28  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-15#1     28  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-15#1     30  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-15#1     32  -            REJECT      业务异常 code=40901 msg=只能抢 PENDING 状态的工单,当前为 ASSIGNED
+
+http-nio-8080-exec-13#1     31  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-13#1     32  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-13#1     33  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-13#1     35  -            REJECT      业务异常 code=40901 msg=只能抢 PENDING 状态的工单,当前为 ASSIGNED
+
+http-nio-8080-exec-20#1     33  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-20#1     33  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-20#1     35  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-20#1     37  -            REJECT      业务异常 code=40901 msg=只能抢 PENDING 状态的工单,当前为 ASSIGNED
+
+http-nio-8080-exec-17#1     36  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-17#1     37  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-17#1     39  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-17#1     41  -            REJECT      业务异常 code=40901 msg=只能抢 PENDING 状态的工单,当前为 ASSIGNED
+
+http-nio-8080-exec-18#1     37  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-18#1     38  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-18#1     40  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-18#1     42  -            REJECT      业务异常 code=40901 msg=只能抢 PENDING 状态的工单,当前为 ASSIGNED
+
+http-nio-8080-exec-19#1     38  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-19#1     38  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-19#1     40  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-19#1     42  -            REJECT      业务异常 code=40901 msg=只能抢 PENDING 状态的工单,当前为 ASSIGNED
+
+http-nio-8080-exec-8#2    115  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-8#2    116  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-8#2    117  selectById   RESULT      <==      Total: 1
+
+http-nio-8080-exec-20#2    122  selectById   SEND        SELECT id,ticket_no,title,content,category,priority,status,c
+http-nio-8080-exec-20#2    122  selectById   PARAMS      8216(Long)
+http-nio-8080-exec-20#2    123  selectById   RESULT      <==      Total: 1
+http-nio-8080-exec-20#2    124  selectList   SEND        SELECT id,ticket_id,from_status,to_status,operator_id,operat
+http-nio-8080-exec-20#2    124  selectList   PARAMS      8216(Long)
+http-nio-8080-exec-20#2    126  selectList   RESULT      <==      Total: 13
+http-nio-8080-exec-20#2  12540  -            REJECT      业务异常 code=40901 msg=只能抢 PENDING 状态的工单,当前为 ASSIGNED
+
+每线程摘要(+ms):SELECT 发出 / SELECT 返回 / UPDATE 发出 / UPDATE 返回 / SELECT返回→UPDATE返回 的窗口
+  http-nio-8080-exec-8#1      0      4      5     25   window=21 ms   UPDATE 执行了
+  http-nio-8080-exec-6#1      0      4      5     45   window=41 ms   UPDATE 执行了
+  http-nio-8080-exec-3#1      0      4      5     54   window=50 ms   UPDATE 执行了
+  http-nio-8080-exec-5#1      0      4      5     18   window=14 ms   UPDATE 执行了
+  http-nio-8080-exec-2#1      0      4      6     62   window=58 ms   UPDATE 执行了
+  http-nio-8080-exec-1#1      0      4      5     10   window=6 ms   UPDATE 执行了
+  http-nio-8080-exec-4#1      0      4      6     71   window=67 ms   UPDATE 执行了
+  http-nio-8080-exec-10#1      0      4      6     77   window=73 ms   UPDATE 执行了
+  http-nio-8080-exec-7#1      0      5      6     83   window=78 ms   UPDATE 执行了
+  http-nio-8080-exec-9#1      0      5      7     89   window=84 ms   UPDATE 执行了
+  http-nio-8080-exec-11#1      0      5      7     35   window=30 ms   UPDATE 执行了
+  http-nio-8080-exec-14#1      8     11     11     97   window=86 ms   UPDATE 执行了
+  http-nio-8080-exec-16#1     19     21 None None   window=- ms   被 409 拦下(没有 UPDATE)
+  http-nio-8080-exec-12#1     25     29 None None   window=- ms   被 409 拦下(没有 UPDATE)
+  http-nio-8080-exec-15#1     28     30 None None   window=- ms   被 409 拦下(没有 UPDATE)
+  http-nio-8080-exec-13#1     31     33 None None   window=- ms   被 409 拦下(没有 UPDATE)
+  http-nio-8080-exec-20#1     33     35 None None   window=- ms   被 409 拦下(没有 UPDATE)
+  http-nio-8080-exec-17#1     36     39 None None   window=- ms   被 409 拦下(没有 UPDATE)
+  http-nio-8080-exec-18#1     37     40 None None   window=- ms   被 409 拦下(没有 UPDATE)
+  http-nio-8080-exec-19#1     38     40 None None   window=- ms   被 409 拦下(没有 UPDATE)
+  http-nio-8080-exec-20#2    122    123 None None   window=- ms   被 409 拦下(没有 UPDATE)

@@ -1,0 +1,21 @@
+探针时长 34s,processlist 采样 34 次,ticketqa 非 Sleep 连接数 avg=2.1 max=7
+processlist 状态累计(次数 / 采样次数 = 平均同时处于该状态的连接数):
+    1.79  waiting for handler commit
+    0.09  Sending to client
+    0.09  starting
+    0.03  preparing
+    0.03  update
+    0.03  Opening tables
+    0.03  updating
+global_status 差分:
+  Innodb_data_fsyncs       +   33476   (   983.2/s)
+  Innodb_os_log_fsyncs     +   28819   (   846.4/s)
+  Innodb_row_lock_time     +       0   (     0.0/s)
+  Innodb_row_lock_waits    +       0   (     0.0/s)
+  Questions                +  105877   (  3109.6/s)
+  Threads_connected        +       0   (     0.0/s)
+  Threads_running          +       2   (     0.1/s)
+文件 / 互斥等待差分(次数, 总等待 ms, 平均 µs):
+  wait/io/file/innodb/innodb_data_file              9365     3946.8 ms    421.4 µs
+  wait/io/file/innodb/innodb_log_file              81935    26628.6 ms    325.0 µs
+  wait/io/file/sql/binlog                          26618    20077.4 ms    754.3 µs

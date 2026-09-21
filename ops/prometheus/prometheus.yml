@@ -1,0 +1,21 @@
+# 只配抓取,不做看板。Grafana 看板不在仓库内,自行接这个 Prometheus。
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Spring Boot 服务:Actuator 暴露的 Prometheus 端点
+  # 服务跑在宿主机(mvn spring-boot:run)时用 host.docker.internal;
+  # 用 --profile app 跑在容器里时改成 app:8080。
+  - job_name: ticket-qa-service
+    metrics_path: /actuator/prometheus
+    scrape_interval: 10s
+    static_configs:
+      - targets: ["host.docker.internal:8080"]
+        labels:
+          application: ticket-qa-service
+          env: local
+
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]

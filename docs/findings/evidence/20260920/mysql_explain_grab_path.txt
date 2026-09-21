@@ -1,0 +1,72 @@
+*************************** 1. row ***************************
+           id: 1
+  select_type: SIMPLE
+        table: ticket
+   partitions: NULL
+         type: const
+possible_keys: PRIMARY
+          key: PRIMARY
+      key_len: 8
+          ref: const
+         rows: 1
+     filtered: 100.00
+        Extra: NULL
+*************************** 1. row ***************************
+           id: 1
+  select_type: UPDATE
+        table: ticket
+   partitions: NULL
+         type: range
+possible_keys: PRIMARY
+          key: PRIMARY
+      key_len: 8
+          ref: const
+         rows: 1
+     filtered: 100.00
+        Extra: Using where
+*************************** 1. row ***************************
+           id: 1
+  select_type: SIMPLE
+        table: ticket_audit_log
+   partitions: NULL
+         type: ref
+possible_keys: idx_audit_ticket_created
+          key: idx_audit_ticket_created
+      key_len: 8
+          ref: const
+         rows: 21
+     filtered: 100.00
+        Extra: Using filesort
+*************************** 1. row ***************************
+           id: 1
+  select_type: SIMPLE
+        table: agent
+   partitions: NULL
+         type: const
+possible_keys: PRIMARY
+          key: PRIMARY
+      key_len: 8
+          ref: const
+         rows: 1
+     filtered: 100.00
+        Extra: NULL
+SCHEMA_NAME	COUNT_STAR	total_s	lock_s	max_ms	avg_ms	SUM_ROWS_EXAMINED	digest
+ticket_qa	201	17.068	16.905	280.7	84.92	201	UPDATE `ticket` SET `ticket_no` = ? , `title` = ? , `content` = ? , `c
+ticket_qa	3018	0.998	0.093	8.5	0.33	3018	SELECT `id` , `ticket_no` , `title` , `content` , `category` , `priori
+ticket_qa	300	0.127	0.036	4.6	0.42	0	ROLLBACK
+ticket_qa	32582	119.801	0.022	41.7	3.68	0	COMMIT
+ticket_qa	8229	1.703	0.014	22.6	0.21	0	INSERT INTO `ticket_audit_log` ( `ticket_id` , `to_status` , `operator
+ticket_qa	2464	0.489	0.005	5.4	0.2	0	INSERT INTO `ticket_audit_log` ( `ticket_id` , `from_status` , `to_sta
+ticket_qa	2464	0.928	0.004	9.2	0.38	2464	UPDATE `ticket` SET STATUS = ? , `escalated_at` = ? , `updated_at` = ?
+ticket_qa	201	0.116	0.002	8	0.58	0	INSERT INTO `ticket_audit_log` ( `ticket_id` , `from_status` , `to_sta
+Table	Non_unique	Key_name	Seq_in_index	Column_name	Collation	Cardinality	Sub_part	Packed	Null	Index_type	Comment	Index_comment	Visible	Expression
+ticket	0	PRIMARY	1	id	A	8188	NULL	NULL		BTREE			YES	NULL
+ticket	0	uk_ticket_no	1	ticket_no	A	7767	NULL	NULL		BTREE			YES	NULL
+ticket	1	idx_ticket_status_sla	1	status	A	3	NULL	NULL		BTREE			YES	NULL
+ticket	1	idx_ticket_status_sla	2	sla_deadline	A	7823	NULL	NULL		BTREE			YES	NULL
+ticket	1	idx_ticket_assignee_status	1	assignee_id	A	3	NULL	NULL	YES	BTREE			YES	NULL
+ticket	1	idx_ticket_assignee_status	2	status	A	4	NULL	NULL		BTREE			YES	NULL
+ticket	1	idx_ticket_group_status_created	1	group_id	A	2	NULL	NULL		BTREE			YES	NULL
+ticket	1	idx_ticket_group_status_created	2	status	A	5	NULL	NULL		BTREE			YES	NULL
+ticket	1	idx_ticket_group_status_created	3	created_at	A	7935	NULL	NULL		BTREE			YES	NULL
+ticket	1	idx_ticket_customer	1	customer_id	A	5402	NULL	NULL		BTREE			YES	NULL

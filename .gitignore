@@ -1,0 +1,89 @@
+# ---- 本地私有说明(不进仓库)----
+CLAUDE.local.md
+
+# ---- 密钥 / 环境 ----
+ops/.env
+*.env
+.env.*
+!ops/.env.example
+# 测试环境配置不是密钥(只有地址;口令用的是 .env.example 的默认值),要提交
+!tests/api/config/*.env
+**/secrets/
+*.secret
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+*apikey*
+*api_key*
+application-local.yml
+application-local.yaml
+
+# ---- Java / Maven ----
+service/target/
+platform/target/
+**/target/
+*.class
+*.jar
+!.mvn/wrapper/*.jar
+*.war
+*.log
+# findings 里复制过来的证据日志(故障探针、GC 日志)是文档的一部分,要提交
+!docs/findings/evidence/**/*.log
+service/logs/
+platform/logs/
+logs/
+hs_err_pid*
+replay_pid*
+
+# ---- 运行时数据 ----
+service/data/
+data/attachments/
+ops/data/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.venv/
+venv/
+
+# ---- JMeter 结果(模板本身提交,跑出来的不提交)----
+*.jtl
+tests/perf/results/*
+!tests/perf/results/.gitkeep
+jmeter.log
+
+# ---- Allure / 覆盖率 / JUnit 产物 ----
+tests/allure-results/
+tests/allure-report/
+tests/.coverage
+tests/coverage.xml
+tests/junit.xml
+**/allure-results/
+**/allure-report/
+diff-cover-*.html
+diff-cover-*.md
+
+# ---- 前端 ----
+node_modules/
+dist/
+.npm/
+.pnpm-store/
+
+# ---- IDE / OS ----
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+*.swp
+*~
+.DS_Store
+Thumbs.db

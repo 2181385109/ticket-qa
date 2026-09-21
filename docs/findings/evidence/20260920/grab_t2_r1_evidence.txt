@@ -1,0 +1,16 @@
+===== ticket_id=8219 =====
+SQL> SELECT ticket_id, to_status, COUNT(*) AS n, GROUP_CONCAT(operator_id ORDER BY id) AS operators FROM ticket_audit_log WHERE ticket_id = 8219 AND to_status = 'ASSIGNED' GROUP BY ticket_id, to_status
+  ticket_id | to_status | n | operators
+  8219 | ASSIGNED | 2 | 4,3
+
+SQL> SELECT id, status, assignee_id, group_id, created_at, updated_at FROM ticket WHERE id = 8219
+  id | status | assignee_id | group_id | created_at | updated_at
+  8219 | ASSIGNED | 3 | 1 | 2026-09-20 18:02:35.552000 | 2026-09-20 18:02:36.096000
+
+SQL> SELECT id, from_status, to_status, operator_id, operator_name, source, remark, trace_id, DATE_FORMAT(created_at, '%H:%i:%s.%f') AS created_at FROM ticket_audit_log WHERE ticket_id = 8219 ORDER BY id
+  id | from_status | to_status | operator_id | operator_name | source | remark | trace_id | created_at
+  8273 |  | PENDING | 1 | 管理员 | LLM | 自动分类 category=OTHER priority=P2 model=mock-classifier-v1 latencyMs=48 | 2f93e592438c421f | 18:02:35.611000
+  8274 | PENDING | ASSIGNED | 4 | 坐席B | MANUAL | 抢单 | 0f24a8d80ea041b0 | 18:02:36.098000
+  8275 | PENDING | ASSIGNED | 3 | 坐席A | MANUAL | 抢单 | 199ffe8b150241e5 | 18:02:36.103000
+
+[结论字段] audit_log 里 to_status='ASSIGNED' 的行数 = 2  (>1 即重复分配)  审计总行数 = 3
