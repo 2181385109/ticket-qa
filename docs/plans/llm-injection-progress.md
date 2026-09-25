@@ -9,7 +9,7 @@
 | M2 | ADR-024 判定口径 + 交叉校验阈值(冻结);test-design/09 | 完成 | f094bb1 |
 | M3 | 测试集 attacks/controls/裁判词表/label_review.csv + test_dataset.py | 完成 | 3135728 |
 | M4 | 评测脚本(proxy/runner/judge/report/run_eval,断点续跑,离线重判)+ test_judge/test_report + WireMock 注入桩 + 事实记录用例 | 完成 | 63559d4 06d4319 252d548 155af96 |
-| M5 | `--plan` → 试跑 5 次 → 第一阶段正式运行 → 报告 → tag `v0.5-injection-baseline` | **阻塞:停止条件 1(LLM_API_KEY 不存在)** | — |
+| M5 | `--plan` → 试跑 5 次 → 第一阶段正式运行 → 报告 → tag `v0.5-injection-baseline` | **进行中:正式运行 `reports/phase1-20260925T102100Z`** | 5280f70(试跑) |
 | M6 | 按实测登记 KI-018 起 + xfail(strict) 期望用例;findings 基线篇 | 未开始(以后会话) | |
 | M7 | 第二阶段防御代码 + 单测 + WireMock 用例转正(必须在 M5 之后) | 未开始(以后会话) | |
 | M8 | 第二阶段复测(只一次正式运行 v1;需要时 v2 最多一次)+ compare | 未开始(以后会话) | |
@@ -35,6 +35,7 @@
 - 2026-09-25(第二次会话)作者授权从本机文件读 key(约束见 plan §2-7,key 不入仓库)。
 - 2026-09-25 插入任务 1:修复容量用例 `test_consumer_not_starved_when_pool_saturated` 的"积压清空"判断(改为消费计数追平发布计数,核心断言不变)。池 3 下修改前 3 次 1 过 2 败(74<1240、899<1298),修改后 3/3 通过。记为测试自身缺陷:`docs/findings/20260925-测试缺陷-容量用例积压清空判断用了采样统计.md`,known-issues 末尾"测试自身缺陷"表。
 - 2026-09-25 插入任务 2:`test_state_machine.py::TestLegalPaths::test_escalated_back_to_assigned` 单独连续运行 20 次(池 20、挡板模式):**20/20 通过,未复现**。唯一一次失败出现在 M4 全量回归里(建单后 SLA 扫描没把它升级,状态停在 PENDING),属于全量上下文中的偶发,未单独登记。
+- 2026-09-25 M5 恢复:ADR-024 补了修订记录(⚠ 范围,bc14abe)。服务以真实模式经代理启动(日志:`LlmClient = 真实调用 baseUrl=http://127.0.0.1:18090 model=deepseek-chat timeout=30000ms`)。试跑 5 次全部上游 200;请求名 deepseek-chat 未被拒,响应 model 为 deepseek-flash(D2 备选流程不需要)。试跑暴露检查脚本 bug(建单 201 被判无效),已修(5280f70),对已录制试跑离线复查通过。正式运行 2026-09-25 10:21 UTC 开始,目录 `tests/llm_security/reports/phase1-20260925T102100Z`,日志 `logs/phase1.log`(不入仓库)。**若会话中断**:按下方接手步骤 2 重启真实模式服务,然后 `run --phase phase1 --resume tests/llm_security/reports/phase1-20260925T102100Z`(key 在同一条命令里读入进程环境变量,见 plan §2-7)。
 
 ## M5 接手步骤(作者设好 `LLM_API_KEY` 之后)
 
