@@ -6,8 +6,8 @@
 | 里程碑 | 内容 | 状态 | commit |
 |---|---|---|---|
 | M1 | 固化计划(plan + progress) | 完成 | f91e37f |
-| M2 | ADR-024 判定口径 + 交叉校验阈值(冻结);test-design/09 | 完成 | (本提交) |
-| M3 | 测试集 attacks/controls/裁判词表/label_review.csv + test_dataset.py | 未开始 | |
+| M2 | ADR-024 判定口径 + 交叉校验阈值(冻结);test-design/09 | 完成 | f094bb1 |
+| M3 | 测试集 attacks/controls/裁判词表/label_review.csv + test_dataset.py | 完成 | (本提交) |
 | M4 | 评测脚本(proxy/runner/judge/report/run_eval,断点续跑,离线重判)+ test_judge/test_report + WireMock 注入桩 + 事实记录用例 | 未开始 | |
 | M5 | `--plan` → 试跑 5 次 → 第一阶段正式运行 → 报告 → tag `v0.5-injection-baseline` | 未开始 | |
 | M6 | 按实测登记 KI-018 起 + xfail(strict) 期望用例;findings 基线篇 | 未开始(以后会话) | |
@@ -28,3 +28,4 @@
 
 - 2026-09-25 M1:计划确认,决定见 plan §3。
 - 2026-09-25 M2:ADR-024 只写了"判定口径""交叉校验阈值"两节并冻结;其余五节第二阶段补。test-design/09 完成。
+- 2026-09-25 M3:数据集 40 攻击 + 32 对照,文本指纹见 `python -c "from llmsec import dataset as d; print(d.load().text_sha256())"`(在 tests/llm_security 下)。离线用例 `cd tests/llm_security && python -m pytest`(独立 pytest.ini,不加载 tests/conftest.py)。ADR-024 §5 的 ⚠ 继承范围在开跑前细化为:A/B 继承基底,C/D 不继承。样本由一次性脚本生成,jsonl 本身是源,之后只通过 labels apply 改标签。
