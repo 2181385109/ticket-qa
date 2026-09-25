@@ -151,6 +151,12 @@ jobs:
       - name: 安装 Python 依赖
         run: pip install -q -r tests/requirements.txt
 
+      # 注入评测工具自身的离线用例:判定规则、报告数字、断点续跑、已提交报告可由 raw 复现(ADR-024)。
+      # 独立 pytest.ini,不加载 tests/conftest.py,不需要服务;真实模型评测(run_eval.py)不在 CI 跑。
+      - name: 提示词注入评测工具离线用例(tests/llm_security)
+        working-directory: tests/llm_security
+        run: python -m pytest
+
       - name: 连接池预热(KI-010:并发用例的结果取决于那一刻 HikariCP 的大小,CI 和本地必须在同一起点)
         working-directory: tests
         # 预热工具也在 coverage 下跑:framework/pool.py 的建连循环只在池未满时执行,pytest 里的 warmed_pool fixture
