@@ -103,3 +103,11 @@
 | KI-015 | Redis 恢复 23.6 s 重连;熔断定值 60 s,依赖恢复后最多再降级 60 s | 同上 §1 / §3 | **已决**(ADR-020):SLO 45 s / 60 s 写成用例,实测秒数记入 Allure |
 | KI-016 | Tomcat 线程池指标未暴露;文件日志无 traceId;带标签 LLM 指标首次发生前不存在 | 本轮压测过程 | **已修**:`mbeanregistry.enabled`、file pattern 带 traceId、`LlmMetrics` 构造预注册;`test_health_auth.py` 断言 |
 | **KI-017** | 列表接口 `GET /api/tickets?status=` 的 `COUNT(*)` 走 `idx_ticket_status_sla` 扫 4 万索引项再回表核对 `deleted`,10 万张单时单核 ≈53 次/s 封顶,读链路 10 线程即到平台(list p50 152 ms) | [修复后回归验证 §5](修复后回归验证.md) | **开放**(只写不改):候选覆盖索引 `(status, deleted, id)` / 不返回精确 total / 缓存 total |
+
+---
+
+## 测试自身缺陷(不编 KI 号,KI 只记被测服务的问题)
+
+| 日期 | 一句话 | 记录 | 状态 |
+|---|---|---|---|
+| 2026-09-25 | 容量用例 `test_consumer_not_starved_when_pool_saturated` 用 RabbitMQ 管理接口的采样统计判断"积压清空",负载刚停时读到旧样本的 0,最终断言早于消费完成(修改前池 3 下 3 次 2 败) | [20260925-测试缺陷-容量用例积压清空判断用了采样统计](20260925-测试缺陷-容量用例积压清空判断用了采样统计.md) | **已修**:等待条件改为消费计数追平发布计数;核心断言不变;修改后池 3 下 3/3 通过 |

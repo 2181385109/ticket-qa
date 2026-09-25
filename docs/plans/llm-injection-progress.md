@@ -32,6 +32,8 @@
 - 2026-09-25 M4:`tests/llm_security` 离线用例 87 条(独立 pytest.ini,CI api job 里单独一步);`tests/security/test_prompt_injection.py` 4 条事实记录用例 + `ops/wiremock/mappings/llm-injection.json`。runner 断点续跑按 key 去重;连续 3 次上游失败 → failures.jsonl → 等 60 s 重试 → 仍失败停;预算计数 `tests/llm_security/reports/call_budget.json`。服务在本机用 `D:\tools\jdk-17\bin\java.exe` 启动(java 不在 PATH;命令见 tests/llm_security/README.md,java.exe 换成全路径)。
 - 2026-09-25 M4 回归(挡板模式,池 20):`pytest` 全量 311 passed / 3 xfailed / 2 failed。① `test_state_machine.py::TestLegalPaths::test_escalated_back_to_assigned` 单独重跑通过(偶发);② `test_capacity.py::TestConsumerStarvation::test_consumer_not_starved_when_pool_saturated` 在池 20 和按 ADR-023 的池 3 下各重跑一次仍失败:断言 `consumed_delta >= published_delta` 时消费计数落后(池 3:61 vs 1324),但用例结束后指标 `mq_event_consumed_total = mq_event_published_total = 2990`、`mq_event_duplicate_total = 0`——消息没丢,是"积压清空"判断(RabbitMQ 管理接口 `messages` 采样统计)早于消费计数追平。本次改动没有碰 `service/`、迁移、`tests/api/`,判定与本任务无关,**未改该用例**,留给作者决定(候选:等待条件改成两个计数相等)。
 - 2026-09-25 M5:`run_eval.py plan` 输出 A/B 分类 110 · 对照分类 160 · C/D 建单 18 · C/D 草稿 90 · 对照草稿 160 · 合计 538,试跑 5(与计划 §4 一致)。`run_eval.py pilot` 在前置检查处停止:**停止条件 1——环境变量 `LLM_API_KEY` 在进程 / 用户 / 系统三级都不存在**。未发出任何真实请求,真实调用累计仍为 0。
+- 2026-09-25(第二次会话)作者授权从本机文件读 key(约束见 plan §2-7,key 不入仓库)。
+- 2026-09-25 插入任务 1:修复容量用例 `test_consumer_not_starved_when_pool_saturated` 的"积压清空"判断(改为消费计数追平发布计数,核心断言不变)。池 3 下修改前 3 次 1 过 2 败(74<1240、899<1298),修改后 3/3 通过。记为测试自身缺陷:`docs/findings/20260925-测试缺陷-容量用例积压清空判断用了采样统计.md`,known-issues 末尾"测试自身缺陷"表。
 
 ## M5 接手步骤(作者设好 `LLM_API_KEY` 之后)
 

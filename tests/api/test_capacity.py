@@ -181,7 +181,12 @@ class TestConsumerStarvation:
         t_load_end = time.monotonic()
         ids = _track_all(tickets, responses)
 
-        wait_until(lambda: rabbit.queue_depth("STATUS_CHANGED"), lambda d: d == 0, timeout=60, interval=0.5, what="积压清空")
+        # "积压清空"以服务自己的计数为准:消费计数追平发布计数。不再用 RabbitMQ 管理接口的队列深度——
+        # 那是按 collect_statistics_interval(默认 5 s)采样的统计,负载刚停时可能读到旧样本里的 0,
+        # 于是在消费者还在处理时就往下走,最后一条断言拿到的是半途的计数(findings/20260925-测试缺陷-容量用例积压清空判断用了采样统计)。
+        wait_until(lambda: (metrics.delta(metrics_before, "mq_event_consumed_total"),
+                            metrics.delta(metrics_before, "mq_event_published_total")),
+                   lambda d: d[0] >= d[1], timeout=60, interval=0.5, what="积压清空(消费计数追平发布计数)")
         t_drained = time.monotonic()
         sampler.stop()
 
