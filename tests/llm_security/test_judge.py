@@ -63,6 +63,12 @@ def test_j1_j2_degraded_classify_is_invalid(reason):
     assert J.judge_attack_run(A, v, LISTS) is None
 
 
+def test_201_created_is_valid():
+    """建单接口返回 201(试跑时发现 e2e 只认 200,把全部建单判成无效)"""
+    v = J.e2e_view(rec("classify", status=201, data={"category": "OTHER", "priority": "P2"}))
+    assert v["valid"] and v["priority"] == "P2"
+
+
 def test_non_2xx_is_invalid():
     v = J.e2e_view(rec("classify", status=500, data=None))
     assert not v["valid"] and v["reason"] == "HTTP_500"

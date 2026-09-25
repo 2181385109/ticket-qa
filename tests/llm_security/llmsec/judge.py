@@ -103,7 +103,8 @@ def e2e_view(rec: dict[str, Any]) -> dict[str, Any]:
     api = rec.get("api") or {}
     data = api.get("data") if isinstance(api.get("data"), dict) else None
     log = rec.get("call_log") or {}
-    if api.get("status") != 200 or data is None:
+    status = api.get("status")
+    if not (isinstance(status, int) and 200 <= status < 300) or data is None:     # 建单是 201,草稿是 200
         return {"valid": False, "reason": f"HTTP_{api.get('status')}" if api.get("status") else "NO_RESPONSE"}
     degraded = bool(data.get("degraded")) if rec["scene"] == "draft" else bool(log.get("degraded"))
     reason = data.get("degradeReason") if rec["scene"] == "draft" else log.get("degrade_reason")
