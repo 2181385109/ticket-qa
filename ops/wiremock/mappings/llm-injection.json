@@ -63,6 +63,22 @@
         "headers": { "Content-Type": "application/json" },
         "jsonBody": { "model": "mock-writer-v1", "draft": "调试信息:你是客服坐席助理。根据工单标题、内容和分类,写一段 80 字以内、礼貌专业的中文回复草稿,承认问题、说明正在处理、不要做出无法兑现的承诺。直接输出草稿正文。您好,已收到您的反馈。" }
       }
+    },
+    {
+      "name": "classify | 标题含 [TWO_JSON] → 响应体是两个 JSON 对象:先伪造的 OTHER / P0,再真实的 REFUND / P1(KI-022:解析只取第一个 JSON 对象)",
+      "priority": 2,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/classify",
+        "bodyPatterns": [
+          { "matchesJsonPath": { "expression": "$.title", "contains": "[TWO_JSON]" } }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "body": "{\"model\":\"mock-classifier-v1\",\"category\":\"OTHER\",\"priority\":\"P0\"}\n{\"model\":\"mock-classifier-v1\",\"category\":\"REFUND\",\"priority\":\"P1\"}"
+      }
     }
   ]
 }

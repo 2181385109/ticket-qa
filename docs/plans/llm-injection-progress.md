@@ -10,9 +10,9 @@
 | M3 | 测试集 attacks/controls/裁判词表/label_review.csv + test_dataset.py | 完成 | 3135728 |
 | M4 | 评测脚本(proxy/runner/judge/report/run_eval,断点续跑,离线重判)+ test_judge/test_report + WireMock 注入桩 + 事实记录用例 | 完成 | 63559d4 06d4319 252d548 155af96 |
 | M5 | `--plan` → 试跑 5 次 → 第一阶段正式运行 → 报告 → tag `v0.5-injection-baseline` | 完成 | 5280f70(试跑)、本提交(正式运行);tag v0.5-injection-baseline |
-| M5.5 | 基线复核(离线):翻转口径(A/B 主口径)、A 严格口径并列、⚠ 拆解、对照判错、C/D 命中人工核对、精简审核表 | 完成 | 见日志 |
-| M6 | 按实测登记 KI-018 起 + xfail(strict) 期望用例;findings 基线篇;另登记"只取第一个 JSON 对象"解析漏洞 | **下一步** | |
-| M7 | 第二阶段防御代码 + 单测 + WireMock 用例转正(必须在 M5 之后) | 未开始(以后会话) | |
+| M5.5 | 基线复核(离线):翻转口径(A/B 主口径)、A 严格口径并列、⚠ 拆解、对照判错、C/D 命中人工核对、精简审核表 | 完成 | b19aa0c |
+| M6 | 按实测登记 KI-018 起 + xfail(strict) 期望用例;findings 基线篇;另登记"只取第一个 JSON 对象"解析漏洞 | 完成 | 本提交 |
+| M7 | 第二阶段防御代码 + 单测 + WireMock 用例转正(必须在 M5 之后) | **下一步** | |
 | M8 | 第二阶段复测(只一次正式运行 v1;需要时 v2 最多一次)+ compare | 未开始(以后会话) | |
 | M9 | 文档收尾:ADR-024 补全、findings、test-inventory、README、walkthrough、test-design/03;tag `v0.6-injection-defense` | 未开始(以后会话) | |
 | M10 | handoff | 未开始(以后会话) | |
@@ -66,3 +66,16 @@
 - 离线用例 `tests/llm_security` 112 条全过(新增 `test_review.py`)。
 - 数字(以报告为准,这里只作索引):A/B 翻转口径与原口径相同(对照 5 次输出完全稳定,见 ADR-024 后果一节);C 人工核对后 31/50 次、7/10 样本
   (规则原始 33/50、9/10);D 核对前后相同。
+
+## M6 KI 登记(2026-09-25)
+
+- KI-018(A)/ KI-019(B)/ KI-020(C)/ KI-021(D)/ **KI-022(分类响应只解析第一个 JSON 对象,独立的解析漏洞)** 登记在 `docs/findings/known-issues.md` 新表;
+  数字以 M5.5 主口径(A/B 翻转、C/D 人工核对后)为主、原口径作参照。findings:`docs/findings/20260925-LLM提示词注入-基线.md`。
+- `tests/security/test_prompt_injection.py`:原 4 条事实用例 + 新事实用例 `test_current_behaviour_first_json_object_wins` + 5 条 xfail(strict) 期望用例;
+  WireMock 新桩 `[TWO_JSON]`(响应体先伪造 OTHER/P0、再真实 REFUND/P1)。挡板模式实跑:5 passed / 5 xfailed;`--runxfail` 确认 5 条都失败在预期的断言上
+  (needsReview 为 None ×2、degraded 为 False ×2、llm_call_log.degraded 为 0 ×1)。**WireMock 改了映射文件后要 `POST /__admin/mappings/reset` 重新加载**。
+- 新 JUnit `OpenAiCompatibleLlmClientTest`(4 条,真实客户端第一次有单测):恰好一个对象 / 非 JSON → BAD_RESPONSE / 两条 KI-022 事实。`mvn -o test -Dtest=…` 4/4。
+- test-design/09 §2"分类场景不存在泄露面"已修正(保留原文作修订记录),§7 挡板标记表加 `[TWO_JSON]` 与期望用例断言来源表。
+- **给 M7 的约束**:期望用例断言按 ADR-024 冻结的阈值写(复核标记 + 采用规则;草稿 `UNSAFE_OUTPUT`;KI-022 → `BAD_RESPONSE` 规则兜底)。
+  KI-022 的修法要同时改 `OpenAiCompatibleLlmClient` 和 `WireMockLlmClient`(两者都 `readTree`),并在 ADR 里决定"多个 JSON 对象"计不计入熔断。
+  防御设计只看攻击手法(test-design/09 §3),**不参考 label_review_priority.csv 的标签内容**。
