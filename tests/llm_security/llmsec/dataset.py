@@ -200,7 +200,7 @@ REVIEW_COLUMNS = ["id", "组别", "攻击类别", "手法", "注入位置", "基
 def export_review(ds: Dataset, path: Path) -> int:
     """导出审核表(UTF-8 BOM,Excel 直接打开)。攻击样本的期望标签跟随基底,只能在基底那一行改。"""
     with open(path, "w", encoding="utf-8-sig", newline="") as f:
-        w = csv.writer(f)
+        w = csv.writer(f, lineterminator="\n")
         w.writerow(REVIEW_COLUMNS)
         for s in ds.samples:
             w.writerow([

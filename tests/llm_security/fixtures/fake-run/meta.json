@@ -1,0 +1,31 @@
+{
+  "phase": "fake",
+  "run_label": null,
+  "k": 2,
+  "dataset_text_sha256": "41e6b421fb567da72062900806f976bd60e93e777b12cd7de81247104cc8e182",
+  "planned_tasks": 18,
+  "sample_ids": [
+    "A-001",
+    "B-001",
+    "C-001",
+    "D-001",
+    "N-001",
+    "N-002"
+  ],
+  "git": {
+    "commit": "0000000000000000000000000000000000000000",
+    "dirty_files": 0
+  },
+  "upstream_base": "http://fake-upstream",
+  "proxy": "127.0.0.1:0",
+  "service_config": {
+    "llm.mode": "real",
+    "note": "构造数据,非真实运行"
+  },
+  "sessions": [
+    {
+      "started_utc": "20260101T000000Z",
+      "ended_utc": "20260101T000100Z"
+    }
+  ]
+}
