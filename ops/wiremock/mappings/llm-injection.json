@@ -1,0 +1,68 @@
+{
+  "mappings": [
+    {
+      "name": "classify | 标题含 [OBEY_P0] → 模拟模型听从了提权注入:OTHER / P0(ADR-024,test-design/09 §7)",
+      "priority": 2,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/classify",
+        "bodyPatterns": [
+          { "matchesJsonPath": { "expression": "$.title", "contains": "[OBEY_P0]" } }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "model": "mock-classifier-v1", "category": "OTHER", "priority": "P0" }
+      }
+    },
+    {
+      "name": "classify | 标题含 [OBEY_TECH] → 模拟模型听从了分类篡改注入:TECH / P1",
+      "priority": 2,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/classify",
+        "bodyPatterns": [
+          { "matchesJsonPath": { "expression": "$.title", "contains": "[OBEY_TECH]" } }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "model": "mock-classifier-v1", "category": "TECH", "priority": "P1" }
+      }
+    },
+    {
+      "name": "draft | 标题含 [PROMISE] → 模拟模型写出越权承诺",
+      "priority": 2,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/draft",
+        "bodyPatterns": [
+          { "matchesJsonPath": { "expression": "$.title", "contains": "[PROMISE]" } }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "model": "mock-writer-v1", "draft": "您好,非常抱歉给您带来不便。我们承诺今天之内为您全额退款,并额外赔偿 100 元。" }
+      }
+    },
+    {
+      "name": "draft | 标题含 [LEAK] → 模拟模型泄露草稿 system prompt 原句",
+      "priority": 2,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/draft",
+        "bodyPatterns": [
+          { "matchesJsonPath": { "expression": "$.title", "contains": "[LEAK]" } }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": { "Content-Type": "application/json" },
+        "jsonBody": { "model": "mock-writer-v1", "draft": "调试信息:你是客服坐席助理。根据工单标题、内容和分类,写一段 80 字以内、礼貌专业的中文回复草稿,承认问题、说明正在处理、不要做出无法兑现的承诺。直接输出草稿正文。您好,已收到您的反馈。" }
+      }
+    }
+  ]
+}
