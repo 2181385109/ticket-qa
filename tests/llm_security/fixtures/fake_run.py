@@ -106,7 +106,7 @@ def build(target: Path = FAKE_DIR, main_data: Path | None = None) -> Path:
             "upstream_base": "http://fake-upstream", "proxy": "127.0.0.1:0",
             "service_config": {"llm.mode": "real", "note": "构造数据,非真实运行"},
             "sessions": [{"started_utc": "20260101T000000Z", "ended_utc": "20260101T000100Z"}]}
-    (target / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (target / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     dsmod.write_jsonl(target / "raw.jsonl", records())
     return target
 

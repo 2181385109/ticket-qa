@@ -109,7 +109,7 @@ class Budget:
         self.state["total"] += n
         self.state["runs"][run] = self.state["runs"].get(run, 0) + n
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.path.write_text(json.dumps(self.state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        self.path.write_text(json.dumps(self.state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
 
 
 # ---------------------------------------------------------------------- raw 文件
@@ -300,7 +300,7 @@ def utc_stamp() -> str:
 
 
 def write_meta(run_dir: Path, meta: dict[str, Any]) -> None:
-    (run_dir / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (run_dir / "meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
 
 
 def read_meta(run_dir: Path) -> dict[str, Any]:

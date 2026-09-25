@@ -264,7 +264,7 @@ def cmd_models(args) -> int:
     ids = sorted(m.get("id") for m in (r.json().get("data") or []))
     out = RN.REPORTS_DIR / f"models-{RN.utc_stamp()}.json"
     out.write_text(json.dumps({"upstream": args.upstream, "status": r.status_code, "ids": ids}, ensure_ascii=False, indent=2) + "\n",
-                   encoding="utf-8")
+                   encoding="utf-8", newline="\n")
     _out(f"HTTP {r.status_code} 模型:{ids} → {out}")
     return 0
 
