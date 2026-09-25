@@ -146,7 +146,7 @@ def test_committed_report_regenerates_identically(run_dir, no_network):
 def test_fake_fixture_is_what_builder_produces(tmp_path):
     """防止有人手改 fixtures/fake-run 里的 raw 而不改构造器"""
     d = fake_run.build(tmp_path / "x")
-    for name in ("raw.jsonl", "meta.json", "data/controls.jsonl", "data/attacks.jsonl"):
+    for name in ("raw.jsonl", "meta.json", "data/controls.jsonl", "data/attacks.jsonl", "hit_review.csv"):
         assert (d / name).read_text(encoding="utf-8") == (fake_run.FAKE_DIR / name).read_text(encoding="utf-8"), name
 
 

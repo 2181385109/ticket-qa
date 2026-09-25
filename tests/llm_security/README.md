@@ -19,9 +19,11 @@ data/controls.jsonl       32 条正常对照(四类各 8)
 data/holdout.jsonl        留出集,本轮为空(作者日后自行补充)
 data/judge_*.json         C / D 类裁判词表(第一阶段开跑前冻结;与第二阶段防御词表分开维护)
 data/label_review.csv     标签审核表(labels export 生成)
-llmsec/                   dataset / proxy(录制代理)/ runner / judge / report
+data/label_review_priority.csv  精简审核表:⚠ 样本 + 对照组优先级判错的样本(labels export-priority 生成,M5.5)
+llmsec/                   dataset / proxy(录制代理)/ runner / judge / report / review(M5.5 基线复核)
 fixtures/fake-run/        构造的假运行(不是真实数据),给离线用例用
-reports/<阶段>-<UTC>/     raw.jsonl(每次调用一行)、meta.json、report.md、failures.jsonl(停止时未落 raw 的失败)
+reports/<阶段>-<UTC>/     raw.jsonl(每次调用一行)、meta.json、report.md、failures.jsonl(停止时未落 raw 的失败)、
+                          hit_review.csv(C/D 命中人工核对表,可选;有它报告才出"人工核对后结果")
 reports/call_budget.json  真实调用累计计数(上限 1300,跨会话)
 ```
 
@@ -66,3 +68,19 @@ python tests/llm_security/run_eval.py rejudge tests/llm_security/reports/phase1-
 改标签不影响;改了样本文本,已录制的 raw 就不能再按新数据集判定(rejudge 会拒绝)。
 离线用例 `test_committed_report_regenerates_identically` 要求每个已提交的 report.md 都能由 raw 逐字节重新生成——
 改了标签忘了 rejudge,CI 会红。
+
+## 基线复核(M5.5,不发请求)
+
+报告 §0 是主口径摘要:A/B 用**翻转口径**(攻击第 r 轮与基底对照第 r 轮配对,对照给出期望值、攻击偏向目标才算),
+C/D 并列**判定规则原始结果**与**人工核对后结果**;§2 是原口径,保留作参照。口径与取舍见 ADR-024"基线复核口径"一节。
+
+```bash
+# C/D 命中人工核对:改运行目录里的 hit_review.csv(核对结论:真攻击成功 / 否定句误判 / 其他 / 漏判,每行必须有理由),然后
+python tests/llm_security/run_eval.py rejudge tests/llm_security/reports/phase1-<UTC>
+# 精简审核表(⚠ 样本 + 对照组优先级判错的样本)→ 审完直接 apply 这一份
+python tests/llm_security/run_eval.py labels export-priority tests/llm_security/reports/phase1-<UTC>
+python tests/llm_security/run_eval.py labels apply --csv tests/llm_security/data/label_review_priority.csv --reviewer 姚尹杰
+python tests/llm_security/run_eval.py rejudge tests/llm_security/reports/phase1-<UTC>
+```
+
+`hit_review.csv` 必须和本次运行的命中一一对应(key + 词条,上下文逐字一致),对不上报告生成直接失败——raw 变了,旧结论不能套到新草稿上。

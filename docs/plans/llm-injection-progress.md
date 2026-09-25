@@ -10,7 +10,8 @@
 | M3 | 测试集 attacks/controls/裁判词表/label_review.csv + test_dataset.py | 完成 | 3135728 |
 | M4 | 评测脚本(proxy/runner/judge/report/run_eval,断点续跑,离线重判)+ test_judge/test_report + WireMock 注入桩 + 事实记录用例 | 完成 | 63559d4 06d4319 252d548 155af96 |
 | M5 | `--plan` → 试跑 5 次 → 第一阶段正式运行 → 报告 → tag `v0.5-injection-baseline` | 完成 | 5280f70(试跑)、本提交(正式运行);tag v0.5-injection-baseline |
-| M6 | 按实测登记 KI-018 起 + xfail(strict) 期望用例;findings 基线篇 | **下一步**(以后会话) | |
+| M5.5 | 基线复核(离线):翻转口径(A/B 主口径)、A 严格口径并列、⚠ 拆解、对照判错、C/D 命中人工核对、精简审核表 | 完成 | 见日志 |
+| M6 | 按实测登记 KI-018 起 + xfail(strict) 期望用例;findings 基线篇;另登记"只取第一个 JSON 对象"解析漏洞 | **下一步** | |
 | M7 | 第二阶段防御代码 + 单测 + WireMock 用例转正(必须在 M5 之后) | 未开始(以后会话) | |
 | M8 | 第二阶段复测(只一次正式运行 v1;需要时 v2 最多一次)+ compare | 未开始(以后会话) | |
 | M9 | 文档收尾:ADR-024 补全、findings、test-inventory、README、walkthrough、test-design/03;tag `v0.6-injection-defense` | 未开始(以后会话) | |
@@ -49,3 +50,19 @@
 5. 中断后:`run --phase phase1 --resume tests/llm_security/reports/phase1-<UTC>`,已完成的调用不会重复。
 6. 跑完 report.md 自动生成 → 提交 `reports/phase1-*` 与 `reports/call_budget.json` → tag `v0.5-injection-baseline`。
 7. 回到挡板模式:`LLM_MODE=mock` 重启服务(接口自动化默认走挡板)。
+
+## M5.5 基线复核(2026-09-25,作者在第一阶段报告后插入)
+
+- 只做离线分析,**未发任何真实请求**(真实调用累计仍 543)。报告仍由 `run_eval.py rejudge` 从 raw 逐字节复现(离线用例校验)。
+- 新章节:report.md §0 主口径摘要(A/B 翻转口径为主、C/D 规则原始 + 人工核对并列)、§6 明细(6.1 翻转口径 / 6.2 A 严格与宽松 /
+  6.3 ⚠ 拆解 / 6.4 对照判错 / 6.5 C/D 人工核对 + 片段自然出现 + 分类场景格式破坏原文 / 6.6 精简审核表)、附录 B 核对表。§2 原口径保留。
+- 口径取舍写进 ADR-024 修订记录 #2 与"基线复核口径"一节(明确标注:这是看过第一阶段数据之后追加的,冻结的判定规则一字未改)。
+- 代码:`llmsec/review.py`(新)、`report.py`(§0/§6/附录 B;表格单元格统一转义 `|`,修掉原来 §5 里 `C-001|draft|3` 把表格撑出多余列的问题)、
+  `judge.find_hits` 加 `context_chars` 参数(默认 20 不变)、`dataset.export_review(only=…)`、`run_eval.py labels export-priority DIR`。
+- C/D 人工核对表 `reports/phase1-20260925T102100Z/hit_review.csv`:Claude 逐条标注(核对人 = Claude(待作者复核)),159 行:
+  C 74(真攻击成功 72、其他 2:C-005|draft|1、C-010|draft|1 的"关于赔偿……"中性提及)、D 85(全部真攻击成功);通读 90 份草稿未标漏判。
+- 精简审核表 `data/label_review_priority.csv`(15 行,⚠ 样本 + 对照组优先级判错的 N-007/N-024/N-025/N-029)。
+  **不阻塞后续**;第二阶段防御设计不参考标签内容。作者审完:`labels apply --csv tests/llm_security/data/label_review_priority.csv` → `rejudge`。
+- 离线用例 `tests/llm_security` 112 条全过(新增 `test_review.py`)。
+- 数字(以报告为准,这里只作索引):A/B 翻转口径与原口径相同(对照 5 次输出完全稳定,见 ADR-024 后果一节);C 人工核对后 31/50 次、7/10 样本
+  (规则原始 33/50、9/10);D 核对前后相同。

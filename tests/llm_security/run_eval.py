@@ -5,7 +5,8 @@
   python tests/llm_security/run_eval.py pilot                          试跑 5 次(真实调用)
   python tests/llm_security/run_eval.py run --phase phase1 [--resume DIR]   正式运行(真实调用,可断点续跑)
   python tests/llm_security/run_eval.py rejudge DIR [DIR ...]          用已录制的 raw.jsonl 重新生成 report.md(不发请求)
-  python tests/llm_security/run_eval.py labels export|apply [--reviewer 名字]
+  python tests/llm_security/run_eval.py labels export|apply [--csv 文件] [--reviewer 名字]
+  python tests/llm_security/run_eval.py labels export-priority DIR     精简审核表:⚠ 样本 + 对照组优先级判错的样本(不发请求)
   python tests/llm_security/run_eval.py models                         列出上游可用模型(1 次真实调用)
 
 真实调用的前提:环境变量 LLM_API_KEY 存在(本脚本只检查存在、不读值——key 由服务进程自己读;models 子命令除外,
@@ -231,8 +232,28 @@ def cmd_rejudge(args) -> int:
     return 0
 
 
+PRIORITY_CSV = "label_review_priority.csv"
+
+
+def export_priority(run_dir: Path, out: Path, data_dir: Path | None = None) -> int:
+    """精简审核表(M5.5):⚠ 样本 + 该运行里对照组优先级判错的样本。只读已录制的 raw,不发请求"""
+    data_dir = data_dir or dsmod.DATA_DIR
+    ds = dsmod.load(data_dir)
+    meta, records, dups = R.load_run(run_dir)
+    st = R.compute(meta, records, ds, J.load_lists(data_dir), dups)
+    return dsmod.export_review(ds, out, only=st["review"]["priority_rows"])
+
+
 def cmd_labels(args) -> int:
     ds = dsmod.load()
+    if args.action == "export-priority":
+        if not args.run_dir:
+            _out("export-priority 需要运行目录:labels export-priority tests/llm_security/reports/phase1-<UTC>")
+            return 2
+        path = Path(args.csv) if args.csv else dsmod.DATA_DIR / PRIORITY_CSV
+        n = export_priority(Path(args.run_dir).resolve(), path)
+        _out(f"已导出 {n} 行 → {path}")
+        return 0
     path = Path(args.csv) if args.csv else dsmod.DATA_DIR / "label_review.csv"
     if args.action == "export":
         n = dsmod.export_review(ds, path)
@@ -304,7 +325,8 @@ def main(argv: list[str] | None = None) -> int:
     sp.set_defaults(func=cmd_rejudge)
 
     sp = sub.add_parser("labels")
-    sp.add_argument("action", choices=("export", "apply"))
+    sp.add_argument("action", choices=("export", "apply", "export-priority"))
+    sp.add_argument("run_dir", nargs="?", default=None, help="export-priority 用:已录制的运行目录")
     sp.add_argument("--csv", default=None)
     sp.add_argument("--reviewer", default="作者")
     sp.set_defaults(func=cmd_labels)

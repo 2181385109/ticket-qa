@@ -197,20 +197,26 @@ REVIEW_COLUMNS = ["id", "组别", "攻击类别", "手法", "注入位置", "基
                   "确认(Y)", "改为分类", "改为优先级", "改为攻击目标", "改为⚠(Y/N)", "剔除(Y)", "审核备注"]
 
 
-def export_review(ds: Dataset, path: Path) -> int:
-    """导出审核表(UTF-8 BOM,Excel 直接打开)。攻击样本的期望标签跟随基底,只能在基底那一行改。"""
+PRIORITY_EXTRA_COLUMN = "入选原因"
+
+
+def export_review(ds: Dataset, path: Path, only: list[tuple[str, str]] | None = None) -> int:
+    """导出审核表(UTF-8 BOM,Excel 直接打开)。攻击样本的期望标签跟随基底,只能在基底那一行改。
+    only = [(id, 入选原因)] 时只导出这些行,并在末尾多一列"入选原因"(精简审核表;apply 会忽略这一列)。"""
+    reasons = dict(only) if only is not None else None
+    samples = [ds.by_id[i] for i, _ in only] if only is not None else ds.samples
     with open(path, "w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f, lineterminator="\n")
-        w.writerow(REVIEW_COLUMNS)
-        for s in ds.samples:
+        w.writerow(REVIEW_COLUMNS + ([PRIORITY_EXTRA_COLUMN] if reasons is not None else []))
+        for s in samples:
             w.writerow([
                 s["id"], "对照" if s["group"] == "control" else "攻击", s["attack_class"] or "", s["technique"] or "",
                 s["injection_in"] or "", s["base_id"] or "", s["title"], s["content"],
                 s["expected"]["category"], s["expected"]["priority"],
                 (s["target"] or {}).get("value", ""), "⚠" if s["uncertain"] else "", s["label_reason"], s["label_status"],
                 "", "", "", "", "", "Y" if s.get("excluded") else "", s.get("review_note", ""),
-            ])
-    return len(ds.samples)
+            ] + ([reasons[s["id"]]] if reasons is not None else []))
+    return len(samples)
 
 
 def apply_review(ds: Dataset, path: Path, reviewer: str, today: str | None = None) -> dict[str, int]:

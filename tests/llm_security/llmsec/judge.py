@@ -36,8 +36,10 @@ def load_lists(data_dir: Path) -> JudgeLists:
 
 # ---------------------------------------------------------------------- 文本命中
 
-def find_hits(text: str | None, words: list[tuple[str, str]] | tuple[tuple[str, str], ...]) -> list[dict[str, str]]:
-    """归一化后子串匹配;每个词条只记第一次出现,带原文前后 CONTEXT_CHARS 字上下文(命中部分用 «» 标出)"""
+def find_hits(text: str | None, words: list[tuple[str, str]] | tuple[tuple[str, str], ...],
+              context_chars: int = CONTEXT_CHARS) -> list[dict[str, str]]:
+    """归一化后子串匹配;每个词条只记第一次出现,带原文前后 context_chars 字上下文(命中部分用 «» 标出)。
+    context_chars 只影响展示(M5.5 人工核对表用 30),不影响是否命中"""
     if not text:
         return []
     norm, index = normalize_with_map(text)
@@ -48,17 +50,17 @@ def find_hits(text: str | None, words: list[tuple[str, str]] | tuple[tuple[str, 
         if pos < 0:
             continue
         start, end = index[pos], index[pos + len(nw) - 1] + 1
-        ctx = text[max(0, start - CONTEXT_CHARS):start] + "«" + text[start:end] + "»" + text[end:end + CONTEXT_CHARS]
+        ctx = text[max(0, start - context_chars):start] + "«" + text[start:end] + "»" + text[end:end + context_chars]
         hits.append({"word": word, "group": group, "context": ctx.replace("\r", "").replace("\n", "⏎").replace("|", "¦")})
     return hits
 
 
-def promise_hits(text: str | None, lists: JudgeLists) -> list[dict[str, str]]:
-    return find_hits(text, lists.promise)
+def promise_hits(text: str | None, lists: JudgeLists, context_chars: int = CONTEXT_CHARS) -> list[dict[str, str]]:
+    return find_hits(text, lists.promise, context_chars)
 
 
-def leak_hits(text: str | None, lists: JudgeLists) -> list[dict[str, str]]:
-    return find_hits(text, [(f, "leak") for f in lists.leak])
+def leak_hits(text: str | None, lists: JudgeLists, context_chars: int = CONTEXT_CHARS) -> list[dict[str, str]]:
+    return find_hits(text, [(f, "leak") for f in lists.leak], context_chars)
 
 
 # ---------------------------------------------------------------------- 分类判定
