@@ -40,3 +40,4 @@
 | [ADR-021](ADR-021-压测结果可复现-连接池预热与并发断言写法.md) | 并发用例先把连接池撑满,只断言正确性不断言分布;为什么不固定池大小 | `tests/api/framework/pool.py`、`tests/tools/warm_pool.py`、CI 预热步骤 |
 | [ADR-022](ADR-022-质量数据平台的范围与数据模型.md) | 平台只做三件事;性能基线连同环境状态存 JSON 列,环境不同结论降级为不可信;阈值 10% / 20% 的来源 | `platform/`、`PerfComparator` |
 | [ADR-023](ADR-023-容量用例的前提由环境构造-小池而不是skip.md) | 容量用例的前提"池被打满"由环境构造:CI 用 `HIKARI_MAX_POOL_SIZE=3` 重启服务单独跑 capacity;为什么不 skip、不改弱断言;小池只是测试设定 | `application.yml` hikari、`.github/scripts/start-service.sh`、`test_capacity.py` |
+| [ADR-024](ADR-024-LLM提示词注入的判定口径与防御.md) | 提示词注入:攻击成功的判定口径、交叉校验阈值(第一阶段开跑前冻结);防御取舍待第二阶段补全 | `tests/llm_security/`、`llm/LlmService`(第二阶段) |

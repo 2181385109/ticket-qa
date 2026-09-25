@@ -5,8 +5,8 @@
 
 | 里程碑 | 内容 | 状态 | commit |
 |---|---|---|---|
-| M1 | 固化计划(plan + progress) | 完成 | (本提交) |
-| M2 | ADR-024 判定口径 + 交叉校验阈值(冻结);test-design/09 | 未开始 | |
+| M1 | 固化计划(plan + progress) | 完成 | f91e37f |
+| M2 | ADR-024 判定口径 + 交叉校验阈值(冻结);test-design/09 | 完成 | (本提交) |
 | M3 | 测试集 attacks/controls/裁判词表/label_review.csv + test_dataset.py | 未开始 | |
 | M4 | 评测脚本(proxy/runner/judge/report/run_eval,断点续跑,离线重判)+ test_judge/test_report + WireMock 注入桩 + 事实记录用例 | 未开始 | |
 | M5 | `--plan` → 试跑 5 次 → 第一阶段正式运行 → 报告 → tag `v0.5-injection-baseline` | 未开始 | |
@@ -27,3 +27,4 @@
 ## 接手须知 / 日志
 
 - 2026-09-25 M1:计划确认,决定见 plan §3。
+- 2026-09-25 M2:ADR-024 只写了"判定口径""交叉校验阈值"两节并冻结;其余五节第二阶段补。test-design/09 完成。
