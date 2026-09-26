@@ -4,6 +4,11 @@ SLA 自动升级——边界值分析 + 场景法(docs/test-design/02)。
 接口层面能控制的变量只有 sla_deadline(直接改库)和"什么时候扫"。"恰好等于"这个点在接口层面
 碰不到(扫描的 now 是服务取的),所以这里取 deadline = now-1s(必超时)和 now+3s(必未超时,3.5 秒后再扫变超时)
 两个点夹住边界;精确到毫秒的 <= vs < 由单测 SlaOverdueQueryH2Test 在真实 SQL 上证明。
+
+TestEscalation 的"now"只取自数据库里服务写下的时间(工单的 updated_at,`db.set_sla_deadline_from_last_write`),
+不再取 MySQL 的 NOW(3):扫描比较用的是服务进程的时钟,NOW(3) 是容器的时钟,两者不一致时 NOW(3)-1s 可能还没到期
+(2026-09-26 WSL 比宿主快约 1.4 s,3 条失败;findings/20260926-测试缺陷-SLA用例混用两个时钟)。
+其余几个类仍用 NOW(3)(本次只改 TestEscalation,见该 findings 的"影响范围")。
 """
 import time
 
@@ -22,7 +27,7 @@ class TestEscalation:
     @allure.title("截止时间已过的 PENDING 单:扫描后 ESCALATED、escalatedAt 有值、审计 source=SCHEDULER、指标 +1")
     def test_overdue_pending_is_escalated(self, tickets, api, db, metrics, metrics_before):
         t = tickets.pending(group_id=1)
-        db.set_sla_deadline_now(t["id"], offset_seconds=-1)
+        db.set_sla_deadline_from_last_write(t["id"], offset_seconds=-1)
 
         api.sla_scan().expect.ok().data("escalated").ge(1)
 
@@ -37,7 +42,7 @@ class TestEscalation:
     @allure.title("ASSIGNED 但未进入 PROCESSING 的超时单同样升级,assignee 保留")
     def test_overdue_assigned_is_escalated(self, tickets, api, db):
         t = tickets.assigned(Users.AGENT_A)
-        db.set_sla_deadline_now(t["id"], offset_seconds=-1)
+        db.set_sla_deadline_from_last_write(t["id"], offset_seconds=-1)
         api.sla_scan().expect.ok()
         api.get_ticket(t["id"]).expect.ok().data("status").eq("ESCALATED").data("assigneeId").eq(Users.AGENT_A.id)
 
@@ -45,15 +50,17 @@ class TestEscalation:
     @allure.title("已响应({status})的超时单不升级")
     def test_responded_ticket_not_escalated(self, tickets, api, db, status):
         t = tickets.in_status(status)
-        db.set_sla_deadline_now(t["id"], offset_seconds=-60)
+        db.set_sla_deadline_from_last_write(t["id"], offset_seconds=-60)
         api.sla_scan().expect.ok()
         api.get_ticket(t["id"]).expect.ok().data("status").eq(status).lacks_keys("escalatedAt")
 
-    @allure.title("边界:deadline = now+3s 扫描不命中;3.5 秒后再扫命中(超时判定随时间单调)")
+    @allure.title("边界:deadline = 最后写入时刻+3s 扫描不命中;3.5 秒后再扫命中(超时判定随时间单调)")
     @pytest.mark.slow
     def test_deadline_in_near_future(self, tickets, api, db):
         t = tickets.pending(group_id=1)
-        db.set_sla_deadline_now(t["id"], offset_seconds=3)
+        # 基准 = 服务写下的 updated_at。第一次扫描发生在基准之后几十毫秒,离 deadline 还有将近 3 s;
+        # 睡 3.5 s 后,服务时钟上的 now ≥ 基准 + 3.5 s > deadline。两个判断都只涉及服务自己的时钟
+        db.set_sla_deadline_from_last_write(t["id"], offset_seconds=3)
         api.sla_scan().expect.ok()
         api.get_ticket(t["id"]).expect.ok().data("status").eq("PENDING")
         time.sleep(3.5)
