@@ -2,6 +2,7 @@ package com.ticketqa.llm;
 
 import com.ticketqa.domain.enums.DegradeReason;
 import com.ticketqa.domain.enums.LlmScene;
+import com.ticketqa.domain.enums.ReviewReason;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -35,6 +36,24 @@ public class LlmMetrics {
             contractViolationCounter(scene, "category");
             contractViolationCounter(scene, "priority");
         }
+        for (ReviewReason reason : ReviewReason.values()) {
+            reviewCounter(reason);
+        }
+    }
+
+    /** 交叉校验冲突 / 草稿输出检查命中(ADR-024)。Prometheus 名 llm_review_total{reason} */
+    public void review(ReviewReason reason) {
+        reviewCounter(reason).increment();
+    }
+
+    private Counter reviewCounter(ReviewReason reason) {
+        String scene = reason == ReviewReason.PRIORITY_CONFLICT || reason == ReviewReason.CATEGORY_CONFLICT
+                ? LlmScene.CLASSIFY.name() : LlmScene.DRAFT_REPLY.name();
+        return Counter.builder("llm.review")
+                .description("LLM 输出未被原样采用的次数:分类交叉校验冲突 / 草稿输出检查命中")
+                .tag("scene", scene)
+                .tag("reason", reason.name())
+                .register(registry);
     }
 
     public void fallback(LlmScene scene, DegradeReason reason) {

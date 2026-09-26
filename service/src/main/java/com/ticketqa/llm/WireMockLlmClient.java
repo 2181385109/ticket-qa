@@ -16,6 +16,7 @@ import java.util.Map;
  * 故意不复用 OpenAI 协议:挡板的职责是"可控地制造行为"(慢、错、越界),
  * 契约越简单,ops/wiremock/mappings 里的桩越好读、越好改。
  * 桩通过标题里的标记触发故障:[SLOW] [ERROR] [BAD_CATEGORY] [BAD_JSON]。
+ * 响应体对应真实模型的 content,解析和真实客户端一样严格:恰好一个 JSON 对象(LlmJson,KI-022)。
  */
 public class WireMockLlmClient implements LlmClient {
 
@@ -61,11 +62,11 @@ public class WireMockLlmClient implements LlmClient {
                     .body(body)
                     .retrieve()
                     .body(String.class);
-            return objectMapper.readTree(raw);
+            return LlmJson.readSingleObject(objectMapper, raw);
         } catch (RuntimeException e) {
             throw LlmHttpSupport.translate(e);
         } catch (Exception e) {
-            throw new LlmException(DegradeReason.BAD_RESPONSE, "挡板响应不是合法 JSON", e);
+            throw new LlmException(DegradeReason.BAD_RESPONSE, "挡板响应不是恰好一个 JSON 对象", e);
         }
     }
 }

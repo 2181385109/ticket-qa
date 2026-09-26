@@ -144,9 +144,10 @@ public class TicketService {
             publish(EventType.STATUS_CHANGED, t, null, TicketStatus.PENDING, user, AuditSource.LLM, now);
             return t;
         });
-        log.info("工单创建 id={} no={} category={} priority={} degraded={}",
-                created.getId(), created.getTicketNo(), outcome.category(), outcome.priority(), outcome.degraded());
-        return TicketConverter.toVO(created);
+        log.info("工单创建 id={} no={} category={} priority={} degraded={} needsReview={}",
+                created.getId(), created.getTicketNo(), outcome.category(), outcome.priority(), outcome.degraded(),
+                outcome.needsReview());
+        return TicketConverter.toVO(created, outcome.needsReview(), outcome.reviewReason());
     }
 
     // ------------------------------------------------------------------ 查询

@@ -5,9 +5,11 @@ import com.ticketqa.domain.enums.TicketPriority;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 关键词规则分类:LLM 超时 / 熔断 / 出错时的降级路径。
@@ -40,6 +42,21 @@ public class KeywordRuleClassifier {
                 .findFirst()
                 .orElse(TicketCategory.OTHER);
         return new RuleResult(category, priorityOf(category, text));
+    }
+
+    /**
+     * 命中的全部类别(按规则表顺序),交叉校验用(ADR-024):classify 只返回第一个命中的类别,
+     * "退款和账单都有问题"时模型选 BILLING 也有依据,不能因为规则先匹配到 REFUND 就判冲突。
+     */
+    public Set<TicketCategory> matchedCategories(String title, String content) {
+        String text = ((title == null ? "" : title) + " " + (content == null ? "" : content)).toLowerCase(Locale.ROOT);
+        Set<TicketCategory> matched = new LinkedHashSet<>();
+        CATEGORY_KEYWORDS.forEach((category, words) -> {
+            if (words.stream().anyMatch(text::contains)) {
+                matched.add(category);
+            }
+        });
+        return matched;
     }
 
     public TicketPriority priorityOf(TicketCategory category, String lowerText) {

@@ -17,7 +17,8 @@ from llmsec.textnorm import normalize
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
-JAVA_CLIENT = REPO / "service/src/main/java/com/ticketqa/llm/OpenAiCompatibleLlmClient.java"
+JAVA_CLIENT = REPO / "service/src/main/java/com/ticketqa/llm/LlmPrompts.java"          # 两个 system prompt(第二阶段从客户端里移出)
+JAVA_POLICY = REPO / "service/src/main/java/com/ticketqa/llm/DraftOutputPolicy.java"   # 第二阶段草稿检查的防御词表
 
 
 @pytest.fixture(scope="module")
@@ -130,6 +131,24 @@ def test_leak_fragments_are_substrings_of_java_draft_prompt():
     assert frags
     for f in frags:
         assert normalize(f) in prompt, f
+
+
+def java_defense_words() -> list[str]:
+    src = JAVA_POLICY.read_text(encoding="utf-8")
+    m = re.search(r"PROMISE_WORDS_BEGIN(.*?)PROMISE_WORDS_END", src, re.S)
+    assert m, f"在 {JAVA_POLICY.name} 里找不到 PROMISE_WORDS_BEGIN / END 标记"
+    body = re.sub(r"//[^\n]*", "", m.group(1))          # 去掉行注释(注释里的括号、引号不是词条)
+    return re.findall(r'"([^"]+)"', body.split("List.of(", 1)[1])
+
+
+def test_defense_words_are_subset_of_judge_words():
+    """计划 §5:裁判词表是防御词表的超集。反过来就成了"防御拦什么、裁判就判什么",报告里"防御词表之外的命中"也无从统计"""
+    groups = json.loads((dsmod.DATA_DIR / "judge_promise_keywords.json").read_text(encoding="utf-8"))["groups"]
+    judge = {normalize(w) for ws in groups.values() for w in ws}
+    defense = [normalize(w) for w in java_defense_words()]
+    assert len(defense) >= 20
+    assert [w for w in defense if w not in judge] == []
+    assert len(defense) < len(judge), "裁判表必须严格大于防御表,否则'防御词表之外的命中'恒为 0,测不出换说法的绕过"
 
 
 def test_promise_keywords_well_formed():

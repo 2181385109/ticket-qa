@@ -140,6 +140,7 @@ docker compose ps             # 等 mysql / rabbitmq / redis / wiremock 都变�
 
 **已有数据卷升级到 v0.4**(`ticket` 表加了乐观锁列 `version`,ADR-016):不想删卷就执行一次迁移
 `ops/mysql/migrations/V2__ticket_version.sql`(用法写在文件头);新卷由 `init/01-schema.sql` 直接建出。
+**升级到 v0.6**(`llm_call_log` 加了交叉校验 / 草稿检查的四列,ADR-024):同样执行一次 `ops/mysql/migrations/V3__llm_call_log_review.sql`。
 平台的两张 `qa_` 表由平台自己在启动时建,不依赖初始化脚本。
 
 各组件入口(默认端口):

@@ -70,7 +70,7 @@ class TicketControllerWebTest {
     private static TicketVO sampleVO() {
         return new TicketVO(1L, "T20260920-ABCD1234", "申请退款", "内容", TicketCategory.REFUND, TicketPriority.P1,
                 TicketStatus.PENDING, 1001L, 1L, null, TestFixtures.NOW.plusMinutes(60), null, null, 0,
-                TestFixtures.NOW, TestFixtures.NOW);
+                TestFixtures.NOW, TestFixtures.NOW, null, null);
     }
 
     @Nested

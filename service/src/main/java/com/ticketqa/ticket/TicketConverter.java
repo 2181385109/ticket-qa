@@ -14,9 +14,15 @@ public final class TicketConverter {
     }
 
     public static TicketVO toVO(Ticket t) {
+        return toVO(t, null, null);
+    }
+
+    /** 建单响应:带上交叉校验的复核标记(ADR-024) */
+    public static TicketVO toVO(Ticket t, Boolean needsReview, String reviewReason) {
         return new TicketVO(t.getId(), t.getTicketNo(), t.getTitle(), t.getContent(), t.getCategory(),
                 t.getPriority(), t.getStatus(), t.getCustomerId(), t.getGroupId(), t.getAssigneeId(),
-                t.getSlaDeadline(), t.getEscalatedAt(), t.getClosedAt(), t.getVersion(), t.getCreatedAt(), t.getUpdatedAt());
+                t.getSlaDeadline(), t.getEscalatedAt(), t.getClosedAt(), t.getVersion(), t.getCreatedAt(), t.getUpdatedAt(),
+                needsReview, reviewReason);
     }
 
     public static AuditLogVO toVO(TicketAuditLog a) {

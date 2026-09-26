@@ -14,20 +14,11 @@ import java.util.Map;
  * 分类场景要求模型只回 JSON:{"category": "...", "priority": "..."};
  * 用 response_format=json_object + temperature=0 尽量压低随机性,但"尽量"不等于"保证",
  * 契约校验仍然在 LlmService 里做——这正是 LLM 依赖和普通 HTTP 依赖的区别(walkthrough 第 10 节)。
+ *
+ * 第二阶段(ADR-024)这一层加了两件事:用户文本经 UntrustedInput 装进 <ticket> 数据区(输入隔离,提示词见 LlmPrompts);
+ * content 必须恰好是一个 JSON 对象(LlmJson,KI-022)——多出来的任何东西都判 BAD_RESPONSE,而不是只取第一个对象。
  */
 public class OpenAiCompatibleLlmClient implements LlmClient {
-
-    private static final String CLASSIFY_SYSTEM_PROMPT = """
-            你是客服工单分类器。根据用户工单的标题和内容,输出严格的 JSON 对象,不要输出任何其他文字:
-            {"category": "<BILLING|TECH|REFUND|OTHER>", "priority": "<P0|P1|P2>"}
-            分类含义:BILLING=账单/扣费/发票问题,TECH=技术故障/无法使用,REFUND=退款/退货,OTHER=其他。
-            优先级:P0=影响使用且紧急,P1=一般问题,P2=咨询建议类。
-            """;
-
-    private static final String DRAFT_SYSTEM_PROMPT = """
-            你是客服坐席助理。根据工单标题、内容和分类,写一段 80 字以内、礼貌专业的中文回复草稿,
-            承认问题、说明正在处理、不要做出无法兑现的承诺。直接输出草稿正文。
-            """;
 
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
@@ -46,23 +37,22 @@ public class OpenAiCompatibleLlmClient implements LlmClient {
 
     @Override
     public ClassifyResult classify(String title, String content) {
-        JsonNode root = chat(CLASSIFY_SYSTEM_PROMPT, "标题:" + title + "\n内容:" + content, true);
+        JsonNode root = chat(LlmPrompts.CLASSIFY_SYSTEM_PROMPT, UntrustedInput.classifyMessage(title, content), true);
         String text = firstContent(root);
         try {
-            JsonNode parsed = objectMapper.readTree(text);
+            JsonNode parsed = LlmJson.readSingleObject(objectMapper, text);
             return new ClassifyResult(
                     parsed.path("category").asText(null),
                     parsed.path("priority").asText(null),
                     root.path("model").asText(null));
         } catch (Exception e) {
-            throw new LlmException(DegradeReason.BAD_RESPONSE, "分类结果不是合法 JSON: " + abbreviate(text), e);
+            throw new LlmException(DegradeReason.BAD_RESPONSE, "分类结果不是恰好一个 JSON 对象: " + abbreviate(text), e);
         }
     }
 
     @Override
     public DraftResult draftReply(String title, String content, String category) {
-        JsonNode root = chat(DRAFT_SYSTEM_PROMPT,
-                "分类:" + category + "\n标题:" + title + "\n内容:" + content, false);
+        JsonNode root = chat(LlmPrompts.DRAFT_SYSTEM_PROMPT, UntrustedInput.draftMessage(category, title, content), false);
         return new DraftResult(firstContent(root).trim(), root.path("model").asText(null));
     }
 

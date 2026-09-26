@@ -1,5 +1,6 @@
 package com.ticketqa.ticket.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ticketqa.domain.enums.TicketCategory;
 import com.ticketqa.domain.enums.TicketPriority;
 import com.ticketqa.domain.enums.TicketStatus;
@@ -26,5 +27,11 @@ public record TicketVO(
         /** 乐观锁版本(ADR-016):每次成功写入 +1,客户端可据此判断自己读到的快照是否已过期 */
         Integer version,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt) {
+        LocalDateTime updatedAt,
+        /**
+         * 只在建单响应里有值(ADR-024 交叉校验):true = 模型结果与规则冲突,已改用规则结果,建议人工复核。
+         * 不落 ticket 表(复核标记的持久记录在 llm_call_log),所以详情 / 列表里没有这两个字段——NON_NULL 让它们不出现,而不是出现一个误导人的 null。
+         */
+        @JsonInclude(JsonInclude.Include.NON_NULL) Boolean needsReview,
+        @JsonInclude(JsonInclude.Include.NON_NULL) String reviewReason) {
 }

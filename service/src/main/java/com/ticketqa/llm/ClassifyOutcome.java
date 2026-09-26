@@ -17,7 +17,19 @@ public record ClassifyOutcome(
         long latencyMs,
         boolean contractViolated,
         String rawCategory,
-        Long callLogId) {
+        Long callLogId,
+        /** 交叉校验冲突,已改用规则结果,待人工复核(ADR-024) */
+        boolean needsReview,
+        /** ReviewReason 逗号连接;不冲突为 null */
+        String reviewReason) {
+
+    /** 第一阶段的形状:没有复核信息(降级、测试桩) */
+    public ClassifyOutcome(TicketCategory category, TicketPriority priority, boolean degraded, DegradeReason degradeReason,
+                           String requestModel, String responseModel, long latencyMs, boolean contractViolated,
+                           String rawCategory, Long callLogId) {
+        this(category, priority, degraded, degradeReason, requestModel, responseModel, latencyMs, contractViolated,
+                rawCategory, callLogId, false, null);
+    }
 
     /** 写进创建工单那条审计日志的备注 */
     public String describe() {
@@ -29,6 +41,9 @@ public record ClassifyOutcome(
         }
         if (contractViolated) {
             sb.append(" contractViolated=true raw=").append(rawCategory);
+        }
+        if (needsReview) {
+            sb.append(" needsReview=true reason=").append(reviewReason).append(" (采用规则结果)");
         }
         return sb.append(" latencyMs=").append(latencyMs).toString();
     }

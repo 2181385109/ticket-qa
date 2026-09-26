@@ -2,6 +2,7 @@ package com.ticketqa.llm;
 
 import com.ticketqa.domain.enums.DegradeReason;
 import com.ticketqa.domain.enums.LlmScene;
+import com.ticketqa.domain.enums.ReviewReason;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +35,12 @@ class LlmMetricsTest {
             }
         }
         assertThat(registry.find("llm.fallback").counters()).hasSize(LlmScene.values().length * DegradeReason.values().length);
+        for (ReviewReason reason : ReviewReason.values()) {
+            assertThat(registry.find("llm.review").tag("reason", reason.name()).counter())
+                    .as("llm.review{reason=%s}", reason).isNotNull();
+        }
+        assertThat(registry.find("llm.review").tag("scene", "CLASSIFY").counters()).hasSize(2);
+        assertThat(registry.find("llm.review").tag("scene", "DRAFT_REPLY").counters()).hasSize(2);
     }
 
     @Test
@@ -49,6 +56,6 @@ class LlmMetricsTest {
         assertThat(registry.find("llm.fallback").tag("scene", "CLASSIFY").tag("reason", "TIMEOUT").counter().count()).isEqualTo(2);
         assertThat(registry.find("llm.fallback").tag("scene", "CLASSIFY").tag("reason", "CIRCUIT_OPEN").counter().count()).isZero();
         assertThat(registry.find("llm.circuit.open").tag("scene", "DRAFT_REPLY").counter().count()).isEqualTo(1);
-        assertThat(registry.find("llm.fallback").counters()).hasSize(8);
+        assertThat(registry.find("llm.fallback").counters()).hasSize(LlmScene.values().length * DegradeReason.values().length);
     }
 }

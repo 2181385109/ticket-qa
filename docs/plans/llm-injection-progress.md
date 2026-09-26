@@ -11,9 +11,9 @@
 | M4 | 评测脚本(proxy/runner/judge/report/run_eval,断点续跑,离线重判)+ test_judge/test_report + WireMock 注入桩 + 事实记录用例 | 完成 | 63559d4 06d4319 252d548 155af96 |
 | M5 | `--plan` → 试跑 5 次 → 第一阶段正式运行 → 报告 → tag `v0.5-injection-baseline` | 完成 | 5280f70(试跑)、本提交(正式运行);tag v0.5-injection-baseline |
 | M5.5 | 基线复核(离线):翻转口径(A/B 主口径)、A 严格口径并列、⚠ 拆解、对照判错、C/D 命中人工核对、精简审核表 | 完成 | b19aa0c |
-| M6 | 按实测登记 KI-018 起 + xfail(strict) 期望用例;findings 基线篇;另登记"只取第一个 JSON 对象"解析漏洞 | 完成 | 本提交 |
-| M7 | 第二阶段防御代码 + 单测 + WireMock 用例转正(必须在 M5 之后) | **下一步** | |
-| M8 | 第二阶段复测(只一次正式运行 v1;需要时 v2 最多一次)+ compare | 未开始(以后会话) | |
+| M6 | 按实测登记 KI-018 起 + xfail(strict) 期望用例;findings 基线篇;另登记"只取第一个 JSON 对象"解析漏洞 | 完成 | 94b1f46 |
+| M7 | 第二阶段防御代码 + 单测 + WireMock 用例转正(必须在 M5 之后) | 完成 | 本提交 |
+| M8 | 第二阶段复测(只一次正式运行 v1;需要时 v2 最多一次)+ compare | **下一步** | |
 | M9 | 文档收尾:ADR-024 补全、findings、test-inventory、README、walkthrough、test-design/03;tag `v0.6-injection-defense` | 未开始(以后会话) | |
 | M10 | handoff | 未开始(以后会话) | |
 
@@ -79,3 +79,20 @@
 - **给 M7 的约束**:期望用例断言按 ADR-024 冻结的阈值写(复核标记 + 采用规则;草稿 `UNSAFE_OUTPUT`;KI-022 → `BAD_RESPONSE` 规则兜底)。
   KI-022 的修法要同时改 `OpenAiCompatibleLlmClient` 和 `WireMockLlmClient`(两者都 `readTree`),并在 ADR 里决定"多个 JSON 对象"计不计入熔断。
   防御设计只看攻击手法(test-design/09 §3),**不参考 label_review_priority.csv 的标签内容**。
+
+## M7 第二阶段防御(2026-09-25 ~ 26)
+
+- 代码:`UntrustedInput`(固定 `<ticket>` 数据区 + 用户文本尖括号转全角)、`LlmPrompts`(两个 system prompt 移出客户端,只在末尾追加)、
+  `ClassifyCrossCheck` + `KeywordRuleClassifier.matchedCategories`、`DraftOutputPolicy`(防御词表 ⊂ 裁判词表;草稿提示词 8 字窗口)、
+  `LlmJson`(恰好一个 JSON 对象,两个客户端共用,KI-022)、`DegradeReason.UNSAFE_OUTPUT`(不计入熔断)、`ReviewReason`、`llm_review_total`;
+  `llm_call_log` 加 `needs_review / review_reason / rule_category / rule_priority`(init + `V3__llm_call_log_review.sql`;H2 schema 里没有这张表,不用改);
+  建单响应加 `needsReview / reviewReason`(`@JsonInclude(NON_NULL)`,详情 / 列表不出现)。取舍见 ADR-024"第二阶段防御"一节(含设计者读过第一阶段草稿的污染说明)。
+- **本机 MySQL 已执行 V3 迁移**;服务已用新 jar 以挡板模式重启(pid 在 logs/app.pid)。
+- 验证:`mvn -o verify` 391 条单测全过、BUILD SUCCESS(含 JaCoCo 门禁);`tests/llm_security` 离线 113 条全过(新增防御表 ⊂ 裁判表校验);
+  挡板模式全量 `pytest -m "not capacity"`:314 passed / 3 xfailed(KI-001×2、KI-002,与本任务无关)/ 0 failed,5 分 14 秒。容量用例未跑(不涉及 LLM 路径)。
+- `test_prompt_injection.py`:5 条 xfail 期望用例在防御上线后全部 XPASS(strict 变红,已确认),同一提交摘掉 xfail、删掉已不成立的 5 条事实记录用例;
+  新增 `test_review_flag_only_in_create_response`、`test_known_bypass_keyword_stuffing`(已知绕过,事实记录)、`test_unsafe_drafts_do_not_open_circuit`。
+  known-issues KI-018~021 → "已加防御"、KI-022 → "已修"。
+- **M8 接手**:与 M5 同一套流程(README 第 2 步真实模式启动 + 代理,key 在同一条命令里读入进程环境变量,见 plan §2-7),
+  `run_eval.py plan` 核对 538 次、预算累计 543 + 538 = 1081 ≤ 1300;`run --phase phase2 --run-label v1`;跑完生成 report.md,再写 compare。
+  **只允许一次正式运行 v1**;要改防御只能记 v2 再完整跑一次(预算不够两次:1081 + 538 = 1619 > 1300,所以实际上 v2 不可能,改防御即需作者决定)。

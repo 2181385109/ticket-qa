@@ -4,6 +4,7 @@ import com.ticketqa.config.LlmProperties;
 import com.ticketqa.domain.entity.LlmCallLog;
 import com.ticketqa.domain.enums.DegradeReason;
 import com.ticketqa.domain.enums.LlmScene;
+import com.ticketqa.domain.enums.ReviewReason;
 import com.ticketqa.domain.enums.TicketCategory;
 import com.ticketqa.domain.enums.TicketPriority;
 import org.slf4j.Logger;
@@ -14,6 +15,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * LLM 路径的韧性外壳(CLAUDE.md §5.5 的契约全在这一层):
@@ -23,6 +25,8 @@ import java.util.Optional;
  *   调 LlmClient ──失败(超时/5xx/解析失败)──▶ 熔断器计数 ──▶ 走规则(reason=失败原因)
  *        │成功
  *   契约校验:category 越界 → 打点 + 落 OTHER;priority 越界 → 打点 + 规则兜底
+ *        │
+ *   交叉校验(ADR-024):和规则冲突 → 采用规则结果 + needsReview        草稿:输出检查命中 → 模板(UNSAFE_OUTPUT,不计入熔断)
  *        │
  *   落盘 llm_call_log + 打指标
  *
@@ -39,6 +43,7 @@ public class LlmService {
     private final LlmMetrics metrics;
     private final CircuitBreaker breaker;
     private final Clock clock;
+    private final DraftOutputPolicy draftPolicy = DraftOutputPolicy.forDraftPrompt();
 
     public LlmService(LlmClient client, KeywordRuleClassifier rules, LlmCallLogService callLogService,
                       LlmMetrics metrics, LlmProperties props, Clock clock) {
@@ -73,7 +78,7 @@ public class LlmService {
         // ---- 契约校验:LLM 说什么不算数,枚举说了算 ----
         Optional<TicketCategory> parsedCategory = TicketCategory.parse(result.rawCategory());
         boolean violated = parsedCategory.isEmpty();
-        TicketCategory category = parsedCategory.orElse(TicketCategory.OTHER);
+        TicketCategory modelCategory = parsedCategory.orElse(TicketCategory.OTHER);
         if (violated) {
             metrics.contractViolation(scene, "category");
             log.warn("LLM 分类越界 raw={} → OTHER", result.rawCategory());
@@ -82,20 +87,42 @@ public class LlmService {
         TicketPriority priority = parsedPriority.orElseGet(() -> {
             metrics.contractViolation(scene, "priority");
             log.warn("LLM 优先级越界 raw={} → 规则兜底", result.rawPriority());
-            return rules.priorityOf(category, lower(title, content));
+            return rules.priorityOf(modelCategory, lower(title, content));
         });
         boolean anyViolation = violated || parsedPriority.isEmpty();
 
-        Long logId = callLogService.record(buildLog(scene, null, result.responseModel(), latency,
-                false, null, result.rawCategory(), category, anyViolation));
+        // ---- 交叉校验(ADR-024):注入能改变模型的判断,改变不了关键词规则的判断 ----
+        // 只比对模型合法给出的字段:越界字段已经走了上面的契约路径,不再参与
+        KeywordRuleClassifier.RuleResult rule = rules.classify(title, content);
+        Set<ReviewReason> conflicts = ClassifyCrossCheck.check(
+                violated ? null : modelCategory, parsedPriority.orElse(null), rule.priority(),
+                rules.matchedCategories(title, content));
+        boolean needsReview = !conflicts.isEmpty();
+        TicketCategory category = modelCategory;
+        if (needsReview) {
+            conflicts.forEach(metrics::review);
+            log.warn("LLM 分类与规则冲突 {} model={}/{} rule={}/{} → 采用规则结果,待人工复核",
+                    conflicts, modelCategory, priority, rule.category(), rule.priority());
+            category = rule.category();
+            priority = rule.priority();
+        }
+        String reviewReason = ClassifyCrossCheck.join(conflicts);
+
+        LlmCallLog entry = buildLog(scene, null, result.responseModel(), latency,
+                false, null, result.rawCategory(), category, anyViolation);
+        entry.setNeedsReview(needsReview);
+        entry.setReviewReason(reviewReason);
+        entry.setRuleCategory(rule.category());
+        entry.setRulePriority(rule.priority());
+        Long logId = callLogService.record(entry);
         return new ClassifyOutcome(category, priority, false, null, client.requestModel(),
-                result.responseModel(), latency, anyViolation, result.rawCategory(), logId);
+                result.responseModel(), latency, anyViolation, result.rawCategory(), logId, needsReview, reviewReason);
     }
 
     public DraftOutcome draftReply(Long ticketId, String title, String content, TicketCategory category) {
         LlmScene scene = LlmScene.DRAFT_REPLY;
         if (breaker.isOpen()) {
-            return draftFallback(ticketId, title, category, DegradeReason.CIRCUIT_OPEN, 0);
+            return draftFallback(ticketId, title, category, DegradeReason.CIRCUIT_OPEN, 0, null, null);
         }
         long start = clock.millis();
         DraftResult result;
@@ -104,11 +131,20 @@ public class LlmService {
         } catch (LlmException e) {
             long latency = clock.millis() - start;
             onFailure(scene, e, latency);
-            return draftFallback(ticketId, title, category, e.getReason(), latency);
+            return draftFallback(ticketId, title, category, e.getReason(), latency, null, null);
         }
         long latency = clock.millis() - start;
+        // 调用本身成功了:先记成功再做输出检查——检查命中是防御动作不是故障,不能计入熔断(否则 5 次注入草稿即可熔断全站)
         breaker.recordSuccess();
         metrics.callDuration(scene, "success", Duration.ofMillis(latency));
+
+        Set<ReviewReason> unsafe = draftPolicy.check(result.draft());
+        if (!unsafe.isEmpty()) {
+            unsafe.forEach(metrics::review);
+            log.warn("LLM 草稿输出检查命中 {} → 换成模板草稿", unsafe);
+            return draftFallback(ticketId, title, category, DegradeReason.UNSAFE_OUTPUT, latency,
+                    result.responseModel(), ClassifyCrossCheck.join(unsafe));
+        }
         Long logId = callLogService.record(buildLog(scene, ticketId, result.responseModel(), latency,
                 false, null, null, null, false));
         return new DraftOutcome(result.draft(), false, null, client.requestModel(), result.responseModel(), latency, logId);
@@ -135,19 +171,27 @@ public class LlmService {
     private ClassifyOutcome classifyFallback(String title, String content, DegradeReason reason, long latencyMs, String rawCategory) {
         KeywordRuleClassifier.RuleResult rule = rules.classify(title, content);
         metrics.fallback(LlmScene.CLASSIFY, reason);
-        Long logId = callLogService.record(buildLog(LlmScene.CLASSIFY, null, null, latencyMs,
-                true, reason, rawCategory, rule.category(), false));
+        LlmCallLog entry = buildLog(LlmScene.CLASSIFY, null, null, latencyMs, true, reason, rawCategory, rule.category(), false);
+        entry.setRuleCategory(rule.category());
+        entry.setRulePriority(rule.priority());
+        Long logId = callLogService.record(entry);
         log.info("LLM 分类降级 reason={} → 规则 category={} priority={}", reason, rule.category(), rule.priority());
         return new ClassifyOutcome(rule.category(), rule.priority(), true, reason, client.requestModel(),
                 null, latencyMs, false, rawCategory, logId);
     }
 
-    private DraftOutcome draftFallback(Long ticketId, String title, TicketCategory category, DegradeReason reason, long latencyMs) {
+    /**
+     * @param responseModel UNSAFE_OUTPUT 时模型是回答了的,如实记下响应模型名;其余降级没有响应,传 null
+     * @param reviewReason  UNSAFE_OUTPUT 时记下命中的是哪条检查(UNSAFE_PROMISE / UNSAFE_LEAK)
+     */
+    private DraftOutcome draftFallback(Long ticketId, String title, TicketCategory category, DegradeReason reason, long latencyMs,
+                                       String responseModel, String reviewReason) {
         metrics.fallback(LlmScene.DRAFT_REPLY, reason);
-        Long logId = callLogService.record(buildLog(LlmScene.DRAFT_REPLY, ticketId, null, latencyMs,
-                true, reason, null, category, false));
+        LlmCallLog entry = buildLog(LlmScene.DRAFT_REPLY, ticketId, responseModel, latencyMs, true, reason, null, category, false);
+        entry.setReviewReason(reviewReason);
+        Long logId = callLogService.record(entry);
         String template = "您好,我们已收到您关于「" + title + "」的反馈(" + category + " 类),正在核实处理中,会尽快给您答复。";
-        return new DraftOutcome(template, true, reason, client.requestModel(), null, latencyMs, logId);
+        return new DraftOutcome(template, true, reason, client.requestModel(), responseModel, latencyMs, logId);
     }
 
     private LlmCallLog buildLog(LlmScene scene, Long ticketId, String responseModel, long latencyMs,
@@ -164,6 +208,7 @@ public class LlmService {
         entry.setRawCategory(rawCategory);
         entry.setFinalCategory(finalCategory);
         entry.setContractViolated(contractViolated);
+        entry.setNeedsReview(false);
         return entry;
     }
 

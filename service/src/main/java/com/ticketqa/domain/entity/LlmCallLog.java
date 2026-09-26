@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.ticketqa.domain.enums.DegradeReason;
 import com.ticketqa.domain.enums.LlmScene;
 import com.ticketqa.domain.enums.TicketCategory;
+import com.ticketqa.domain.enums.TicketPriority;
 import java.time.LocalDateTime;
 
 /**
@@ -28,6 +29,13 @@ public class LlmCallLog {
     private String rawCategory;
     private TicketCategory finalCategory;
     private Boolean contractViolated;
+    /** 交叉校验冲突 → 采用规则结果并待人工复核(ADR-024);草稿场景恒为 false */
+    private Boolean needsReview;
+    /** ReviewReason,多个逗号连接:分类是冲突维度,草稿是输出检查命中的类型 */
+    private String reviewReason;
+    /** 规则对同一段文本的结论:每次分类都落,事后可以离线算替代阈值,不必重新调模型 */
+    private TicketCategory ruleCategory;
+    private TicketPriority rulePriority;
     private String traceId;
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createdAt;
@@ -118,6 +126,38 @@ public class LlmCallLog {
 
     public void setContractViolated(Boolean contractViolated) {
         this.contractViolated = contractViolated;
+    }
+
+    public Boolean getNeedsReview() {
+        return needsReview;
+    }
+
+    public void setNeedsReview(Boolean needsReview) {
+        this.needsReview = needsReview;
+    }
+
+    public String getReviewReason() {
+        return reviewReason;
+    }
+
+    public void setReviewReason(String reviewReason) {
+        this.reviewReason = reviewReason;
+    }
+
+    public TicketCategory getRuleCategory() {
+        return ruleCategory;
+    }
+
+    public void setRuleCategory(TicketCategory ruleCategory) {
+        this.ruleCategory = ruleCategory;
+    }
+
+    public TicketPriority getRulePriority() {
+        return rulePriority;
+    }
+
+    public void setRulePriority(TicketPriority rulePriority) {
+        this.rulePriority = rulePriority;
     }
 
     public String getTraceId() {
