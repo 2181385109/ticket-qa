@@ -9,6 +9,9 @@
   python tests/llm_security/run_eval.py labels export-priority DIR     精简审核表:⚠ 样本 + 对照组优先级判错的样本(不发请求)
   python tests/llm_security/run_eval.py models                         列出上游可用模型(1 次真实调用)
   python tests/llm_security/run_eval.py format-split DIR [DIR ...]     分类输出格式形态:恰好一个对象 / 夹带 / 读不出(不发请求)
+  python tests/llm_security/run_eval.py compare BEFORE AFTER [--out F]  防御前 / 后两次运行的对比报告(不发请求;默认写 AFTER/compare.md)
+  python tests/llm_security/run_eval.py run --phase holdout --run-label pre|post --service-ref REF   留出集(防御前后各跑一次)
+                                                                       一条命令跑完前后两次 + 对比:tests/llm_security/tools/holdout_compare.ps1
 
 真实调用的前提:环境变量 LLM_API_KEY 存在(本脚本只检查存在、不读值——key 由服务进程自己读;models 子命令除外,
 它直接调上游,值只放进请求头,不打印不落盘);服务以 LLM_MODE=real 启动且 LLM_BASE_URL 指向本脚本起的录制代理。
@@ -25,6 +28,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
+from llmsec import compare as CMP            # noqa: E402
 from llmsec import dataset as dsmod          # noqa: E402
 from llmsec import judge as J                # noqa: E402
 from llmsec import report as R               # noqa: E402
@@ -39,25 +43,35 @@ def _out(msg: str) -> None:
     print(msg, flush=True)
 
 
-def load_samples(holdout: bool) -> tuple[dsmod.Dataset, list[dict]]:
+def load_samples(holdout: bool) -> tuple[dsmod.Dataset, list[dict], frozenset[str]]:
+    """(判定用数据集, 本次要跑的样本, 只建单不取草稿的样本 id)。
+    留出集:要跑的是留出样本 + 被 A/B 留出样本引用的基底对照——翻转口径(A/B 主口径)要把攻击第 r 轮和基底第 r 轮配对,
+    基底必须在同一次运行、同一版服务上跑;基底只为配对,不取草稿"""
     ds = dsmod.load()
     if not holdout:
-        return ds, ds.samples
+        return ds, ds.samples, frozenset()
     ho = dsmod.load_holdout()
-    return dsmod.Dataset(controls=ds.controls, attacks=ds.attacks + ho), ho
+    combined = dsmod.Dataset(controls=ds.controls, attacks=ds.attacks + ho)
+    base_ids = sorted({s["base_id"] for s in ho if s.get("attack_class") in ("A", "B") and s.get("base_id")})
+    bases = [combined.by_id[i] for i in base_ids if i in combined.by_id]
+    return combined, ho + bases, frozenset(b["id"] for b in bases)
 
 
 # ---------------------------------------------------------------------- plan
 
 def cmd_plan(args) -> int:
-    _, samples = load_samples(args.holdout)
+    _, samples, classify_only = load_samples(args.holdout)
     if not samples:
         _out("holdout.jsonl 为空:没有要跑的样本")
         return 0
-    s = RN.plan_summary(samples, args.k)
+    s = RN.plan_summary(samples, args.k, classify_only)
     for key, n in s.items():
         _out(f"{key}\t{n}")
     budget = RN.Budget()
+    if args.holdout:
+        _out(f"留出集要跑两次(防御前 + 防御后),合计 {2 * s['合计']}")
+        _out(f"预算:已用 {budget.total} / 上限 {budget.limit},两次跑完后将为 {budget.total + 2 * s['合计']}")
+        return 0
     _out(f"试跑\t{len(RN.PILOT_TASKS)}")
     _out(f"预算:已用 {budget.total} / 上限 {budget.limit},本次正式运行后将为 {budget.total + s['合计']}")
     return 0
@@ -114,6 +128,7 @@ def _open_run_dir(args, phase: str, samples: list[dict], ds: dsmod.Dataset, task
         "sample_ids": sorted(s["id"] for s in samples),
         "git": RN.git_state(), "upstream_base": args.upstream, "proxy": f"127.0.0.1:{args.proxy_port}",
         "service_config": _service_config(args, seen), "sessions": [],
+        **({"service_ref": args.service_ref} if getattr(args, "service_ref", None) else {}),
     })
     return run_dir
 
@@ -148,7 +163,7 @@ def _execute(args, run_dir: Path, samples: list[dict], tasks: list, seen: dict) 
 # ---------------------------------------------------------------------- pilot / run
 
 def cmd_pilot(args) -> int:
-    ds, samples = load_samples(False)
+    ds, samples, _ = load_samples(False)
     try:
         seen = _preflight(args.base_url)
         args.resume = None
@@ -191,7 +206,7 @@ def pilot_check(run_dir: Path) -> list[str]:
 
 
 def cmd_run(args) -> int:
-    ds, samples = load_samples(args.phase == "holdout")
+    ds, samples, classify_only = load_samples(args.phase == "holdout")
     if not samples:
         _out("没有要跑的样本(holdout.jsonl 为空?)")
         return 0
@@ -200,7 +215,10 @@ def cmd_run(args) -> int:
         if errors:
             _out("留出集校验失败:\n  " + "\n  ".join(errors))
             return 2
-    tasks = RN.plan_tasks(samples, args.k)
+        if args.run_label not in ("pre", "post"):
+            _out("留出集运行必须带 --run-label pre(防御前的服务)或 post(防御后的服务)")
+            return 2
+    tasks = RN.plan_tasks(samples, args.k, classify_only)
     try:
         seen = _preflight(args.base_url)
         run_dir = _open_run_dir(args, args.phase, samples, ds, tasks, seen)
@@ -225,6 +243,14 @@ def rejudge_one(run_dir: Path, ds: dsmod.Dataset | None = None, data_dir: Path |
     out = R.write(run_dir, ds, J.load_lists(data_dir))
     _out(f"已生成 {out}")
     return out
+
+
+def cmd_compare(args) -> int:
+    before, after = Path(args.before).resolve(), Path(args.after).resolve()
+    out = CMP.write(before, after, _dataset_for(before), _dataset_for(after), J.load_lists(dsmod.DATA_DIR),
+                    Path(args.out).resolve() if args.out else None)
+    _out(f"已生成 {out}")
+    return 0
 
 
 def cmd_rejudge(args) -> int:
@@ -347,7 +373,14 @@ def main(argv: list[str] | None = None) -> int:
     sp.add_argument("--run-label", default=None, help="第二阶段 v1 / v2(计划 §2-8)")
     sp.add_argument("--k", type=int, default=5)
     sp.add_argument("--resume", default=None, help="断点续跑:已有的运行目录")
+    sp.add_argument("--service-ref", default=None, help="本次打的是哪一版服务代码(tag / commit),写进 meta 与报告;留出集前后对比必填")
     sp.set_defaults(func=cmd_run)
+
+    sp = sub.add_parser("compare")
+    sp.add_argument("before")
+    sp.add_argument("after")
+    sp.add_argument("--out", default=None)
+    sp.set_defaults(func=cmd_compare)
 
     sp = sub.add_parser("rejudge")
     sp.add_argument("run_dirs", nargs="+")

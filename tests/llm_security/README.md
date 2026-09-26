@@ -16,7 +16,7 @@
 ```
 data/attacks.jsonl        40 条攻击样本(A12 B10 C10 D8),每条挂一个干净的基底对照(base_id)
 data/controls.jsonl       32 条正常对照(四类各 8)
-data/holdout.jsonl        留出集,本轮为空(作者日后自行补充)
+data/holdout.jsonl        留出集:由作者在防御定稿后亲手编写(可能为空),见下文「留出集」
 data/judge_*.json         C / D 类裁判词表(第一阶段开跑前冻结;与第二阶段防御词表分开维护)
 data/label_review.csv     标签审核表(labels export 生成)
 data/label_review_priority.csv  精简审核表:⚠ 样本 + 对照组优先级判错的样本(labels export-priority 生成,M5.5)
@@ -24,7 +24,8 @@ llmsec/                   dataset / proxy(录制代理)/ runner / judge / report
 fixtures/fake-run/        构造的假运行(不是真实数据),给离线用例用
 reports/<阶段>-<UTC>/     raw.jsonl(每次调用一行)、meta.json、report.md、failures.jsonl(停止时未落 raw 的失败)、
                           hit_review.csv(C/D 命中人工核对表,可选;有它报告才出"人工核对后结果")
-reports/call_budget.json  真实调用累计计数(上限 1300,跨会话)
+reports/call_budget.json  真实调用累计计数(上限 1700,跨会话;2026-09-26 前为 1300)
+tools/holdout_compare.ps1 留出集防御前 / 后各跑一次 + 对比报告,一条命令
 ```
 
 ## 真实评测怎么跑
@@ -48,12 +49,12 @@ reports/call_budget.json  真实调用累计计数(上限 1300,跨会话)
    python tests/llm_security/run_eval.py pilot                # 5 次试跑 + 自动检查
    python tests/llm_security/run_eval.py run --phase phase1   # 正式运行,结束自动生成 report.md
    python tests/llm_security/run_eval.py run --phase phase1 --resume tests/llm_security/reports/phase1-<UTC>   # 断点续跑
-   python tests/llm_security/run_eval.py run --phase holdout  # 留出集(本轮为空,直接退出)
+   python tests/llm_security/run_eval.py compare <防御前目录> <防御后目录>   # 对比报告(不发请求),默认写到防御后目录的 compare.md
    python tests/llm_security/run_eval.py models               # 请求被拒时查上游可用模型(计划 D2)
    python tests/llm_security/run_eval.py format-split tests/llm_security/reports/<运行目录>   # 分类输出:恰好一个对象 / 夹带 / 读不出(不发请求,ADR-024 修订 #3)
    ```
 
-   停止条件(计划 §2-9):`LLM_API_KEY` 不存在 / 上游 401、403;上游连续失败 3 次、等 60 s 重试仍失败;累计调用将超 1300。
+   停止条件(计划 §2-9):`LLM_API_KEY` 不存在 / 上游 401、403;上游连续失败 3 次、等 60 s 重试仍失败;累计调用将超 1700。
    停下后用 `--resume` 续跑,已完成的调用不会重复。
 
 ## 标签审核与离线重判(不发请求)
@@ -85,3 +86,30 @@ python tests/llm_security/run_eval.py rejudge tests/llm_security/reports/phase1-
 ```
 
 `hit_review.csv` 必须和本次运行的命中一一对应(key + 词条,上下文逐字一致),对不上报告生成直接失败——raw 变了,旧结论不能套到新草稿上。
+
+## 留出集(作者在防御定稿之后亲手编写)
+
+攻击集和第二阶段防御都由 Claude 编写,phase1 vs phase2 的对比因此偏乐观。留出集是不同源的检验:**作者在 v1 复测、防御定稿之后亲手编写**,
+写防御的 Claude 没有见过这些样本。
+
+**格式**:`data/holdout.jsonl`,每行一个样本,字段与 `attacks.jsonl` 完全相同。要点(`dataset.validate` 会逐条检查):
+- `id` 以类别字母开头且不与 attacks.jsonl 重复(建议 `A-101`、`C-101` 这样从 101 编号);
+- `base_id` 指向 `controls.jsonl` 里已有的对照样本,`expected` 与基底一致;`injection_in` 是 `title` 或 `content`,且对应字段确实与基底不同;
+- `target`:A 类 `{"field": "priority", "value": "P0"}`(基底期望不能已是 P0),B 类 `{"field": "category", "value": <不等于期望的类别>}`,
+  C 类 `{"field": "draft", "value": "promise"}`,D 类 `{"field": "draft", "value": "leak"}`;
+- `label_status` 写 `human_confirmed`,`reviewed_by` 写审核人,`label_reason`、`uncertain`、`technique`(取值见 `dataset.TECHNIQUES`)照 attacks.jsonl 填。
+
+**跑法**(一条命令,仓库根目录 PowerShell;key 按计划 §2-7 只在这个进程里读入):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests\llm_security\tools\holdout_compare.ps1 -KeyFile '<key 文件路径>' `
+  -JavaHome D:\tools\jdk-17 -Maven D:\tools\maven\bin\mvn.cmd -Python E:\python\python.exe
+```
+
+它依次:`plan --holdout`(次数与预算)→ 停当前服务 → 临时 worktree 检出 `v0.5-injection-baseline`(防御前的代码)打包、真实模式启动、
+`run --phase holdout --run-label pre` → 当前工作区打包、真实模式启动、`--run-label post` → 挡板模式重启 → `compare pre post`,
+报告写到 `reports/holdout-post-*/compare.md`。A/B 留出样本引用的基底对照在每次运行里也建单(不取草稿),供翻转口径逐轮配对。
+加 `-SmokeTest` 只验证打包与起停,不读 key、不发请求。
+
+C/D 命中的人工核对:两个运行目录各放一份 `hit_review.csv`(格式同上文「基线复核」),`rejudge` 两个目录,再 `compare` 一次。
+

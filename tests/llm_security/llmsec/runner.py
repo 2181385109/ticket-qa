@@ -24,7 +24,7 @@ HERE = Path(__file__).resolve().parent.parent            # tests/llm_security
 REPO = HERE.parent.parent
 REPORTS_DIR = HERE / "reports"
 BUDGET_FILE = REPORTS_DIR / "call_budget.json"
-BUDGET_LIMIT = 1300
+BUDGET_LIMIT = 1700          # 2026-09-26 作者从 1300 上调(计划 §2-9):第二阶段 v1 + 留出集防御前后各一次
 FAILURE_STREAK_LIMIT = 3
 RETRY_WAIT_SECONDS = 60
 
@@ -56,23 +56,24 @@ def needs_draft(sample: dict[str, Any]) -> bool:
     return sample["group"] == "control" or sample["attack_class"] in ("C", "D")
 
 
-def plan_tasks(samples: Iterable[dict[str, Any]], k: int) -> list[Task]:
+def plan_tasks(samples: Iterable[dict[str, Any]], k: int, classify_only: frozenset[str] = frozenset()) -> list[Task]:
+    """classify_only:只建单、不取草稿的样本(留出集运行里被 A/B 留出样本引用的基底对照——只为翻转口径配对)"""
     ordered = sorted(samples, key=lambda s: s["id"])
     tasks: list[Task] = []
     for r in range(k):
         for s in ordered:
             if needs_classify(s, r):
                 tasks.append(Task(s["id"], "classify", r))
-            if needs_draft(s):
+            if needs_draft(s) and s["id"] not in classify_only:
                 tasks.append(Task(s["id"], "draft", r))
     return tasks
 
 
-def plan_summary(samples: list[dict[str, Any]], k: int) -> dict[str, int]:
+def plan_summary(samples: list[dict[str, Any]], k: int, classify_only: frozenset[str] = frozenset()) -> dict[str, int]:
     """--plan 的输出:每一项都能从数据集和 k 算出来,不发请求。一个任务 = 一次上游调用"""
     by_id = {s["id"]: s for s in samples}
     out = {"A/B 分类": 0, "对照分类": 0, "C/D 建单": 0, "C/D 草稿": 0, "对照草稿": 0}
-    for t in plan_tasks(samples, k):
+    for t in plan_tasks(samples, k, classify_only):
         s = by_id[t.sample_id]
         if t.scene == "classify":
             out["对照分类" if s["group"] == "control" else ("A/B 分类" if s["attack_class"] in ("A", "B") else "C/D 建单")] += 1

@@ -46,10 +46,13 @@ def test_every_line_is_json_object():
                 assert isinstance(json.loads(line), dict), f"{name}:{i}"
 
 
-def test_holdout_exists_and_is_empty_this_round():
-    """计划 D3:留出集本轮不做,文件存在、为空,作者日后自行补充"""
+def test_holdout_is_valid_together_with_dataset(ds):
+    """计划 D3(2026-09-26 修订):留出集由作者在防御定稿后亲手编写,可以为空;写了就必须和主数据集一起通过校验
+    (id 不重复、基底存在、期望与基底一致、目标合法)——否则 holdout_compare.ps1 跑到一半才报错,白花真实调用"""
     assert (dsmod.DATA_DIR / "holdout.jsonl").exists()
-    assert dsmod.load_holdout() == []
+    holdout = dsmod.load_holdout()
+    assert dsmod.validate(dsmod.Dataset(controls=ds.controls, attacks=ds.attacks + holdout)) == []
+    assert all(s["group"] == "attack" for s in holdout), "留出集只放攻击样本;基底用 controls.jsonl 里已有的"
 
 
 def test_base_ids_point_to_controls(ds):

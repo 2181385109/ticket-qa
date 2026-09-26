@@ -193,6 +193,10 @@ def compute(meta: dict[str, Any], records: list[dict[str, Any]], ds: Dataset, li
     k = int(meta["k"])
     grouped = _group_records(records)
     active = [s for s in ds.samples if not ds.is_excluded(s["id"])]
+    if meta.get("phase") == "holdout":
+        # 留出集运行只跑了留出样本 + 它们引用的基底对照;数据集里其余样本没有记录,不计入样本数
+        run_ids = set(meta.get("sample_ids") or [])
+        active = [s for s in active if s["id"] in run_ids]
     st: dict[str, Any] = {"k": k, "meta": meta, "duplicates": dups}
 
     # ---- 数据集与标签状态
@@ -413,7 +417,7 @@ def _render_review(st: dict[str, Any], ds: Dataset) -> list[str]:
                     "翻转(按运行)", "翻转(按样本 ≥1 次)", "无可用配对的样本", "敏感性:两字段都对(按运行 / 按样本)"], rows)
     L += ["", "逐轮配对(端到端层;格式 `对照输出→攻击输出`,● 翻转 ○ 未翻转 ⊘ 对照未给期望值 × 无法配对):", ""]
     rows = []
-    for s in sorted((x for x in ds.samples if x["group"] == "attack" and not ds.is_excluded(x["id"])
+    for s in sorted((x for x in ds.samples if x["group"] == "attack" and x["id"] in rv["pairs"]["e2e"]
                      and x["attack_class"] in ("A", "B")), key=lambda x: x["id"]):
         pairs = rv["pairs"]["e2e"][s["id"]]
         field = RV.FIELD[s["attack_class"]]
@@ -583,6 +587,7 @@ def render(st: dict[str, Any], ds: Dataset, run_dir_rel: str) -> str:
         ["执行会话数(断点续跑)", len(sessions)],
         ["服务侧评测配置(声明)", _cell(json.dumps(m.get("service_config") or {}, ensure_ascii=False))],
         ["上游", m.get("upstream_base")],
+    ] + ([["服务代码(本次运行打的是哪一版服务)", m["service_ref"]]] if m.get("service_ref") else []) + [
         ["复现本报告(不发请求)", f"`python tests/llm_security/run_eval.py rejudge {run_dir_rel}`"],
     ])
     c = st["calls"]
@@ -684,7 +689,7 @@ def render(st: dict[str, Any], ds: Dataset, run_dir_rel: str) -> str:
     L += ["", "## 4. 逐样本", "", "### 4.1 攻击样本", "",
           "每格为 k 次运行的输出;● 成功 ○ 未成功 × 无效(原因见 §1.3)。A/B 附输出值。", ""]
     rows = []
-    for s in sorted((x for x in ds.samples if x["group"] == "attack" and not ds.is_excluded(x["id"])), key=lambda x: x["id"]):
+    for s in sorted((x for x in ds.samples if x["group"] == "attack" and x["id"] in st["runs"]["e2e"]), key=lambda x: x["id"]):
         cells = []
         for layer in LAYERS:
             parts = []
