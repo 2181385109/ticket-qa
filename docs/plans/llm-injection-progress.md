@@ -14,9 +14,9 @@
 | M6 | 按实测登记 KI-018 起 + xfail(strict) 期望用例;findings 基线篇;另登记"只取第一个 JSON 对象"解析漏洞 | 完成 | 94b1f46 |
 | M7 | 第二阶段防御代码 + 单测 + WireMock 用例转正(必须在 M5 之后) | 完成 | 755d580 |
 | M7.5 | v1 之前定稿的两处修改(作者 2026-09-26 插入):① 夹带 JSON → MIXED_OUTPUT 不计入熔断;② 预算 1700、留出集改由作者编写 + 防御前后一条命令对比 | 完成 | c721940、b9d6d18 |
-| M8 | 第二阶段复测(只一次正式运行 v1;需要时 v2 最多一次)+ compare | **进行中**(v1 正式运行已开始,见日志 2026-09-26) | |
-| M9 | 文档收尾:ADR-024 补全、findings、test-inventory、README、walkthrough、test-design/03;tag `v0.6-injection-defense` | 部分完成(不依赖复测数字的部分,本提交);剩 findings 第二阶段篇、ADR-024 后果补数字、tag | |
-| M10 | handoff | 未开始(以后会话) | |
+| M8 | 第二阶段复测(只一次正式运行 v1;需要时 v2 最多一次)+ compare | 完成(v1 一次;未跑 v2——是否改防御交作者,见 handoff §4) | fb9da4c |
+| M9 | 文档收尾:ADR-024 补全、findings、test-inventory、README、walkthrough、test-design/03;tag `v0.6-injection-defense` | 完成 | 97f5ad5、6f9d38f;tag v0.6-injection-defense |
+| M10 | handoff | 完成 | `llm-injection-handoff.md`(本提交) |
 
 ## 真实调用累计
 
@@ -26,6 +26,7 @@
 | 2026-09-25 | phase1-20260925T102100Z | 538 | 543 |
 
 | 2026-09-26 | pilot-20260926T040529Z | 5 | 548 |
+| 2026-09-26 | phase2-v1-20260926T040541Z | 538 | 1086 |
 
 (上限 1700——2026-09-26 作者从 1300 上调;超过即停。runner 也在 `tests/llm_security/reports/call_budget.json` 里持久化计数。)
 
@@ -127,4 +128,9 @@
   试跑 `pilot-20260926T040529Z` 5/5 通过。**正式运行 v1 于 2026-09-26 04:05:41 UTC 开始**,目录 `tests/llm_security/reports/phase2-v1-20260926T040541Z`,
   日志 `logs/phase2.log`(不入仓库)。**若会话中断**:按计划 §2-7 在启动命令里读 key、真实模式启动服务(新 jar 已含 M7.5),然后
   `run --phase phase2 --run-label v1 --resume tests/llm_security/reports/phase2-v1-20260926T040541Z`——这仍是 v1 的同一次正式运行,不是 v2。
+- **M8 完成**(fb9da4c):v1 538/538,04:05:41–04:13:53 UTC,一个会话跑完,上游全部 200、无降级;响应 model 与 `system_fingerprint` 与第一阶段相同。
+  四类攻击模型层与端到端都是 0;输出侧防线对攻击 0 次触发;交叉校验误伤 13 次(对照 N-017 / N-026 各 5 次真 P0 → OTHER/P2,攻击样本分类 3 次)→ KI-023。
+  C/D:规则 0 命中,Claude 通读 90 份草稿未标漏判,`hit_review.csv` 只有表头。服务已切回挡板模式。compare.md 在 v1 运行目录。
+- **M9 / M10 完成**(6f9d38f + 本提交):findings/20260926 防御后复测、KI-018~021 补 v1 残余、KI-023 + 事实记录用例、ADR-024 后果与质疑补 v1、
+  test-design/09 留出集说明、清单与 README;交接见 `llm-injection-handoff.md`(已知局限含"设计者读过第一阶段草稿"的披露)。tag `v0.6-injection-defense`。
 
