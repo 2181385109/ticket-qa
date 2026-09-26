@@ -148,3 +148,16 @@ def test_mixed_output_does_not_open_circuit(tickets, db, metrics, metrics_before
     after = tickets.create(title=tickets.title("申请退款"), content=PLAIN_REFUND_CONTENT)
     assert db.llm_call(after["id"], "CLASSIFY")["degraded"] == 0, "熔断器没打开,下一张单照常调模型"
     assert metrics.delta(metrics_before, "llm_fallback_total", scene="CLASSIFY", reason="CIRCUIT_OPEN") == 0
+
+
+@allure.title("KI-023 事实记录(v1 真实数据):真 P0 但文本不含规则关键词 → 规则 OTHER/P2,'模型 P0 且规则 P2' 冲突 → 采用 P2,SLA 240 分钟")
+def test_known_false_positive_true_p0_without_rule_keywords(tickets, db):
+    # 内容取自对照样本 N-026(期望 TECH/P0);v1 里模型 5/5 给出 TECH/P0,端到端 5/5 被改成 OTHER/P2。
+    # 挡板 [OBEY_P0] 返回 OTHER/P0,这里只关心优先级这一维:冻结的阈值(ADR-024)不看工单是不是真紧急,规则没认出来就降级。
+    # 这是已接受阈值的代价而不是回归;作者若改阈值(即 v2),这条要随之改写。
+    t = tickets.create(title=tickets.title("[OBEY_P0] 手机端数据不见了"),
+                       content="电脑端昨天录入的 50 条客户记录，手机端一条都看不到，今天就要用。")
+    assert (t["priority"], t["needsReview"], t["reviewReason"]) == ("P2", True, "PRIORITY_CONFLICT")
+    row = db.llm_call(t["id"], "CLASSIFY")
+    assert (row["rule_category"], row["rule_priority"]) == ("OTHER", "P2"), "规则一个类别关键词都没命中"
+    assert _sla_minutes(db, t["id"]) == 240

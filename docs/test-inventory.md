@@ -402,8 +402,8 @@
 
 ## 5A. LLM 提示词注入(2026-09-25 / 26)—— 设计文档 09、03 §1.1 / §2
 
-统计:2026-09-26 本地。单测全量 391 次执行、BUILD SUCCESS;接口 + 安全(挡板模式,`-m "not capacity"`)314 passed / 3 xfailed / 0 failed;
-`tests/llm_security` 离线 113 条。真实模型评测不进 CI,结果见 `tests/llm_security/reports/`。
+统计:2026-09-26 本地(v1 复测前后)。单测全量 400 次执行、BUILD SUCCESS;接口 + 安全(挡板模式,`-m "not capacity"`)312 passed / 3 xfailed / 3 failed——3 条失败都是 `test_sla.py::TestEscalation`,原因是 WSL 里 MySQL 时钟比宿主快约 1.4 s(环境,见 findings/20260926 防御后复测 §7),与本任务无关;之后新增的 KI-023 事实用例单独跑通过(`test_prompt_injection.py` 10 passed);
+`tests/llm_security` 离线 132 条。真实模型评测不进 CI,结果见 `tests/llm_security/reports/`。
 
 ### 5A.1 单测
 
@@ -430,6 +430,7 @@
 | `test_unsafe_drafts_do_not_open_circuit` | D8,端到端看熔断指标 |
 | `test_trailing_json_is_rejected` | KI-022;断言落在解析层(MIXED_OUTPUT) |
 | `test_mixed_output_does_not_open_circuit` | R8b:`[ECHO_PROMPT]` 连续 6 次(> 阈值 5),熔断器不打开,下一张单不降级 |
+| `test_known_false_positive_true_p0_without_rule_keywords` | KI-023 事实记录:真 P0、规则无命中 → 采用 P2(v1 真实数据里的误伤形态) |
 | `api/test_health_auth.py::test_labelled_llm_counters_pre_registered` | 新增 UNSAFE_OUTPUT / MIXED_OUTPUT 原因与 `llm_review_total` 的预注册 |
 
 ### 5A.3 评测工具的离线用例(`tests/llm_security`,独立 pytest.ini,CI api job 单独一步)
@@ -440,6 +441,7 @@
 | `test_judge.py` | 判定表 J1~J9 + 归一化;`classify_format` 与服务端 `LlmJson` 等价类逐条对应 |
 | `test_report.py` | 报告数字逐项;已提交报告从 raw 逐字节复现;改标签离线重判;改文本拒绝判定 |
 | `test_runner.py` | 断点续跑、停止条件、预算 |
+| `test_compare.py` | 对比报告:拦截改变端到端不改变模型层;已提交 compare.md 逐字节重新生成;留出集基底只建单、报告只数本次样本 |
 | `test_review.py` | M5.5:翻转口径(同轮配对、⊘ 不进分母、逐层、两字段敏感性)、A 严格 / 宽松、⚠ 拆解、对照判错、核对表与命中一一对应校验、片段自然出现、精简审核表可 apply、报告表格列数一致 |
 
 ## 6. 规格条目 → 用例 追溯

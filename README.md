@@ -49,7 +49,7 @@
 | LLM 提示词注入 | `tests/llm_security`、`tests/security/test_prompt_injection.py` | 72 条样本 × k=5 的真实模型评测(录制代理 + 离线重判,不进 CI);三层防御(输入隔离、交叉校验、草稿检查)+ 严格解析,确定性用例进 CI | 模型会不会"合法地被操纵";防御挡住多少、误伤多少——两层(模型 / 端到端)分开数 |
 | 覆盖率与 CI | `.github/workflows/ci.yml` | JaCoCo 全量兜底 70/60 + diff-cover 增量 80%;compose 起环境 → 预热连接池 → pytest → Allure 归档 | 改坏了会不会自动响 |
 | 质量数据平台 | `platform/` | 执行记录、通过率 / 覆盖率趋势、性能基线对比(带环境状态,不可比即降级) | 这次比上次退化了吗——以及这个比较可不可信 |
-| 记录 | `docs/findings/` | 联调发现、压测 5 篇、故障注入、修复后回归、已知问题 KI-001~022 | 测出来的每一个问题:现象、根因、证据、处置 |
+| 记录 | `docs/findings/` | 联调发现、压测 5 篇、故障注入、修复后回归、注入基线与防御后复测、已知问题 KI-001~023 | 测出来的每一个问题:现象、根因、证据、处置 |
 
 从压测到修复的闭环(2026-09-20 → 09-21):抢单 2 线程即 100% 重复分配 → 定位到 check-then-act + 连接池状态漂移 →
 修复后用同样手段回归 2×5 / 20 / 100 线程及 Redis 停机下恰好 1 个成功 → 并发用例进 CI 门禁 → 平台把"环境不同的对比不可信"自动化。
@@ -90,7 +90,7 @@ ticket-qa/
 ├── service/        Spring Boot 被测服务(mvn 构建);src/test/java 是 JUnit 5 + Mockito + H2 切片
 ├── platform/       质量数据平台(Spring Boot :8081 + Vue 静态页),导入格式见 platform/README.md
 ├── ops/            docker-compose、MySQL 初始化 SQL 与迁移、WireMock 桩、Prometheus 配置、联调冒烟脚本、WSL 说明
-├── docs/           adr(23 条)/ walkthrough / test-design(8 篇)/ test-inventory / findings(压测、故障注入、回归、已知问题)
+├── docs/           adr(24 条)/ walkthrough / test-design(8 篇)/ test-inventory / findings(压测、故障注入、回归、已知问题)
 ├── tests/          api(pytest 接口自动化 + 自研封装)/ security(越权、注入、绕过)/ perf(JMeter + 取证工具)/ tools
 └── .github/        workflows/ci.yml:编译 → 单测 → 覆盖率门禁 → 起环境 → 预热连接池 → 接口自动化 → Allure 归档
 ```
