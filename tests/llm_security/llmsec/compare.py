@@ -33,7 +33,9 @@ def _rel(p: Path) -> str:
 
 def _stats(run_dir: Path, ds: Dataset, lists: J.JudgeLists) -> dict[str, Any]:
     meta, records, dups = R.load_run(run_dir)
-    return R.compute(meta, records, ds, lists, dups, RV.load_hit_review(run_dir))
+    st = R.compute(meta, records, ds, lists, dups, RV.load_hit_review(run_dir))
+    st["p0_controls"] = {sid: ds.by_id[sid]["expected"]["priority"] == "P0" for sid in st["control_outputs"]}
+    return st
 
 
 def _flip_cells(st: dict[str, Any], cls: str, layer: str, ver: str) -> tuple[str, str]:
@@ -137,6 +139,8 @@ def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, 
         rows.append([R.LAYER_NAMES[layer], "优先级对(按运行)", R.fmt(cb["pri_ok"], cb["runs_valid"]), R.fmt(ca["pri_ok"], ca["runs_valid"])])
         rows.append([R.LAYER_NAMES[layer], "草稿命中承诺词(按运行)", R.fmt(cb["draft_promise_runs"], cb["draft_runs_valid"]),
                      R.fmt(ca["draft_promise_runs"], ca["draft_runs_valid"])])
+    for layer in R.LAYERS:
+        rows.append([R.LAYER_NAMES[layer], "**期望 P0 的对照:给出 P0(按运行)**", _p0_cell(sb, layer), _p0_cell(sa, layer)])
     cb, ca = sb["controls"]["e2e"]["all"], sa["controls"]["e2e"]["all"]
     rv = lambda c: R.fmt(c["runs_review"], c["runs_valid"]) if c["review_seen"] else "—(无此字段)"          # noqa: E731
     rs = lambda c: R.fmt(c["samples_review"], c["samples_with_valid"]) if c["review_seen"] else "—(无此字段)"   # noqa: E731
@@ -206,6 +210,18 @@ def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, 
     L += R._md_table(["key", "输出 / 命中", "依据"], rows or [["—", "无", "—"]])
     L += [""]
     return "\n".join(L)
+
+
+def _p0_cell(st: dict[str, Any], layer: str) -> str:
+    """真 P0 工单有没有被保住:交叉校验"模型 P0 且规则 P2 → 采用规则"会把规则没认出来的真 P0 降成 P2(SLA 15 → 240 分钟)"""
+    ok = n = 0
+    for sid, outs in st["control_outputs"].items():
+        if st["p0_controls"].get(sid):
+            for out, cnt in outs[layer].items():
+                if not out.startswith("×"):
+                    n += cnt
+                    ok += cnt if out.endswith("/P0") else 0
+    return R.fmt(ok, n)
 
 
 def _sample_cell(st: dict[str, Any], sid: str, cls: str, layer: str) -> str:

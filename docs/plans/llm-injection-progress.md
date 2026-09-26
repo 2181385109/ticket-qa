@@ -13,7 +13,8 @@
 | M5.5 | 基线复核(离线):翻转口径(A/B 主口径)、A 严格口径并列、⚠ 拆解、对照判错、C/D 命中人工核对、精简审核表 | 完成 | b19aa0c |
 | M6 | 按实测登记 KI-018 起 + xfail(strict) 期望用例;findings 基线篇;另登记"只取第一个 JSON 对象"解析漏洞 | 完成 | 94b1f46 |
 | M7 | 第二阶段防御代码 + 单测 + WireMock 用例转正(必须在 M5 之后) | 完成 | 755d580 |
-| M8 | 第二阶段复测(只一次正式运行 v1;需要时 v2 最多一次)+ compare | **阻塞**(停止条件 1:本会话没有 key,见日志) | |
+| M7.5 | v1 之前定稿的两处修改(作者 2026-09-26 插入):① 夹带 JSON → MIXED_OUTPUT 不计入熔断;② 预算 1700、留出集改由作者编写 + 防御前后一条命令对比 | 完成 | c721940、b9d6d18 |
+| M8 | 第二阶段复测(只一次正式运行 v1;需要时 v2 最多一次)+ compare | **进行中**(v1 正式运行已开始,见日志 2026-09-26) | |
 | M9 | 文档收尾:ADR-024 补全、findings、test-inventory、README、walkthrough、test-design/03;tag `v0.6-injection-defense` | 部分完成(不依赖复测数字的部分,本提交);剩 findings 第二阶段篇、ADR-024 后果补数字、tag | |
 | M10 | handoff | 未开始(以后会话) | |
 
@@ -24,7 +25,9 @@
 | 2026-09-25 | pilot-20260925T102015Z | 5 | 5 |
 | 2026-09-25 | phase1-20260925T102100Z | 538 | 543 |
 
-(上限 1300,超过即停。runner 也在 `tests/llm_security/reports/call_budget.json` 里持久化计数。)
+| 2026-09-26 | pilot-20260926T040529Z | 5 | 548 |
+
+(上限 1700——2026-09-26 作者从 1300 上调;超过即停。runner 也在 `tests/llm_security/reports/call_budget.json` 里持久化计数。)
 
 ## 接手须知 / 日志
 
@@ -107,3 +110,21 @@
   **注意**:phase2 的 raw 里 C/D 草稿不同,`hit_review.csv` 需要重新逐条核对后才有"人工核对后结果"(没有它报告照常生成,只是只报规则原始结果)。
 - M9 已完成的部分:test-design/03 §1.1(R10~R14、R8 新来源)与 §2(D6~D8);test-inventory §5A;README 质量体系表 / 挡板标记 / 建单接口说明;
   walkthrough 第 17 节(含 5 道自检题)。剩:findings 第二阶段篇、ADR-024 后果补复测数字、known-issues 补真实模型残余、tag `v0.6-injection-defense`。
+
+## M7.5 / M8(2026-09-26,第三次会话;作者给出 key 文件路径,已写进计划 §2-7)
+
+- M7.5 ①(c721940):ADR-024 修订 #3。`DegradeReason` 加 `MIXED_OUTPUT`(读得出完整 JSON 对象但不是恰好一个)并由枚举声明是否计入熔断;
+  BAD_RESPONSE 只剩"一个完整对象都读不出"。WireMock `[ECHO_PROMPT]` 桩 + `test_mixed_output_does_not_open_circuit`(6 次 > 阈值 5);
+  判定表 03 §1.2(R8 / R8b)。mvn verify 400 条全过;手动变异(改成计入)3/5 条单测变红。
+- M7.5 ②(b9d6d18):预算 1700;`run_eval.py compare`;留出集运行(A/B 留出样本引用的基底同次只建单);`tools/holdout_compare.ps1`
+  (`-SmokeTest` 本机跑通;留出集为空时直接退出)。`data/holdout.jsonl` 目前为空——**作者在防御定稿后亲手编写,Claude 不写、不等**。
+- M8 前全量回归(挡板,`-m "not capacity"`,clean 打包的新 jar):312 passed / 3 xfailed / **3 failed**,3 条都是 `test_sla.py::TestEscalation`
+  (`test_overdue_pending_is_escalated`、`test_overdue_assigned_is_escalated`、`test_deadline_in_near_future`),单独重跑仍 3 条失败。
+  原因已查明是**环境时钟偏差**:WSL 虚拟机(MySQL `NOW()`)比 Windows 宿主(服务的 `LocalDateTime.now()`)快约 1.4 s(同一时刻 `date` 对比),
+  用例把截止时间设成 DB `NOW()-1s`,在服务时钟看来还没到。与本次改动无关(LLM 路径用例全过);**没有改 WSL 时钟**(属于系统设置),也没有改用例。
+  作者可 `wsl --shutdown` 重启 WSL 或在 WSL 里同步时钟后重跑;用例本身"只用 DB 时钟"的假设在服务用宿主时钟时不成立,是否改用例留给作者。
+- M8:服务以真实模式启动(key 在启动命令同一进程里读入,自检:前缀 sk-、长度 35);`plan` = 538,预算 548 + 538 = 1086 ≤ 1700。
+  试跑 `pilot-20260926T040529Z` 5/5 通过。**正式运行 v1 于 2026-09-26 04:05:41 UTC 开始**,目录 `tests/llm_security/reports/phase2-v1-20260926T040541Z`,
+  日志 `logs/phase2.log`(不入仓库)。**若会话中断**:按计划 §2-7 在启动命令里读 key、真实模式启动服务(新 jar 已含 M7.5),然后
+  `run --phase phase2 --run-label v1 --resume tests/llm_security/reports/phase2-v1-20260926T040541Z`——这仍是 v1 的同一次正式运行,不是 v2。
+

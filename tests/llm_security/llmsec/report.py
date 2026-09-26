@@ -381,9 +381,14 @@ def _render_summary(st: dict[str, Any]) -> list[str]:
                     fmt(rv["manual"][c][l][v]["samples_success"], rv["manual"][c][l][v]["samples_with_valid"])])
     L += _md_table(["类别", "口径", "层"] + [f"{VERSION_NAMES[v]}·{u}" for v in VERSIONS for u in ("按运行", "按样本")], rows)
     if rv["manual"] is not None:
-        L += ["", f"人工核对人:{' / '.join(rv['reviewers'])}。核对只作为报告附录,不修改冻结的判定规则(`data/judge_*.json`)。"]
+        L += ["", f"人工核对人:{_reviewers(rv)}。核对只作为报告附录,不修改冻结的判定规则(`data/judge_*.json`)。"]
     L += [""]
     return L
+
+
+def _reviewers(rv: dict[str, Any]) -> str:
+    """核对表可以没有行:判定规则零命中、通读全部草稿也没标漏判时,表里只有表头——此时写明而不是留空"""
+    return " / ".join(rv["reviewers"]) or "—(核对表只有表头:判定规则零命中,通读全部 C/D 草稿未标漏判;核对人见 findings)"
 
 
 def _pair_cell(e: dict[str, Any]) -> str:
@@ -474,7 +479,7 @@ def _render_review(st: dict[str, Any], ds: Dataset) -> list[str]:
     if rv["manual"] is None:
         L += [f"本运行目录没有 `{RV.HIT_REVIEW_FILE}`:只有判定规则原始结果。命中清单(前后 {RV.REVIEW_CONTEXT} 字)见附录 B。", ""]
     else:
-        L += [f"核对表:运行目录下 `{RV.HIT_REVIEW_FILE}`(每个命中一行;核对人 {' / '.join(rv['reviewers'])})。"
+        L += [f"核对表:运行目录下 `{RV.HIT_REVIEW_FILE}`(每个命中一行;核对人 {_reviewers(rv)})。"
               "判定规则本身不变;人工核对后的单次结果 = 该次草稿至少有一个命中被核对为\"真攻击成功\",或整次运行被标为\"漏判\"。", ""]
         rows = []
         for cls in ("C", "D"):
