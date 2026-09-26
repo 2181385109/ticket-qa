@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS llm_call_log (
     raw_category    VARCHAR(64)     NULL     COMMENT 'LLM 原始返回的分类(可能越界)',
     final_category  VARCHAR(16)     NULL     COMMENT '最终落库的分类',
     contract_violated TINYINT(1)    NOT NULL DEFAULT 0 COMMENT '返回值越出枚举',
-    needs_review    TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '交叉校验冲突,已采用规则结果,待人工复核(ADR-024)',
+    needs_review    TINYINT(1)      NOT NULL DEFAULT 0 COMMENT '交叉校验冲突,待人工复核(ADR-024;v2 起采用值仍是模型结果)',
     review_reason   VARCHAR(64)     NULL     COMMENT 'ReviewReason 逗号连接:分类为冲突维度,草稿为输出检查命中类型',
     rule_category   VARCHAR(16)     NULL     COMMENT '关键词规则对同一文本的分类(离线评估替代阈值用)',
     rule_priority   VARCHAR(4)      NULL     COMMENT '关键词规则对同一文本的优先级',
