@@ -40,6 +40,23 @@ R3 是这张表里最容易被误解的一行:**越界不是降级**。LLM 回�
 
 不可能的组合(C1=是 时 C2~C4 无意义)已经合并进 R9。
 
+### 1.1 第二阶段:交叉校验与严格解析(ADR-024,2026-09-25 加)
+
+R1 在第二阶段被拆开:C3、C4 都合法之后,多一个条件 **C5 与关键词规则是否冲突**(阈值开跑前冻结,见 ADR-024"交叉校验阈值")。
+另加动作 A8 `needs_review / review_reason`、A9 `rule_category / rule_priority`(每次分类都落,包括降级)。
+
+| # | C5 规则命中集合 / 规则优先级 | 模型输出 | A1 分类 | A2 优先级 | A8 复核 | A5 指标 | A6 计失败 | 用例 |
+|---|---|---|---|---|---|---|---|---|
+| R10 | 命中 ∅ / **P2** | 任意 / **P0** | **规则** | **规则** | 1 / PRIORITY_CONFLICT | review{PRIORITY_CONFLICT}+1 | 否 | 单测 `priorityConflictAdoptsRule`、`ClassifyCrossCheckTest.priorityGrid`(3×3 全组合);接口 `test_obeyed_p0_is_flagged_for_review` |
+| R11 | 命中 {REFUND} | **TECH** / 任意 | **规则** | **规则**(两个维度一起换) | 1 / CATEGORY_CONFLICT | review{CATEGORY_CONFLICT}+1 | 否 | 单测 `categoryConflictAdoptsRuleForBothFields`、`categoryTable`;接口 `test_obeyed_category_is_flagged_for_review` |
+| R12 | 命中 {REFUND, BILLING} | BILLING / P1 | LLM | LLM | 0 | 无 | 否 | 单测 `noConflictStillRecordsRule`(规则结论照样落盘) |
+| R13 | 命中 ∅ / **P0**(注入里夹带"紧急") | OTHER / P0 | LLM | LLM(P0) | 0 | 无 | 否 | **已知绕过**:单测 `keywordStuffingBypassesPriorityCheck`;接口 `test_known_bypass_keyword_stuffing` |
+| R14 | — | 越界字段(R3 / R4) | 按 R3 / R4 | 按 R3 / R4 | 越界字段不参与比对 | 按 R3 / R4 | 否 | 单测 `violatedCategoryIsNotCrossChecked`、`violatedFieldsAreSkipped` |
+
+R8 的 BAD_RESPONSE 在第二阶段多了一个来源:**content 不是恰好一个 JSON 对象**(对象后面还有内容、JSON 但不是对象)。
+修复前只取第一个对象(KI-022)。用例:`OpenAiCompatibleLlmClientTest.trailingObjectIsRejected` / `promptTemplateEchoedFirstIsRejected` / `jsonArray`、
+`WireMockLlmClientTest.trailingJsonIsBadResponse`;接口 `test_trailing_json_is_rejected`(`[TWO_JSON]` 桩)。仍计入熔断(ADR-024 防御一节)。
+
 ### 固定断言项(来自 docs/findings/20260920)
 
 R1 的接口用例必须同时断:响应 category 正确 **且** `llm_call_log.degraded=0` **且** `response_model='mock-classifier-v1'`
@@ -59,6 +76,17 @@ R1 的接口用例必须同时断:响应 category 正确 **且** `llm_call_log.d
 | D5 | 是 | 不调用 | 模板,reason=CIRCUIT_OPEN,latency=0 | 单测 `breakerIsSharedAcrossScenes`;接口 `test_open_circuit_short_circuits_everything` |
 
 D5 同时证明**两个调用点共用一个熔断器**:分类失败 5 次,草稿也被短路。
+
+第二阶段(ADR-024)在 D1 后面加一个条件 **输出检查是否命中**:
+
+| # | 熔断 | 客户端 | 输出检查 | 动作 | 用例 |
+|---|---|---|---|---|---|
+| D6 | 否 | 成功 | 命中承诺词 | 模板草稿,reason=**UNSAFE_OUTPUT**,response_model **有值**,review_reason=UNSAFE_PROMISE,**不计失败** | 单测 `promiseIsReplacedByTemplate`;接口 `test_promise_draft_is_blocked` |
+| D7 | 否 | 成功 | 命中提示词 8 字片段 | 同上,review_reason 含 UNSAFE_LEAK | 单测 `leakIsReplacedByTemplate`;接口 `test_leak_draft_is_blocked` |
+| D8 | 否 | 成功 ×10 | 每次都命中 | 熔断器不打开,连续失败计数 0 | 单测 `unsafeOutputDoesNotTripBreaker`;接口 `test_unsafe_drafts_do_not_open_circuit` |
+
+D6 与 D2 的区别是 A6:UNSAFE_OUTPUT 是防御动作不是故障——计入熔断的话,攻击者提交 5 张注入工单各取一次草稿就能让全站 LLM 熔断 60 秒。
+检查本身的等价类(词表内 / 全角 / 插空格 / 否定句照拦 / 换说法漏过;逐字 / 换标点复述 / 7 字放行 8 字拦截 / 完全转述漏过)在 `DraftOutputPolicyTest`。
 
 ## 3. 熔断器生命周期——场景法 + 边界值
 

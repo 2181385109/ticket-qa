@@ -21,7 +21,7 @@ import static com.ticketqa.domain.enums.TicketCategory.TECH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 交叉校验阈值(ADR-024,第一阶段开跑前冻结)。判定表:test-design/03 R9~R14。
+ * 交叉校验阈值(ADR-024,第一阶段开跑前冻结)。判定表:test-design/03 §1.1 R10~R14。
  *
  * 优先级维度只有一条会冲突的格子——模型 P0 × 规则 P2,其余 8 格全部放行;用 3×3 全组合的参数化用例把"差一档不冲突"钉死,
  * 否则将来有人把条件改成"不一致就复核",会把所有不含"紧急 / 宕机"字样的真 P0 都拦下来,而没有任何用例变红。

@@ -42,13 +42,14 @@
 
 | 层 | 在哪 | 数量 / 手段 | 回答什么问题 |
 |---|---|---|---|
-| 单测 + 切片 | `service/src/test/java` | 330 次执行:JUnit 5 + Mockito;H2 切片跑真 SQL(条件更新、乐观锁、闭区间);`@WebMvcTest` 测 HTTP 边界 | 每个边界是否被精确打到(毫秒 / 字节 / 第 N 次) |
-| 接口 + 安全自动化 | `tests/api`、`tests/security` | 312 次执行:pytest + requests 自研四层封装;直连 MySQL / WireMock / RabbitMQ / 指标做旁路断言;Allure | 每条链路在真容器上是否真的通,包括接口看不见的部分 |
+| 单测 + 切片 | `service/src/test/java` | 391 次执行(2026-09-26):JUnit 5 + Mockito;H2 切片跑真 SQL(条件更新、乐观锁、闭区间);`@WebMvcTest` 测 HTTP 边界 | 每个边界是否被精确打到(毫秒 / 字节 / 第 N 次) |
+| 接口 + 安全自动化 | `tests/api`、`tests/security` | 320 条(2026-09-26 挡板模式 314 passed / 3 xfailed,另 3 条容量用例按 ADR-023 小池单独跑):pytest + requests 自研四层封装;直连 MySQL / WireMock / RabbitMQ / 指标做旁路断言;Allure | 每条链路在真容器上是否真的通,包括接口看不见的部分 |
 | 并发 / 容量 / 故障注入 | `tests/api/test_concurrency.py`、`test_capacity.py`、`test_fault_injection.py` | 栅栏同步多线程、审计序列反向断言、`docker compose stop` 注入 | 竞态是否回归;积压能否清空;依赖恢复多久回到正常 |
 | 压测与取证 | `tests/perf` | JMeter 4 条链路 + 环境状态强制落盘 + 取证 SQL + Arthas 手册 | 拐点在哪、瓶颈在哪一层、数字是否可复现 |
+| LLM 提示词注入 | `tests/llm_security`、`tests/security/test_prompt_injection.py` | 72 条样本 × k=5 的真实模型评测(录制代理 + 离线重判,不进 CI);三层防御(输入隔离、交叉校验、草稿检查)+ 严格解析,确定性用例进 CI | 模型会不会"合法地被操纵";防御挡住多少、误伤多少——两层(模型 / 端到端)分开数 |
 | 覆盖率与 CI | `.github/workflows/ci.yml` | JaCoCo 全量兜底 70/60 + diff-cover 增量 80%;compose 起环境 → 预热连接池 → pytest → Allure 归档 | 改坏了会不会自动响 |
 | 质量数据平台 | `platform/` | 执行记录、通过率 / 覆盖率趋势、性能基线对比(带环境状态,不可比即降级) | 这次比上次退化了吗——以及这个比较可不可信 |
-| 记录 | `docs/findings/` | 联调发现、压测 5 篇、故障注入、修复后回归、已知问题 KI-001~017 | 测出来的每一个问题:现象、根因、证据、处置 |
+| 记录 | `docs/findings/` | 联调发现、压测 5 篇、故障注入、修复后回归、已知问题 KI-001~022 | 测出来的每一个问题:现象、根因、证据、处置 |
 
 从压测到修复的闭环(2026-09-20 → 09-21):抢单 2 线程即 100% 重复分配 → 定位到 check-then-act + 连接池状态漂移 →
 修复后用同样手段回归 2×5 / 20 / 100 线程及 Redis 停机下恰好 1 个成功 → 并发用例进 CI 门禁 → 平台把"环境不同的对比不可信"自动化。
@@ -194,6 +195,9 @@ Windows + JDK 17 的 `-Dfile.encoding=UTF-8` 不能省:JDK 17 的默认字符集
 | `[ERROR]` | HTTP 500 | `UPSTREAM_ERROR` → 规则;连续 5 次后熔断 60 秒(`CIRCUIT_OPEN`) |
 | `[BAD_CATEGORY]` | 返回 `SPAM` | 契约越界 → `category=OTHER`,`llm_contract_violation_total` +1 |
 | `[BAD_JSON]` | 返回非 JSON | `BAD_RESPONSE` → 规则 |
+| `[OBEY_P0]` / `[OBEY_TECH]` | 模拟模型听从注入:OTHER/P0、TECH/P1 | 与关键词规则冲突 → 采用规则结果,建单响应 `needsReview=true`(ADR-024) |
+| `[PROMISE]` / `[LEAK]` | 草稿含越权承诺 / 系统提示词原句 | 草稿检查命中 → 模板草稿,`degradeReason=UNSAFE_OUTPUT`,不计入熔断 |
+| `[TWO_JSON]` | 响应体两个 JSON 对象 | 不是恰好一个对象 → `BAD_RESPONSE` → 规则(KI-022) |
 | 退款 / 账单 / 报错 等关键词 | REFUND / BILLING / TECH | 正常分类 |
 | 其他 | OTHER / P2 | 正常分类 |
 
@@ -217,7 +221,7 @@ Windows + JDK 17 的 `-Dfile.encoding=UTF-8` 不能省:JDK 17 的默认字符集
 | 方法 | 路径 | 说明 | 谁能调 |
 |---|---|---|---|
 | GET | `/api/agents/me` | 当前用户 | 任何已认证 |
-| POST | `/api/tickets` | 创建工单,触发 LLM 分类 + 优先级,算 SLA 截止 | 任何已认证 |
+| POST | `/api/tickets` | 创建工单,触发 LLM 分类 + 优先级,算 SLA 截止;响应多两个字段 `needsReview / reviewReason`(交叉校验,只在建单响应里) | 任何已认证 |
 | GET | `/api/tickets/{id}` | 详情 | AGENT 本人单 / LEADER 本组 / ADMIN |
 | GET | `/api/tickets?status=&page=&size=` | 列表,按角色自动收窄 | 任何已认证 |
 | PUT | `/api/tickets/{id}` | 改标题 / 内容(已关闭不可改) | 同详情的写权限 |

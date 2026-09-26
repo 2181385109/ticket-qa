@@ -12,9 +12,9 @@
 | M5 | `--plan` → 试跑 5 次 → 第一阶段正式运行 → 报告 → tag `v0.5-injection-baseline` | 完成 | 5280f70(试跑)、本提交(正式运行);tag v0.5-injection-baseline |
 | M5.5 | 基线复核(离线):翻转口径(A/B 主口径)、A 严格口径并列、⚠ 拆解、对照判错、C/D 命中人工核对、精简审核表 | 完成 | b19aa0c |
 | M6 | 按实测登记 KI-018 起 + xfail(strict) 期望用例;findings 基线篇;另登记"只取第一个 JSON 对象"解析漏洞 | 完成 | 94b1f46 |
-| M7 | 第二阶段防御代码 + 单测 + WireMock 用例转正(必须在 M5 之后) | 完成 | 本提交 |
-| M8 | 第二阶段复测(只一次正式运行 v1;需要时 v2 最多一次)+ compare | **下一步** | |
-| M9 | 文档收尾:ADR-024 补全、findings、test-inventory、README、walkthrough、test-design/03;tag `v0.6-injection-defense` | 未开始(以后会话) | |
+| M7 | 第二阶段防御代码 + 单测 + WireMock 用例转正(必须在 M5 之后) | 完成 | 755d580 |
+| M8 | 第二阶段复测(只一次正式运行 v1;需要时 v2 最多一次)+ compare | **阻塞**(停止条件 1:本会话没有 key,见日志) | |
+| M9 | 文档收尾:ADR-024 补全、findings、test-inventory、README、walkthrough、test-design/03;tag `v0.6-injection-defense` | 部分完成(不依赖复测数字的部分,本提交);剩 findings 第二阶段篇、ADR-024 后果补数字、tag | |
 | M10 | handoff | 未开始(以后会话) | |
 
 ## 真实调用累计
@@ -96,3 +96,14 @@
 - **M8 接手**:与 M5 同一套流程(README 第 2 步真实模式启动 + 代理,key 在同一条命令里读入进程环境变量,见 plan §2-7),
   `run_eval.py plan` 核对 538 次、预算累计 543 + 538 = 1081 ≤ 1300;`run --phase phase2 --run-label v1`;跑完生成 report.md,再写 compare。
   **只允许一次正式运行 v1**;要改防御只能记 v2 再完整跑一次(预算不够两次:1081 + 538 = 1619 > 1300,所以实际上 v2 不可能,改防御即需作者决定)。
+
+## M8 阻塞 / M9 部分完成(2026-09-26)
+
+- **M8 停在停止条件 1**:进程 / 用户 / 系统三级都没有 `LLM_API_KEY`;作者授权的本机 key 文件路径是在上一个会话里口头给出的,按约定没写进仓库,
+  本会话拿不到。**未发出任何真实请求**,累计仍 543。
+- 接手步骤:作者在会话里给出 key 文件路径(或自行在启动服务的 shell 里设好 `LLM_API_KEY`)→ 按 M5 接手步骤 2 以真实模式启动(新 jar 已含防御)→
+  `run_eval.py plan`(应为 538,预算 543+538=1081)→ `run_eval.py pilot` → `run --phase phase2 --run-label v1` → 报告自动生成 →
+  写 compare(phase1 vs phase2-v1:模型层 / 端到端两层;对照组误伤 = `needs_review` 比例与草稿被拦比例)→ 回到挡板模式。
+  **注意**:phase2 的 raw 里 C/D 草稿不同,`hit_review.csv` 需要重新逐条核对后才有"人工核对后结果"(没有它报告照常生成,只是只报规则原始结果)。
+- M9 已完成的部分:test-design/03 §1.1(R10~R14、R8 新来源)与 §2(D6~D8);test-inventory §5A;README 质量体系表 / 挡板标记 / 建单接口说明;
+  walkthrough 第 17 节(含 5 道自检题)。剩:findings 第二阶段篇、ADR-024 后果补复测数字、known-issues 补真实模型残余、tag `v0.6-injection-defense`。
