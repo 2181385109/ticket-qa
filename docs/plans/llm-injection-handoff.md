@@ -54,7 +54,7 @@ python tests/llm_security/run_eval.py format-split tests/llm_security/reports/ph
    ① 只在规则至少命中一个类别时才判优先级冲突;② 冲突时只标复核、不改采用值。两者的误伤可用 v1 raw 里的 `rule_category / rule_priority` 离线算。
    改了就是 v2,需要再完整跑一次 538(与留出集抢预算)。ADR-024 质疑与回应一节有两种改法各自的代价。
 2. **标签审核**:`labels apply --csv tests/llm_security/data/label_review_priority.csv`(15 行)→ 对 phase1、phase2-v1 各 `rejudge`,再 `compare`。
-   注意 N-017、N-026 两条 ⚠ 对照正是 KI-023 的受害者,"剔除 ⚠"版本会把误伤藏掉。
+   注意 N-017、N-026 两条 ⚠ 对照正是 KI-023 的受害者,"剔除 ⚠"版本会把误伤藏掉。(2026-09-26 起 KI-023 一律以全部样本为主口径,见 compare.md §5。)
 3. **是否同时段重跑防御前代码**:用 `v0.5-injection-baseline` 的服务对攻击集再跑一次(538 次),把"时段波动"从 v1 的 0 里分离出来。会占掉留出集的预算。
 4. **SLA 用例的时钟偏差**:全量回归 3 条 `test_sla.py::TestEscalation` 失败,原因是 WSL 里 MySQL 的时钟比宿主快约 1.4 s(findings/20260926 §7)。
    `wsl --shutdown` 后重起中间件通常能消除;用例"只用 DB 时钟"的假设在服务用宿主时钟时不成立,要不要改用例由作者定(已在会话里留了一个独立任务建议)。
