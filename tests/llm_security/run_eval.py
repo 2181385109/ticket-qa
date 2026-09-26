@@ -11,6 +11,10 @@
   python tests/llm_security/run_eval.py format-split DIR [DIR ...]     分类输出格式形态:恰好一个对象 / 夹带 / 读不出(不发请求)
   python tests/llm_security/run_eval.py compare BEFORE AFTER [--out F]  防御前 / 后两次运行的对比报告(不发请求;默认写 AFTER/compare.md)
   python tests/llm_security/run_eval.py rule-signal DIR                每条样本上关键词规则的结论分布(交叉校验替代阈值的依据;不发请求)
+  python tests/llm_security/run_eval.py replay SOURCE --run-label v2-replay [--service-ref REF]
+                                                                       回放评估:SOURCE 录到的模型输出经 WireMock 逐条回放给当前服务(不发真实请求);
+                                                                       先逐字节验证请求一致,一致才出 report.md / compare.md。一条命令跑完:tools/replay.ps1
+  python tests/llm_security/run_eval.py replay-check SOURCE REPLAY     只重算回放验证(不发请求,只读两个运行目录)
   python tests/llm_security/run_eval.py run --phase holdout --run-label pre|post --service-ref REF   留出集(防御前后各跑一次)
                                                                        一条命令跑完前后两次 + 对比:tests/llm_security/tools/holdout_compare.ps1
 
@@ -33,6 +37,7 @@ from llmsec import compare as CMP            # noqa: E402
 from llmsec import crosscheck as XC          # noqa: E402
 from llmsec import dataset as dsmod          # noqa: E402
 from llmsec import judge as J                # noqa: E402
+from llmsec import replay as RP              # noqa: E402
 from llmsec import report as R               # noqa: E402
 from llmsec import runner as RN              # noqa: E402
 
@@ -303,6 +308,118 @@ def cmd_rule_signal(args) -> int:
     return 0
 
 
+# ---------------------------------------------------------------------- 回放(v2 评估,ADR-024 修订 #4)
+
+def _replay_preflight(base_url: str, proxy_port: int) -> dict:
+    """服务必须以真实模式启动、LLM_BASE_URL 指向本脚本的录制代理——否则请求到不了回放桩。不检查 LLM_API_KEY:回放不打上游"""
+    import requests
+    try:
+        h = requests.get(base_url + "/actuator/health", timeout=10).json()
+    except (requests.RequestException, ValueError) as e:
+        raise RN.StopRun(f"服务不可用 {base_url}: {e}")
+    if h.get("status") != "UP":
+        raise RN.StopRun(f"服务健康检查不是 UP: {h.get('status')}")
+    sys.path.insert(0, str(HERE.parent / "api"))
+    from framework.config import load_config   # noqa: E402
+    cfg = load_config()
+    found = []
+    if cfg.service_log_path and Path(cfg.service_log_path).exists():
+        found = SERVICE_LLM_LINE.findall(Path(cfg.service_log_path).read_text(encoding="utf-8", errors="replace"))
+    if not found:
+        raise RN.StopRun("服务日志里没有 'LlmClient = 真实调用' 启动行:服务不是真实模式,回放桩收不到请求")
+    b, m, t = found[-1]
+    if not b.rstrip("/").endswith(f":{proxy_port}"):
+        raise RN.StopRun(f"服务的 LLM baseUrl={b},没有指向录制代理 127.0.0.1:{proxy_port}")
+    return {"llm.real.base-url": b, "llm.real.model": m, "llm.timeout-ms": int(t),
+            "source": "服务日志最后一条 'LlmClient = 真实调用' 启动行"}
+
+
+def replay_check(source_dir: Path, replay_dir: Path) -> tuple[bool, Path]:
+    """验证 + 写 replay_check.md(确定性,可由已提交的两个运行目录逐字节重算)"""
+    meta = RN.read_meta(replay_dir)
+    _, src_records, _ = R.load_run(source_dir)
+    _, rep_records, _ = R.load_run(replay_dir)
+    keys = meta["replay"]["task_keys"]
+    diffs = RP.compare_requests(src_records, rep_records, keys)
+    misaligned = RP.check_alignment(src_records, rep_records, keys)
+    out = replay_dir / "replay_check.md"
+    out.write_text(RP.render_check(CMP._rel(source_dir), CMP._rel(replay_dir), len(keys), diffs, misaligned),
+                   encoding="utf-8", newline="\n")
+    return not diffs and not misaligned, out
+
+
+def cmd_replay(args) -> int:
+    from llmsec.proxy import RecordingProxy
+    source = Path(args.source).resolve()
+    smeta = RN.read_meta(source)
+    ds = _dataset_for(source)
+    if smeta["dataset_text_sha256"] != ds.text_sha256():
+        _out("源运行的数据集文本指纹与当前数据集不一致,拒绝回放")
+        return 2
+    samples = [ds.by_id[i] for i in smeta["sample_ids"]]
+    k = int(smeta["k"])
+    tasks = RN.plan_tasks(samples, k)
+    try:
+        _, src_records, _ = R.load_run(source)
+        calls = RP.source_calls(src_records, tasks)
+        seen = _replay_preflight(args.base_url, args.proxy_port)
+    except (RP.ReplayError, RN.StopRun) as e:
+        _out(f"停止:{e}")
+        return 2
+    label = args.run_label or "v2-replay"
+    run_dir = RN.REPORTS_DIR / f"{smeta['phase']}-{label}-{RN.utc_stamp()}"
+    run_dir.mkdir(parents=True, exist_ok=False)
+    wm = args.wiremock.rstrip("/")
+    RN.write_meta(run_dir, {
+        "phase": smeta["phase"], "run_label": label, "k": k, "dataset_text_sha256": ds.text_sha256(),
+        "planned_tasks": len(tasks), "sample_ids": smeta["sample_ids"], "git": RN.git_state(),
+        "upstream_base": wm + RP.PREFIX, "proxy": f"127.0.0.1:{args.proxy_port}",
+        "service_config": {"llm.mode": "real(上游 = WireMock 回放桩)", "从服务日志读到": seen},
+        "replay": {"source": CMP._rel(source), "method": RP.METHOD_NOTE, "scenario": RP.SCENARIO,
+                   "stubs": len(calls), "task_keys": [t.key for t in tasks]},
+        "sessions": [], **({"service_ref": args.service_ref} if args.service_ref else {}),
+    })
+    admin = RP.WireMockAdmin(wm)
+    admin.load(RP.build_stubs(calls))
+    _out(f"已加载 {len(calls)} 个回放桩(场景 {RP.SCENARIO}),源运行 {source.name};输出 {run_dir}")
+    meta = RN.read_meta(run_dir)
+    session = {"started_utc": RN.utc_stamp(), "git": RN.git_state(), "service_llm_config_seen": seen}
+    proxy = RecordingProxy(wm + RP.PREFIX, port=args.proxy_port).start()
+    code = 0
+    try:
+        executor = RN.LiveExecutor(proxy, base_url=args.base_url)
+        session["result"] = RN.Runner(run_dir, samples, tasks, executor, RP.NoBudget(), log=_out).run()
+        session["wiremock_final_state"] = admin.state()
+        _out(f"完成:{session['result']};场景终态 {session['wiremock_final_state']}(应为 step-{len(calls)})")
+    except RN.StopRun as e:
+        session["stopped"] = str(e)
+        _out(f"停止:{e}")
+        code = 2
+    finally:
+        proxy.stop()
+        admin.remove()
+        session["ended_utc"] = RN.utc_stamp()
+        meta["sessions"].append(session)
+        RN.write_meta(run_dir, meta)
+    if code:
+        return code
+    ok, check = replay_check(source, run_dir)
+    _out(f"回放验证:{'一致' if ok else '不一致'} → {check}")
+    if not ok:
+        _out("请求与源运行不一致:v1 的模型输出对这版服务不成立,不生成 report.md / compare.md(计划:不一致则停下,报告差异)")
+        return 4
+    rejudge_one(run_dir, ds)
+    out = CMP.write(source, run_dir, ds, ds, J.load_lists(dsmod.DATA_DIR))
+    _out(f"已生成 {out}")
+    return 0
+
+
+def cmd_replay_check(args) -> int:
+    ok, out = replay_check(Path(args.source).resolve(), Path(args.replay).resolve())
+    _out(f"回放验证:{'一致' if ok else '不一致'} → {out}")
+    return 0 if ok else 4
+
+
 PRIORITY_CSV = "label_review_priority.csv"
 
 
@@ -412,6 +529,19 @@ def main(argv: list[str] | None = None) -> int:
     sp = sub.add_parser("format-split")
     sp.add_argument("run_dirs", nargs="+")
     sp.set_defaults(func=cmd_format_split)
+
+    sp = sub.add_parser("replay")
+    live(sp)
+    sp.add_argument("source", help="源运行目录(其模型输出被回放)")
+    sp.add_argument("--run-label", default="v2-replay")
+    sp.add_argument("--service-ref", default=None, help="本次回放打的是哪一版服务代码,写进 meta 与报告")
+    sp.add_argument("--wiremock", default=os.environ.get("WIREMOCK_URL", "http://localhost:8089"))
+    sp.set_defaults(func=cmd_replay)
+
+    sp = sub.add_parser("replay-check")
+    sp.add_argument("source")
+    sp.add_argument("replay")
+    sp.set_defaults(func=cmd_replay_check)
 
     sp = sub.add_parser("rule-signal")
     sp.add_argument("run_dir")

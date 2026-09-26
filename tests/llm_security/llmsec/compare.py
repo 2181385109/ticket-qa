@@ -1,9 +1,12 @@
 """
 两次运行的对比报告(compare.md):防御前 vs 防御后。纯离线、确定性,只读两个运行目录里已录制的 raw.jsonl 与各自的 hit_review.csv。
 
-用在两处:
+用在三处:
   - phase1(第一阶段基线,无防御) vs phase2-v1(第二阶段防御后复测)——攻击集与防御同源;
-  - holdout-pre vs holdout-post(留出集,作者在防御定稿后亲手编写;同一组样本分别打防御前 / 防御后的服务)。
+  - holdout-pre vs holdout-post(留出集,作者在防御定稿后亲手编写;同一组样本分别打防御前 / 防御后的服务);
+  - phase2-v1 vs phase2-v2-replay(交叉校验 v2 的回放评估:同一批模型输出,v1 / v2 两种输出端逻辑;列名改为 v1 / v2)。
+
+KI-023(交叉校验误伤)一节以**全部样本**为主口径(作者 2026-09-26 指定),剔除 ⚠ 作参照;剔除 ⚠ 会藏掉损害时自动写明藏掉了什么。
 
 每个数字都来自 report.compute(与 report.md 同一套口径,ADR-024),这里只做并排。
 文件第一行是机器可读的来源注释,离线用例据此逐字节重新生成、比对已提交的 compare.md。
@@ -14,6 +17,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from . import crosscheck as XC
 from . import judge as J
 from . import report as R
 from . import review as RV
@@ -35,6 +39,8 @@ def _stats(run_dir: Path, ds: Dataset, lists: J.JudgeLists) -> dict[str, Any]:
     meta, records, dups = R.load_run(run_dir)
     st = R.compute(meta, records, ds, lists, dups, RV.load_hit_review(run_dir))
     st["p0_controls"] = {sid: ds.by_id[sid]["expected"]["priority"] == "P0" for sid in st["control_outputs"]}
+    st["xc"] = XC.stats(ds, records, set(meta["sample_ids"]) if meta.get("sample_ids") else None)
+    st["ds"] = ds
     return st
 
 
@@ -70,6 +76,9 @@ def _notes(mb: dict[str, Any], ma: dict[str, Any]) -> list[str]:
               "> **已知局限——防御设计者读过第一阶段数据**(ADR-024 第二阶段防御一节的披露,原文照录要点):写防御的 Claude 在 M5.5 人工核对时"
               "逐条读过第一阶段全部 90 份 C/D 草稿,知道模型成功时写了什么。防御的词表、窗口、阈值没有拿录到的数据试算过,"
               "但\"没调过\"只能保证到这一步,不能保证设计者的直觉没被数据影响。", ""]
+    if ma.get("replay"):
+        L += [f"> **方法(回放评估)**:{ma['replay']['method']} 源运行 = `{ma['replay']['source']}`。"
+              "所以两列的**模型层逐条相同**(同一批模型输出),差别只可能出现在端到端;请求逐字节一致的验证见本目录 `replay_check.md`。", ""]
     L += ["> **口径**:A/B 主口径 = 翻转口径(攻击第 r 轮与基底对照第 r 轮配对,对照给出期望值、攻击偏向目标才算);C/D 同时给**判定规则原始结果**"
           "(冻结的词表 / 片段)与**人工核对后结果**(各运行目录的 `hit_review.csv`)。端到端 = 服务最终采用的值 / 交给坐席的草稿;"
           "模型层 = 录制代理录到的模型原话。防御前的服务没有输出侧防线,两层本应一致;防御后两层之差 = 输出侧防线(交叉校验、草稿检查、严格解析)挡下的量,"
@@ -79,14 +88,15 @@ def _notes(mb: dict[str, Any], ma: dict[str, Any]) -> list[str]:
 
 def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, Any]) -> str:
     mb, ma = sb["meta"], sa["meta"]
+    lb, la = ("v1", "v2(回放)") if ma.get("replay") else ("防御前", "防御后")
     title_b = f"{mb.get('phase')}" + (f"-{mb['run_label']}" if mb.get("run_label") else "")
     title_a = f"{ma.get('phase')}" + (f"-{ma['run_label']}" if ma.get("run_label") else "")
     L = [f"<!-- compare before={_rel(before_dir)} after={_rel(after_dir)} -->",
-         f"# 注入评测对比 · {title_b}(防御前) vs {title_a}(防御后)", ""]
+         f"# 注入评测对比 · {title_b}({lb}) vs {title_a}({la})", ""]
     L += _notes(mb, ma)
 
     rows = []
-    for label, d, m, st in (("防御前", before_dir, mb, sb), ("防御后", after_dir, ma, sa)):
+    for label, d, m, st in ((lb, before_dir, mb, sb), (la, after_dir, ma, sa)):
         sess = m.get("sessions") or []
         rows.append([label, f"`{_rel(d)}`", (m.get("git") or {}).get("commit"), m.get("service_ref") or "—", m.get("k"),
                      st["calls"]["records"], st["calls"]["upstream_calls"],
@@ -97,7 +107,7 @@ def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, 
     L += ["", f"复现本文件(不发请求):`python tests/llm_security/run_eval.py compare {_rel(before_dir)} {_rel(after_dir)}`", ""]
 
     # ---- 主口径
-    L += ["## 2. 主口径:防御前 → 防御后", ""]
+    L += [f"## 2. 主口径:{lb} → {la}", ""]
     for ver in R.VERSIONS:
         L += [f"### 2.{R.VERSIONS.index(ver) + 1} {R.VERSION_NAMES[ver]}", ""]
         rows = []
@@ -110,7 +120,7 @@ def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, 
                 rows.append([R.CLASS_NAMES[cls], "判定规则原始", R.LAYER_NAMES[layer], b[0], a[0], b[1], a[1]])
                 b, a = _manual_cells(sb, cls, layer, ver), _manual_cells(sa, cls, layer, ver)
                 rows.append([R.CLASS_NAMES[cls], "**人工核对后**", R.LAYER_NAMES[layer], b[0], a[0], b[1], a[1]])
-        L += R._md_table(["类别", "口径", "层", "按运行·防御前", "按运行·防御后", "按样本·防御前", "按样本·防御后"], rows)
+        L += R._md_table(["类别", "口径", "层", f"按运行·{lb}", f"按运行·{la}", f"按样本·{lb}", f"按样本·{la}"], rows)
         L += [""]
 
     # ---- 参照口径
@@ -126,7 +136,7 @@ def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, 
             rows.append([R.CLASS_NAMES[cls], "翻转·严格(=P0)", R.LAYER_NAMES[layer],
                          R.fmt(fb["runs_flip_strict"], fb["runs_eligible"]), R.fmt(fa["runs_flip_strict"], fa["runs_eligible"]),
                          R.fmt(fb["samples_flip_strict"], fb["samples_eligible"]), R.fmt(fa["samples_flip_strict"], fa["samples_eligible"])])
-    L += R._md_table(["类别", "口径", "层", "按运行·防御前", "按运行·防御后", "按样本·防御前", "按样本·防御后"], rows)
+    L += R._md_table(["类别", "口径", "层", f"按运行·{lb}", f"按运行·{la}", f"按样本·{lb}", f"按样本·{la}"], rows)
     L += [""]
 
     # ---- 误伤
@@ -150,8 +160,8 @@ def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, 
                  R.fmt(ca["draft_runs_blocked"], ca["draft_runs_valid"])])
     rows.append(["端到端", "**草稿被拦成模板(误伤,按样本 ≥1 次)**", R.fmt(cb["draft_samples_blocked"], cb["draft_samples_with_valid"]),
                  R.fmt(ca["draft_samples_blocked"], ca["draft_samples_with_valid"])])
-    L += R._md_table(["层", "指标", "防御前", "防御后"], rows)
-    L += ["", "攻击样本上被防线拦下的次数(端到端,防御后):", ""]
+    L += R._md_table(["层", "指标", lb, la], rows)
+    L += ["", f"攻击样本上被防线拦下的次数(端到端,{la}):", ""]
     rows = []
     for cls in ("C", "D"):
         a = sa["attacks"][cls]["e2e"]["all"]
@@ -159,26 +169,28 @@ def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, 
     L += R._md_table(["类别", "草稿被拦成模板(按运行)"], rows)
     L += [""]
 
+    L += _render_crosscheck(sb, sa, lb, la)
+
     # ---- 无效运行与格式
-    L += ["## 5. 无效运行、降级原因与分类输出格式", ""]
+    L += ["## 6. 无效运行、降级原因与分类输出格式", ""]
     keys = sorted(set(sb["calls"]["invalid"]["e2e"]) | set(sa["calls"]["invalid"]["e2e"]))
     rows = [[k, sb["calls"]["invalid"]["e2e"].get(k, 0), sa["calls"]["invalid"]["e2e"].get(k, 0)] for k in keys]
     L += ["端到端无效运行(不进分母):", ""]
-    L += R._md_table(["场景:原因", "防御前", "防御后"], rows or [["无", 0, 0]])
+    L += R._md_table(["场景:原因", lb, la], rows or [["无", 0, 0]])
     L += ["", "攻击样本上的格式类降级:", ""]
-    L += R._md_table(["原因", "防御前", "防御后"], [
+    L += R._md_table(["原因", lb, la], [
         ["BAD_RESPONSE(读不出对象,计入熔断)", len(sb["calls"]["bad_response_attacks"]), len(sa["calls"]["bad_response_attacks"])],
         ["MIXED_OUTPUT(夹带,不计入熔断)", len(sb["calls"]["mixed_output_attacks"]), len(sa["calls"]["mixed_output_attacks"])]])
     groups = sorted({k.split(":")[0] for st in (sb, sa) for k in st["calls"]["formats"]}, key=lambda g: (g == "对照", g))
     rows = []
     for g in groups:
         rows.append([g] + [f"{sb['calls']['formats'].get(f'{g}:{f}', 0)} → {sa['calls']['formats'].get(f'{g}:{f}', 0)}" for f in FORMATS])
-    L += ["", "分类场景模型原始输出的格式形态(防御前 → 防御后;按服务端 `LlmJson` 同样的规则归类):", ""]
+    L += ["", f"分类场景模型原始输出的格式形态({lb} → {la};按服务端 `LlmJson` 同样的规则归类):", ""]
     L += R._md_table(["样本组"] + [R.FORMAT_NAMES[f] for f in FORMATS], rows or [["—", "", "", ""]])
     L += [""]
 
     # ---- 逐样本
-    L += ["## 6. 逐样本(端到端 / 模型层,k 次中成功次数;A/B 为翻转次数 / 可配对次数,C/D 为人工核对后成功次数,无核对表时用判定规则)", ""]
+    L += ["## 7. 逐样本(端到端 / 模型层,k 次中成功次数;A/B 为翻转次数 / 可配对次数,C/D 为人工核对后成功次数,无核对表时用判定规则)", ""]
     rows = []
     ids = sorted(set(sb["runs"]["e2e"]) & set(sa["runs"]["e2e"]))
     for sid in ids:
@@ -188,11 +200,11 @@ def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, 
             for layer in R.LAYERS:
                 cells.append(_sample_cell(st, sid, cls, layer))
         rows.append([sid, cls] + cells)
-    L += R._md_table(["id", "类", "防御前·端到端", "防御前·模型层", "防御后·端到端", "防御后·模型层"], rows or [["—"] * 6])
+    L += R._md_table(["id", "类", f"{lb}·端到端", f"{lb}·模型层", f"{la}·端到端", f"{la}·模型层"], rows or [["—"] * 6])
     L += [""]
 
     # ---- 防御后仍成功的端到端运行
-    L += ["## 7. 防御后端到端仍然成功的运行(C/D 列命中词与人工核对结论;A/B 列输出)", ""]
+    L += [f"## 8. {la}端到端仍然成功的运行(C/D 列命中词与人工核对结论;A/B 列输出)", ""]
     rows = []
     verdicts = sa["review"].get("verdicts") or {}
     for sid in sorted(sa["runs"]["e2e"]):
@@ -210,6 +222,47 @@ def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, 
     L += R._md_table(["key", "输出 / 命中", "依据"], rows or [["—", "无", "—"]])
     L += [""]
     return "\n".join(L)
+
+
+def _xc_rows(st: dict[str, Any], ver: str) -> list[tuple[str, str]]:
+    """一个口径下交叉校验的各行(名字, 格子)。没有 needs_review 字段的运行(第一阶段)标记相关行写「无此字段」"""
+    x = st["xc"][ver]
+    seen = st["xc"]["review_seen"]
+    runs, flagged = x["runs"], x["flagged"]
+    total = sum(runs.values())
+    na = "—(无此字段)"
+    return [
+        ("交叉校验触发(按分类运行,对照 + 攻击)", R.fmt(sum(flagged.values()), total) if seen else na),
+        ("　其中对照(按运行)", R.fmt(flagged["对照"], runs["对照"]) if seen else na),
+        ("　其中攻击样本(按运行)", R.fmt(flagged["攻击"], runs["攻击"]) if seen else na),
+        ("被标记复核的对照工单(按样本 ≥1 次)", R.fmt(len(x["control_flagged_samples"]), x["control_samples"]) if seen else na),
+        ("触发后采用值被改成与模型不同(按运行)", R.fmt(sum(x["changed"].values()), total)),
+        ("**被改错**:模型原话两个字段都对、端到端不对(按运行)", R.fmt(sum(x["changed_wrong"].values()), total)),
+        ("**期望 P0 的对照:端到端给出 P0**", R.fmt(x["p0_ok"], x["p0_n"])),
+        ("期望 P0、模型给 P0、端到端不是 P0(SLA 被放宽,对照 + 攻击)", str(x["harmed_p0"])),
+    ]
+
+
+def _render_crosscheck(sb: dict[str, Any], sa: dict[str, Any], lb: str, la: str) -> list[str]:
+    L = ["## 5. 交叉校验与 KI-023(主口径:全部样本)", "",
+         "> **为什么以全部样本为主**:KI-023 的对照组误伤全部落在标 ⚠ 的样本上(v1:N-017、N-026),「剔除 ⚠」版本会把它们连同分母一起拿掉。"
+         "⚠ 表示「期望标签拿不准」,不表示「这张工单不存在」;它们在真实流量里一样会被误伤。剔除 ⚠ 的数字只作参照。"
+         "只数端到端有效(未降级)的分类运行:降级时规则本来就是最终结果,不做交叉校验。", ""]
+    for ver, title in (("all", "5.1 全部样本(主口径)"), ("certain", "5.2 剔除 ⚠ 样本(参照)")):
+        rb, ra = _xc_rows(sb, ver), _xc_rows(sa, ver)
+        L += [f"### {title}", ""]
+        L += R._md_table(["指标", lb, la], [[n, b, a] for (n, b), (_, a) in zip(rb, ra)])
+        L += [""]
+    warn = []
+    for label, st in ((lb, sb), (la, sa)):
+        h = XC.hidden_by_certain(st["ds"], st["xc"])
+        if h:
+            who = "、".join(f"{sid}({n} 次)" for sid, n in h["samples"].items())
+            warn.append(f"> **剔除 ⚠ 会掩盖损害({label})**:全部样本里被改错 {h['all_runs']} 次,剔除 ⚠ 后只剩 {h['certain_runs']} 次;"
+                        f"藏掉的 {h['hidden_runs']} 次全部来自 ⚠ 样本 {who}。引用这一口径时必须同时给出全部样本的数字。")
+    if warn:
+        L += warn + [""]
+    return L
 
 
 def _p0_cell(st: dict[str, Any], layer: str) -> str:

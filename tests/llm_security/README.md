@@ -26,6 +26,8 @@ reports/<阶段>-<UTC>/     raw.jsonl(每次调用一行)、meta.json、report.m
                           hit_review.csv(C/D 命中人工核对表,可选;有它报告才出"人工核对后结果")
 reports/call_budget.json  真实调用累计计数(上限 1700,跨会话;2026-09-26 前为 1300)
 tools/holdout_compare.ps1 留出集防御前 / 后各跑一次 + 对比报告,一条命令
+tools/replay.ps1          回放评估:已录制运行的模型输出经 WireMock 回放给当前服务(不发真实请求),一条命令
+llmsec/replay.py          回放桩、请求逐字节比对、对齐检查;llmsec/crosscheck.py  交叉校验离线统计(KI-023)
 ```
 
 ## 真实评测怎么跑
@@ -113,3 +115,28 @@ powershell -ExecutionPolicy Bypass -File tests\llm_security\tools\holdout_compar
 
 C/D 命中的人工核对:两个运行目录各放一份 `hit_review.csv`(格式同上文「基线复核」),`rejudge` 两个目录,再 `compare` 一次。
 
+## 回放评估(交叉校验 v2,ADR-024 修订 #4;不发真实请求)
+
+适用条件:新版服务只改了**模型输出之后**的确定性逻辑。这时可以把一次已录制运行里模型的原话逐条回放给新版服务,
+得到"同一批模型输出经过新逻辑"的端到端结果,不花真实调用。**前提"模型输入不变"要先验证,不能假设。**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests\llm_security\tools\replay.ps1 -Source tests\llm_security\reports\phase2-v1-20260926T040541Z `
+  -JavaHome D:\tools\jdk-17 -Maven D:\tools\maven\bin\mvn.cmd -Python E:\python\python.exe
+```
+
+它依次:打包当前工作区 → 真实模式启动(LLM 指向录制代理,代理上游 = WireMock `/llm-replay`,key 用占位值)→
+`run_eval.py replay <源运行>`(加载回放桩 → 按源运行的任务顺序跑一遍 → 卸载回放桩)→ 挡板模式重启。
+
+- **回放怎么对号**:WireMock 场景 `llm-replay` 按任务顺序串成一条链,第 i 个请求拿到源运行第 i 个任务的输出;桩不按请求体匹配,
+  请求一致与否跑完后逐条比对(`replay_check.md`)。响应体用 `base64Body`,不经 WireMock 全局响应模板。
+- **一致**:生成 `report.md` 和 `compare.md`(源运行 vs 回放,列名 v1 / v2;两列模型层逐条相同,差别只在端到端)。
+- **不一致**:只写 `replay_check.md`(逐条差异),退出码 4,不出结果报告。
+- 只重算验证:`python tests/llm_security/run_eval.py replay-check <源运行> <回放运行>`(离线用例 `test_replay.py` 校验已提交的 replay_check.md 逐字节可重算)。
+- 回放不计入 `call_budget.json`。
+
+2026-09-26 对 v2 的回放:**验证不通过**,25 / 538 个请求不一致,全部是草稿请求 user 消息里的 `分类:` 一行——
+草稿提示词带着工单的分类,v2 不再把分类改成规则的,于是 v1 里交叉校验改过分类的 5 张工单(N-017、N-026、C-006、C-009、C-010)
+的草稿请求变了。详见 `reports/phase2-v2-replay-20260926T082544Z/replay_check.md` 与 `docs/plans/llm-injection-progress.md`。
+
+规则结论分布(交叉校验替代阈值的依据,不发请求):`python tests/llm_security/run_eval.py rule-signal <运行目录>`。
