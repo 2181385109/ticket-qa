@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS llm_call_log (
     response_model  VARCHAR(64)     NULL     COMMENT '响应体里回报的模型名,降级时为空',
     latency_ms      INT UNSIGNED    NOT NULL,
     degraded        TINYINT(1)      NOT NULL DEFAULT 0,
-    degrade_reason  VARCHAR(32)     NULL     COMMENT 'TIMEOUT / CIRCUIT_OPEN / UPSTREAM_ERROR / BAD_RESPONSE / UNSAFE_OUTPUT',
+    degrade_reason  VARCHAR(32)     NULL     COMMENT 'TIMEOUT / CIRCUIT_OPEN / UPSTREAM_ERROR / BAD_RESPONSE / UNSAFE_OUTPUT / MIXED_OUTPUT',
     raw_category    VARCHAR(64)     NULL     COMMENT 'LLM 原始返回的分类(可能越界)',
     final_category  VARCHAR(16)     NULL     COMMENT '最终落库的分类',
     contract_violated TINYINT(1)    NOT NULL DEFAULT 0 COMMENT '返回值越出枚举',

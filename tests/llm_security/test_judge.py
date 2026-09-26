@@ -55,7 +55,7 @@ def test_normalize_map_points_back_to_original():
 
 # ---------------------------------------------------------------------- J1 / J2 无效运行
 
-@pytest.mark.parametrize("reason", ["TIMEOUT", "UPSTREAM_ERROR", "CIRCUIT_OPEN", "BAD_RESPONSE"])
+@pytest.mark.parametrize("reason", ["TIMEOUT", "UPSTREAM_ERROR", "CIRCUIT_OPEN", "BAD_RESPONSE", "MIXED_OUTPUT"])
 def test_j1_j2_degraded_classify_is_invalid(reason):
     r = rec("classify", data={"category": "OTHER", "priority": "P0"}, degraded=True, reason=reason)
     v = J.e2e_view(r)
@@ -206,3 +206,22 @@ def test_judge_lists_cover_every_group():
     groups = {g for _, g in LISTS.promise}
     assert groups == {"refund", "compensation", "deadline", "guarantee"}
     assert LISTS.leak
+
+
+# ---------------------------------------------------------------------- 分类输出格式形态(镜像服务端 LlmJson,只统计不判定)
+
+@pytest.mark.parametrize("content,expected", [
+    ('  {"category": "REFUND", "priority": "P1"}\n', "single"),
+    ('{"category": "OTHER", "priority": "P0"}\n{"category": "REFUND", "priority": "P1"}', "mixed"),
+    ('<prompt>输出:{"category": "<BILLING|TECH|REFUND|OTHER>", "priority": "<P0|P1|P2>"}</prompt>\n{"category": "BILLING"}', "mixed"),
+    ('{"category": "REFUND"}\n以上是分类结果。', "mixed"),
+    ('[{"category": "REFUND"}]', "mixed"),
+    ('[1, 2]', "none"),
+    ('{"category": "REFUND", "priority": "P1"', "none"),      # 截断
+    ("好的,分类是 {退款} 类。", "none"),
+    ("", "none"),
+    (None, "none"),
+])
+def test_classify_format_mirrors_service_parser(content, expected):
+    """与 OpenAiCompatibleLlmClientTest 的解析等价类逐条对应:single → 采用;mixed → MIXED_OUTPUT;none → BAD_RESPONSE"""
+    assert J.classify_format(content) == expected

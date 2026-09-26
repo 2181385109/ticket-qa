@@ -486,6 +486,70 @@ class LlmServiceTest {
     }
 
     @Nested
+    @DisplayName("严格解析与熔断(ADR-024):夹带内容 MIXED_OUTPUT 降级但不计入熔断;读不出对象的 BAD_RESPONSE 照旧计入")
+    class MixedOutput {
+
+        @Test
+        @DisplayName("MIXED_OUTPUT → 规则兜底,降级原因原样落盘,fallback{MIXED_OUTPUT}+1")
+        void mixedOutputFallsBackToRules() {
+            clientFailsWith(DegradeReason.MIXED_OUTPUT, 1);
+            ClassifyOutcome out = service.classify(TITLE, CONTENT);
+            assertThat(out.degraded()).isTrue();
+            assertThat(out.degradeReason()).isEqualTo(DegradeReason.MIXED_OUTPUT);
+            assertThat(out.category()).isEqualTo(TicketCategory.REFUND);
+            assertThat(lastLog().getDegradeReason()).isEqualTo(DegradeReason.MIXED_OUTPUT);
+            assertThat(counter("llm.fallback", "scene", "CLASSIFY", "reason", "MIXED_OUTPUT")).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("连续 6 次 MIXED_OUTPUT(> 阈值 5):熔断器不打开、连续失败计数为 0,第 7 次照常调用客户端")
+        void mixedOutputDoesNotTripBreaker() {
+            clientFailsWith(DegradeReason.MIXED_OUTPUT, 1);
+            for (int i = 0; i < 6; i++) {
+                service.classify(TITLE, CONTENT);
+            }
+            assertThat(service.breaker().isOpen()).isFalse();
+            assertThat(service.breaker().consecutiveFailures()).isZero();
+            assertThat(counter("llm.circuit.open")).isZero();
+            service.classify(TITLE, CONTENT);
+            verify(client, times(7)).classify(anyString(), anyString());
+        }
+
+        @Test
+        @DisplayName("对照:连续 5 次 BAD_RESPONSE 仍然打开熔断——只拆出了'读得出对象'的那一类")
+        void badResponseStillTripsBreaker() {
+            clientFailsWith(DegradeReason.BAD_RESPONSE, 1);
+            for (int i = 0; i < 5; i++) {
+                service.classify(TITLE, CONTENT);
+            }
+            assertThat(service.breaker().isOpen()).isTrue();
+            assertThat(counter("llm.circuit.open")).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("草稿场景同理:连续 6 次 MIXED_OUTPUT 不打开熔断,坐席拿到模板草稿")
+        void draftMixedOutputDoesNotTripBreaker() {
+            when(client.draftReply(anyString(), anyString(), anyString()))
+                    .thenThrow(new LlmException(DegradeReason.MIXED_OUTPUT, "夹带"));
+            DraftOutcome out = null;
+            for (int i = 0; i < 6; i++) {
+                out = service.draftReply(42L, TITLE, CONTENT, TicketCategory.REFUND);
+            }
+            assertThat(out.degradeReason()).isEqualTo(DegradeReason.MIXED_OUTPUT);
+            assertThat(out.draft()).contains(TITLE);
+            assertThat(service.breaker().isOpen()).isFalse();
+            assertThat(counter("llm.circuit.open")).isZero();
+        }
+
+        @Test
+        @DisplayName("每个降级原因都回答了'算不算故障':计入熔断的恰好是 TIMEOUT / UPSTREAM_ERROR / BAD_RESPONSE")
+        void circuitCountingIsDeclaredPerReason() {
+            assertThat(java.util.Arrays.stream(DegradeReason.values()).filter(DegradeReason::countsTowardCircuit))
+                    .containsExactlyInAnyOrder(DegradeReason.TIMEOUT, DegradeReason.UPSTREAM_ERROR, DegradeReason.BAD_RESPONSE);
+        }
+    }
+
+    @Nested
     @DisplayName("草稿输出检查:命中 → 模板草稿,UNSAFE_OUTPUT,不计入熔断")
     class DraftPolicy {
 

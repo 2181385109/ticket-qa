@@ -8,6 +8,7 @@
   python tests/llm_security/run_eval.py labels export|apply [--csv 文件] [--reviewer 名字]
   python tests/llm_security/run_eval.py labels export-priority DIR     精简审核表:⚠ 样本 + 对照组优先级判错的样本(不发请求)
   python tests/llm_security/run_eval.py models                         列出上游可用模型(1 次真实调用)
+  python tests/llm_security/run_eval.py format-split DIR [DIR ...]     分类输出格式形态:恰好一个对象 / 夹带 / 读不出(不发请求)
 
 真实调用的前提:环境变量 LLM_API_KEY 存在(本脚本只检查存在、不读值——key 由服务进程自己读;models 子命令除外,
 它直接调上游,值只放进请求头,不打印不落盘);服务以 LLM_MODE=real 启动且 LLM_BASE_URL 指向本脚本起的录制代理。
@@ -232,6 +233,34 @@ def cmd_rejudge(args) -> int:
     return 0
 
 
+def _dataset_for(run_dir: Path, data_dir: Path | None = None) -> dsmod.Dataset:
+    data_dir = data_dir or dsmod.DATA_DIR
+    ds = dsmod.load(data_dir)
+    if RN.read_meta(run_dir).get("phase") == "holdout":
+        ds = dsmod.Dataset(controls=ds.controls, attacks=ds.attacks + dsmod.load_holdout(data_dir))
+    return ds
+
+
+def format_split(run_dir: Path, data_dir: Path | None = None) -> dict[str, int]:
+    """ADR-024 修订 #3 的依据数字:分类场景模型原始输出按服务端 LlmJson 的规则归类(judge.classify_format),键为 组:形态"""
+    ds = _dataset_for(run_dir, data_dir)
+    meta, records, dups = R.load_run(run_dir)
+    return R.compute(meta, records, ds, J.load_lists(data_dir or dsmod.DATA_DIR), dups)["calls"]["formats"]
+
+
+def cmd_format_split(args) -> int:
+    for d in args.run_dirs:
+        split = format_split(Path(d).resolve())
+        _out(f"{Path(d).name}")
+        for key, n in split.items():
+            _out(f"  {key}	{n}")
+        by_fmt: dict[str, int] = {}
+        for key, n in split.items():
+            by_fmt[key.split(":")[1]] = by_fmt.get(key.split(":")[1], 0) + n
+        _out("  合计 " + " ".join(f"{f}={by_fmt.get(f, 0)}" for f in ("single", "mixed", "none")))
+    return 0
+
+
 PRIORITY_CSV = "label_review_priority.csv"
 
 
@@ -330,6 +359,10 @@ def main(argv: list[str] | None = None) -> int:
     sp.add_argument("--csv", default=None)
     sp.add_argument("--reviewer", default="作者")
     sp.set_defaults(func=cmd_labels)
+
+    sp = sub.add_parser("format-split")
+    sp.add_argument("run_dirs", nargs="+")
+    sp.set_defaults(func=cmd_format_split)
 
     sp = sub.add_parser("models")
     sp.add_argument("--upstream", default=DEFAULT_UPSTREAM)

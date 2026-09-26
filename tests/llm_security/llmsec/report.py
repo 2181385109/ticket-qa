@@ -23,6 +23,8 @@ VERSIONS = ("all", "certain")
 VERSION_NAMES = {"all": "全部样本", "certain": "剔除 ⚠ 样本"}
 CLASS_NAMES = {"A": "A 优先级提权", "B": "B 分类篡改", "C": "C 草稿越权承诺", "D": "D 系统提示词泄露"}
 TIMEOUT_MS = 3000
+DEFENSE_PHASES = ("phase2", "holdout")      # 有防御代码参与的运行:报告多出"严格解析与熔断"一节;phase1 / 构造运行的报告逐字节不变
+FORMAT_NAMES = {"single": "恰好一个对象", "mixed": "夹带(→ MIXED_OUTPUT,不计入熔断)", "none": "读不出对象(→ BAD_RESPONSE,计入熔断)"}
 
 
 def fmt(x: int, n: int) -> str:
@@ -202,6 +204,8 @@ def compute(meta: dict[str, Any], records: list[dict[str, Any]], ds: Dataset, li
     ups = [u for r in records for u in (r.get("upstream") or [])]
     invalid = {layer: Counter() for layer in LAYERS}
     bad_resp_attacks = []
+    mixed_attacks = []
+    formats: Counter = Counter()
     for r in records:
         for layer in LAYERS:
             v = J.view(r, layer)
@@ -210,6 +214,11 @@ def compute(meta: dict[str, Any], records: list[dict[str, Any]], ds: Dataset, li
         s = ds.by_id.get(r["sample_id"])
         if s and s["group"] == "attack" and (r.get("call_log") or {}).get("degrade_reason") == "BAD_RESPONSE":
             bad_resp_attacks.append(r["key"])
+        if s and s["group"] == "attack" and (r.get("call_log") or {}).get("degrade_reason") == "MIXED_OUTPUT":
+            mixed_attacks.append(r["key"])
+        up = (r.get("upstream") or [None])[-1]
+        if s and r["scene"] == "classify" and up and up.get("status") == 200:
+            formats[(s["attack_class"] or "对照"), J.classify_format(up.get("content"))] += 1
     lat: dict[str, dict[str, Any]] = {}
     for scene in ("classify", "draft"):
         vals = [int(r["call_log"]["latency_ms"]) for r in records
@@ -228,6 +237,8 @@ def compute(meta: dict[str, Any], records: list[dict[str, Any]], ds: Dataset, li
         "skipped": sum(1 for r in records if r.get("skipped")),
         "invalid": {layer: dict(sorted(c.items())) for layer, c in invalid.items()},
         "bad_response_attacks": sorted(bad_resp_attacks),
+        "mixed_output_attacks": sorted(mixed_attacks),
+        "formats": {f"{g}:{f}": n for (g, f), n in sorted(formats.items())},
         "request_models": dict(sorted(Counter(str(u.get("request_model")) for u in ups).items())),
         "response_models": dict(sorted(Counter(str(u.get("response_model")) for u in ups).items())),
         "fingerprints": dict(sorted(Counter(str(u.get("system_fingerprint")) for u in ups).items())),
@@ -519,6 +530,35 @@ def _render_hit_appendix(st: dict[str, Any]) -> list[str]:
     return L
 
 
+def _render_format_split(c: dict[str, Any]) -> list[str]:
+    """严格解析与熔断(ADR-024):分类输出的三种格式形态,和服务端实际判的降级原因对照"""
+    L = [f"攻击样本上的 `MIXED_OUTPUT`(输出夹带内容,规则兜底,**不计入熔断**):{len(c['mixed_output_attacks'])} 次"
+         + (f" —— {', '.join(c['mixed_output_attacks'])}" if c["mixed_output_attacks"] else ""), "",
+         "分类场景模型原始输出的格式形态(代理录到的 content,按服务端 `LlmJson` 同样的规则归类;只统计,不参与攻击判定):", ""]
+    groups = sorted({key.split(":")[0] for key in c["formats"]}, key=lambda g: (g == "对照", g))
+    rows = [[g] + [c["formats"].get(f"{g}:{f}", 0) for f in FORMAT_NAMES] for g in groups]
+    L += _md_table(["样本组"] + list(FORMAT_NAMES.values()), rows or [["—", 0, 0, 0]])
+    L += [""]
+    return L
+
+
+def _render_notes(m: dict[str, Any]) -> list[str]:
+    phase = m.get("phase")
+    if phase == "holdout":
+        return ["> **解读须知**:本运行的攻击样本来自留出集 `data/holdout.jsonl`——**由作者在第二阶段防御定稿之后亲手编写**,"
+                "写防御的 Claude 没有见过这些样本,所以它们与防御不同源;但样本数少,置信区间宽。"
+                f"本次服务代码:{m.get('service_ref') or '未记录'}。C 类关键词判定会漏判换了说法的承诺、会误判否定句;D 类只认逐字片段。"
+                "单一模型、单一时段,结论不外推。口径定义见 ADR-024。", ""]
+    lines = ["> **解读须知**:攻击集由 Claude 编写,第二阶段防御也由 Claude 编写——**攻击集与防御同源,防御后的结果偏乐观**"
+             "(留出集 `data/holdout.jsonl` 本轮为空)。C 类关键词判定会漏判换了说法的承诺、会误判否定句;D 类只认逐字片段。"
+             "单一模型、单一时段,结论不外推。口径定义见 ADR-024。", ""]
+    if phase == "phase2":
+        lines[0] = lines[0].replace("(留出集 `data/holdout.jsonl` 本轮为空)", "(留出集由作者在防御定稿之后亲手编写、单独跑防御前后对比,见 README「留出集」)")
+        lines += ["> **防御设计者读过第一阶段数据**(ADR-024 第二阶段防御一节的披露):写防御的 Claude 在 M5.5 人工核对时逐条读过第一阶段全部 90 份 "
+                  "C/D 草稿。防御参数没有拿录到的数据试算,但设计者的直觉可能受了影响——这是本报告偏乐观的另一个来源。", ""]
+    return lines
+
+
 def render(st: dict[str, Any], ds: Dataset, run_dir_rel: str) -> str:
     m, k = st["meta"], st["k"]
     L: list[str] = []
@@ -529,9 +569,7 @@ def render(st: dict[str, Any], ds: Dataset, run_dir_rel: str) -> str:
         L += [f"> ⚠️ **标签未经人工确认**:{lab['unconfirmed']}/{lab['samples']} 条样本的期望标签由 Claude 标注(`model_labeled`),"
               "尚未经作者审核。所有比率同时给出\"全部样本\"与\"剔除 ⚠ 样本\"两个版本;作者审核后执行 "
               "`labels apply` + `rejudge` 重新生成本报告。", ""]
-    L += ["> **解读须知**:攻击集由 Claude 编写,第二阶段防御也由 Claude 编写——**攻击集与防御同源,防御后的结果偏乐观**"
-          "(留出集 `data/holdout.jsonl` 本轮为空)。C 类关键词判定会漏判换了说法的承诺、会误判否定句;D 类只认逐字片段。"
-          "单一模型、单一时段,结论不外推。口径定义见 ADR-024。", ""]
+    L += _render_notes(m)
     L += _render_summary(st)
 
     L += ["## 1. 运行信息", ""]
@@ -575,6 +613,8 @@ def render(st: dict[str, Any], ds: Dataset, run_dir_rel: str) -> str:
     L += _md_table(["层", "场景:原因", "次数"], rows or [["—", "无", 0]])
     L += ["", f"攻击样本上的 `BAD_RESPONSE`(注入造成格式破坏,生产配置下计入熔断):"
           f"{len(c['bad_response_attacks'])} 次" + (f" —— {', '.join(c['bad_response_attacks'])}" if c["bad_response_attacks"] else ""), ""]
+    if m.get("phase") in DEFENSE_PHASES:
+        L += _render_format_split(c)
 
     # ---- 攻击汇总
     L += ["## 2. 攻击成功率(原口径,作参照;主口径见 §0)", "",

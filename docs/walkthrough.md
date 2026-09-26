@@ -1849,7 +1849,7 @@ service/src/main/java/com/ticketqa/llm/
 ├── UntrustedInput                  第一层:把用户文本装进 <ticket> 数据区,尖括号转全角
 ├── ClassifyCrossCheck              第二层(分类):与关键词规则比对,冲突采用规则结果
 ├── DraftOutputPolicy               第二层(草稿):承诺词 + 提示词 8 字片段,命中换模板
-├── LlmJson                         恰好一个 JSON 对象(KI-022)
+├── LlmJson                         恰好一个 JSON 对象(KI-022);不合格再分 MIXED_OUTPUT(夹带,不计入熔断)/ BAD_RESPONSE(读不出对象,计入)
 └── LlmService                      把上面几样串进原来的韧性外壳
 ```
 
@@ -1857,6 +1857,7 @@ service/src/main/java/com/ticketqa/llm/
 契约校验(越界字段先走原路径)→ `ClassifyCrossCheck.check(模型合法字段, 规则优先级, 规则命中集合)` → 冲突就把 category / priority 换成规则的 →
 `llm_call_log` 记 `needs_review / review_reason / rule_category / rule_priority` → `TicketService.create` 把复核标记带进建单响应。
 草稿:`client.draftReply` 成功 → `breaker.recordSuccess()` → `DraftOutputPolicy.check` → 命中则 `draftFallback(UNSAFE_OUTPUT)`。
+客户端抛 `LlmException` 时,`LlmService.onFailure` 先问 `reason.countsTowardCircuit()`:MIXED_OUTPUT 回答 false → `recordSuccess()` 后直接返回,和 UNSAFE_OUTPUT 殊途同归(ADR-024 修订 #3)。
 
 **为什么评测要有录制代理**:第一阶段不许改服务代码,但要记模型原话和 `system_fingerprint`——服务只落了解析后的字段。
 代理夹在服务和上游之间,服务不知道它存在;第二阶段它录到的"模型原话"和接口返回的"最终采用值"之差,就是后两道防线挡下的量。
@@ -1877,6 +1878,8 @@ service/src/main/java/com/ticketqa/llm/
 - **文本块 `"""`**:两个提示词是文本块,缩进按结束 `"""` 的位置去掉。`UntrustedInputTest.promptsOnlyAppended` 用 `startsWith(文本块)` 钉住"原句一字未改"。
 - **Unicode 归一化与 code point**:`Normalizer.normalize(s, NFKC)` 把全角"２４"变成"24";`codePoints().filter(Character::isLetterOrDigit)`
   按码点而不是 `char` 遍历——`char` 是 UTF-16 单元,生僻字 / emoji 会被劈成两半。Python 的 `str` 本来就是按码点的,所以 Python 侧的 `textnorm.py` 更简单。
+- **枚举带构造参数**:`DegradeReason.TIMEOUT(true)`——Java 枚举的每个常量是这个类的一个单例对象,可以有字段和构造器(构造器隐式 private,只在类加载时为每个常量调一次)。"算不算故障"做成字段而不是 `LlmService` 里的 `if (reason == A || reason == B)`,新增常量时不写参数就编译不过。Python 的 `Enum` 也能给成员挂值(`TIMEOUT = (1, True)`),但没有"构造器必须传参"这层编译期约束。
+- **try-with-resources 管 `JsonParser`**:`LlmJson.containsCompleteObject` 在每个 `{` 处 `try (JsonParser p = factory.createParser(...))`,块结束自动 `close()`,中途抛异常也关——对应 Python 的 `with`。`skipChildren()` 会一路读到配对的 `}`,中间任何语法错误都抛 `IOException`,所以"截断的对象"读不成功,落 BAD_RESPONSE。
 - **`ObjectReader` 不可变**:`mapper.reader().with(FAIL_ON_TRAILING_TOKENS)` 返回一个**新的** reader,不会改全局 `ObjectMapper` 的配置;
   所以 `LlmJson` 可以放心用 Spring 注入的那个共享 mapper,不影响别处的反序列化行为。
 
@@ -1896,7 +1899,7 @@ service/src/main/java/com/ticketqa/llm/
 
 1. 交叉校验只在"模型 P0 且规则 P2"时报优先级冲突。把条件改成"模型 P0 且规则不是 P0",误伤会落在哪一类工单上?用已落盘的哪两列能离线算出来,不用重新调模型?
 2. 攻击者把伪造的 JSON 放在答案**之后**,第一阶段的解析(只取第一个对象)和第二阶段的解析(恰好一个对象)分别会怎样?为什么"取最后一个"不是修复?
-3. `UNSAFE_OUTPUT` 为什么要在 `breaker.recordSuccess()` 之后判定?如果顺序反过来、并走 `onFailure`,10 次注入草稿之后系统处于什么状态?
+3. `UNSAFE_OUTPUT` 为什么要在 `breaker.recordSuccess()` 之后判定?如果顺序反过来、并走 `onFailure`,10 次注入草稿之后系统处于什么状态?同样的道理为什么要求把"夹带 JSON"(MIXED_OUTPUT)和"读不出 JSON"(BAD_RESPONSE)分开,分界线为什么划在"能不能读出一个完整对象"?
 4. 草稿泄露检测的窗口从 8 改成 5,`DraftOutputPolicyTest` 里哪条用例会先变红?这说明窗口太短时误伤从哪来?
 5. (开放题)第二阶段复测只允许一次正式运行,而写防御的人读过第一阶段的全部草稿。你会怎样设计一个留出集,让"防御有效"这个结论更可信?它应该由谁来写?
 

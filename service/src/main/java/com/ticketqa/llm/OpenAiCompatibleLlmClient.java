@@ -16,7 +16,8 @@ import java.util.Map;
  * 契约校验仍然在 LlmService 里做——这正是 LLM 依赖和普通 HTTP 依赖的区别(walkthrough 第 10 节)。
  *
  * 第二阶段(ADR-024)这一层加了两件事:用户文本经 UntrustedInput 装进 <ticket> 数据区(输入隔离,提示词见 LlmPrompts);
- * content 必须恰好是一个 JSON 对象(LlmJson,KI-022)——多出来的任何东西都判 BAD_RESPONSE,而不是只取第一个对象。
+ * content 必须恰好是一个 JSON 对象(LlmJson,KI-022)——不再只取第一个对象;夹带了别的内容判 MIXED_OUTPUT、
+ * 一个完整对象都没有判 BAD_RESPONSE,两者对熔断器的意义不同(ADR-024 "严格解析与熔断")。
  */
 public class OpenAiCompatibleLlmClient implements LlmClient {
 
@@ -38,16 +39,12 @@ public class OpenAiCompatibleLlmClient implements LlmClient {
     @Override
     public ClassifyResult classify(String title, String content) {
         JsonNode root = chat(LlmPrompts.CLASSIFY_SYSTEM_PROMPT, UntrustedInput.classifyMessage(title, content), true);
-        String text = firstContent(root);
-        try {
-            JsonNode parsed = LlmJson.readSingleObject(objectMapper, text);
-            return new ClassifyResult(
-                    parsed.path("category").asText(null),
-                    parsed.path("priority").asText(null),
-                    root.path("model").asText(null));
-        } catch (Exception e) {
-            throw new LlmException(DegradeReason.BAD_RESPONSE, "分类结果不是恰好一个 JSON 对象: " + abbreviate(text), e);
-        }
+        // 不是恰好一个对象时 LlmJson 直接抛 LlmException:夹带内容 → MIXED_OUTPUT(不计入熔断),一个对象都没有 → BAD_RESPONSE
+        JsonNode parsed = LlmJson.readSingleObject(objectMapper, firstContent(root));
+        return new ClassifyResult(
+                parsed.path("category").asText(null),
+                parsed.path("priority").asText(null),
+                root.path("model").asText(null));
     }
 
     @Override
@@ -88,12 +85,5 @@ public class OpenAiCompatibleLlmClient implements LlmClient {
             throw new LlmException(DegradeReason.BAD_RESPONSE, "响应缺少 choices[0].message.content");
         }
         return content.asText();
-    }
-
-    private static String abbreviate(String s) {
-        if (s == null) {
-            return "null";
-        }
-        return s.length() > 120 ? s.substring(0, 120) + "..." : s;
     }
 }

@@ -413,8 +413,9 @@
 | `ClassifyCrossCheckTest` | 判定表 + 全组合 | 优先级 3×3(只有 P0×P2 冲突);分类 6 行;越界字段跳过;两维同时冲突;`matchedCategories` |
 | `DraftOutputPolicyTest` | 等价类 + 边界值 | 承诺(原样 / 全角 / 空格 / 大小写 / 否定句照拦 / 换说法漏过 / 常见话术不拦);泄露(逐字 / 换标点复述 / 追加说明 / 7 字放行 8 字拦截 / 转述漏过);正常草稿放行 |
 | `LlmServiceTest$CrossCheck` / `$DraftPolicy` | 判定表 R10~R14、D6~D8 | 采用规则结果 + 复核标记 + 指标 + 落盘字段;UNSAFE_OUTPUT 不计入熔断 |
-| `OpenAiCompatibleLlmClientTest` | 等价类 | 恰好一个对象 / 非 JSON / 数组 / 尾随对象(KI-022)/ D-004 形态;请求里的数据区与转义 |
-| `WireMockLlmClientTest.trailingJsonIsBadResponse` | 等价类 | 挡板客户端同样严格 |
+| `OpenAiCompatibleLlmClientTest` | 等价类 + 边界值 | 恰好一个对象 / 读不出对象(非 JSON、截断、自然语言花括号、`[1,2]`)→ BAD_RESPONSE / 夹带(尾随对象 KI-022、D-004 形态、对象后跟文字、数组包对象)→ MIXED_OUTPUT;请求里的数据区与转义 |
+| `WireMockLlmClientTest.trailingJsonIsMixedOutput` | 等价类 | 挡板客户端同样严格 |
+| `LlmServiceTest$MixedOutput` | 判定表 R8 / R8b | MIXED_OUTPUT 规则兜底、连续 6 次不打开熔断(分类 / 草稿)、BAD_RESPONSE 对照仍打开、每个原因声明是否计入熔断 |
 | `LlmMetricsTest` | — | `llm_review_total` 四个标签组合预注册 |
 
 ### 5A.2 接口 / 安全(`tests/security/test_prompt_injection.py`,挡板标记见设计文档 09 §7)
@@ -427,15 +428,16 @@
 | `test_known_bypass_keyword_stuffing` | R13 已知绕过(事实记录,不挂 xfail) |
 | `test_promise_draft_is_blocked` / `test_leak_draft_is_blocked` | KI-020 / KI-021 防御;D6 / D7 |
 | `test_unsafe_drafts_do_not_open_circuit` | D8,端到端看熔断指标 |
-| `test_trailing_json_is_rejected` | KI-022;断言落在解析层 |
-| `api/test_health_auth.py::test_labelled_llm_counters_pre_registered` | 新增 UNSAFE_OUTPUT 原因与 `llm_review_total` 的预注册 |
+| `test_trailing_json_is_rejected` | KI-022;断言落在解析层(MIXED_OUTPUT) |
+| `test_mixed_output_does_not_open_circuit` | R8b:`[ECHO_PROMPT]` 连续 6 次(> 阈值 5),熔断器不打开,下一张单不降级 |
+| `api/test_health_auth.py::test_labelled_llm_counters_pre_registered` | 新增 UNSAFE_OUTPUT / MIXED_OUTPUT 原因与 `llm_review_total` 的预注册 |
 
 ### 5A.3 评测工具的离线用例(`tests/llm_security`,独立 pytest.ini,CI api job 单独一步)
 
 | 文件 | 覆盖 |
 |---|---|
 | `test_dataset.py` | 数据集格式、配额、孪生引用、⚠ 继承;裁判片段是 Java 草稿提示词的子串;**防御词表 ⊂ 裁判词表且严格更小** |
-| `test_judge.py` | 判定表 J1~J9 + 归一化 |
+| `test_judge.py` | 判定表 J1~J9 + 归一化;`classify_format` 与服务端 `LlmJson` 等价类逐条对应 |
 | `test_report.py` | 报告数字逐项;已提交报告从 raw 逐字节复现;改标签离线重判;改文本拒绝判定 |
 | `test_runner.py` | 断点续跑、停止条件、预算 |
 | `test_review.py` | M5.5:翻转口径(同轮配对、⊘ 不进分母、逐层、两字段敏感性)、A 严格 / 宽松、⚠ 拆解、对照判错、核对表与命中一一对应校验、片段自然出现、精简审核表可 apply、报告表格列数一致 |

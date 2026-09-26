@@ -23,6 +23,7 @@ import java.util.Set;
  *   熔断器打开?──是──▶ 直接走规则(CIRCUIT_OPEN)
  *        │否
  *   调 LlmClient ──失败(超时/5xx/解析失败)──▶ 熔断器计数 ──▶ 走规则(reason=失败原因)
+ *        │            └─ 输出夹带内容(MIXED_OUTPUT):同样走规则,但**不计数**(DegradeReason.countsTowardCircuit)
  *        │成功
  *   契约校验:category 越界 → 打点 + 落 OTHER;priority 越界 → 打点 + 规则兜底
  *        │
@@ -158,6 +159,13 @@ public class LlmService {
 
     private void onFailure(LlmScene scene, LlmException e, long latencyMs) {
         metrics.callDuration(scene, "failure_" + e.getReason().name().toLowerCase(Locale.ROOT), Duration.ofMillis(latencyMs));
+        if (!e.getReason().countsTowardCircuit()) {
+            // MIXED_OUTPUT:上游答了、答案夹带了东西。和 UNSAFE_OUTPUT 同理记成功——攻击者能诱导出的输出不能成为熔断开关
+            breaker.recordSuccess();
+            log.warn("LLM 输出不可用但不计入熔断 scene={} reason={} latency={}ms msg={}",
+                    scene, e.getReason(), latencyMs, e.getMessage());
+            return;
+        }
         boolean tripped = breaker.recordFailure();
         log.warn("LLM 调用失败 scene={} reason={} latency={}ms consecutiveFailures={} msg={}",
                 scene, e.getReason(), latencyMs, breaker.consecutiveFailures(), e.getMessage());

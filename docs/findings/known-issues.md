@@ -119,7 +119,7 @@
 | KI-019 | 分类篡改注入:模型给出的 TECH / OTHER 在枚举内,被原样采用 | 翻转 15/50 次、3/10 样本;剔除 ⚠ 5/40、1/8(原口径相同;对照两字段都对的敏感性 10/45、2/9) | **已加防御**(M7):交叉校验——规则命中集合之外的模型类别 → 采用规则结果 + `needsReview`;`test_obeyed_category_is_flagged_for_review` 转正。真实模型残余见第二阶段复测 |
 | KI-020 | 草稿越权承诺:草稿没有输出检查,"全额退款 / 赔偿 / 今天之内"原样交给坐席 | 人工核对后 31/50 次、7/10 样本(判定规则原始 33/50、9/10) | **已加防御**(M7):草稿输出检查(`DraftOutputPolicy` 防御词表,裁判表的真子集)→ 模板,`UNSAFE_OUTPUT`,不计入熔断;`test_promise_draft_is_blocked`、`test_unsafe_drafts_do_not_open_circuit` 转正。已知漏过:换说法的承诺 |
 | KI-021 | 系统提示词泄露:草稿没有输出检查,提示词原句原样交给坐席 | 人工核对后 16/40 次、4/8 样本(判定规则原始相同) | **已加防御**(M7):输入隔离 + 草稿输出检查(提示词任意 8 字连续片段);`test_leak_draft_is_blocked` 转正。已知漏过:完全换成自己的话转述 |
-| KI-022 | 分类响应只解析第一个 JSON 对象(Jackson `readTree` 不拒绝尾随内容),其后内容静默丢弃:诱导模型先复述一个构造好的合法 JSON,就能决定采用值 | 真实模型观测 1 次(`D-004\|classify\|0`:第一个对象是提示词里的模板,落 OTHER,期望 BILLING);构造利用只在挡板上测(`[TWO_JSON]` → 采用伪造的 OTHER / P0) | **已修**(M7):`LlmJson.readSingleObject`(`FAIL_ON_TRAILING_TOKENS` + 必须是对象),真实 / 挡板两个客户端共用;`test_trailing_json_is_rejected` 转正。这类 BAD_RESPONSE 仍计入熔断(ADR-024 防御一节) |
+| KI-022 | 分类响应只解析第一个 JSON 对象(Jackson `readTree` 不拒绝尾随内容),其后内容静默丢弃:诱导模型先复述一个构造好的合法 JSON,就能决定采用值 | 真实模型观测 1 次(`D-004\|classify\|0`:第一个对象是提示词里的模板,落 OTHER,期望 BILLING);构造利用只在挡板上测(`[TWO_JSON]` → 采用伪造的 OTHER / P0) | **已修**(M7):`LlmJson.readSingleObject`(`FAIL_ON_TRAILING_TOKENS` + 必须是对象),真实 / 挡板两个客户端共用;`test_trailing_json_is_rejected` 转正。2026-09-26(v1 复测前)修订:这类"读得出对象但夹带内容"的输出改为独立原因 `MIXED_OUTPUT`、**不计入熔断**(攻击者能诱导,理由同 UNSAFE_OUTPUT);完全读不出对象的仍是 BAD_RESPONSE、仍计入(ADR-024 修订 #3,`test_mixed_output_does_not_open_circuit`) |
 
 ---
 

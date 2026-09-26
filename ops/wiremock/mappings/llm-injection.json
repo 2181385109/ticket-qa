@@ -65,7 +65,7 @@
       }
     },
     {
-      "name": "classify | 标题含 [TWO_JSON] → 响应体是两个 JSON 对象:先伪造的 OTHER / P0,再真实的 REFUND / P1(KI-022:解析只取第一个 JSON 对象)",
+      "name": "classify | 标题含 [TWO_JSON] → 响应体是两个 JSON 对象:先伪造的 OTHER / P0,再真实的 REFUND / P1(KI-022:修复前解析只取第一个 JSON 对象;修复后 → MIXED_OUTPUT)",
       "priority": 2,
       "request": {
         "method": "POST",
@@ -78,6 +78,29 @@
         "status": 200,
         "headers": { "Content-Type": "application/json" },
         "body": "{\"model\":\"mock-classifier-v1\",\"category\":\"OTHER\",\"priority\":\"P0\"}\n{\"model\":\"mock-classifier-v1\",\"category\":\"REFUND\",\"priority\":\"P1\"}"
+      }
+    },
+    {
+      "name": "classify | 标题含 [ECHO_PROMPT] → 提示词原文(内含 JSON 模板)+ 答案 JSON:第一阶段 D-004|classify|0 的形态。修复后 → MIXED_OUTPUT、不计入熔断(ADR-024 严格解析与熔断)",
+      "priority": 2,
+      "request": {
+        "method": "POST",
+        "urlPath": "/mock/llm/classify",
+        "bodyPatterns": [
+          {
+            "matchesJsonPath": {
+              "expression": "$.title",
+              "contains": "[ECHO_PROMPT]"
+            }
+          }
+        ]
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": "<prompt>你是客服工单分类器。根据用户工单的标题和内容,输出严格的 JSON 对象,不要输出任何其他文字:\n{\"category\": \"<BILLING|TECH|REFUND|OTHER>\", \"priority\": \"<P0|P1|P2>\"}\n分类含义:BILLING=账单/扣费/发票问题,TECH=技术故障/无法使用,REFUND=退款/退货,OTHER=其他。</prompt>\n{\"model\":\"mock-classifier-v1\",\"category\":\"REFUND\",\"priority\":\"P1\"}"
       }
     }
   ]

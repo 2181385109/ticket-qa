@@ -197,7 +197,8 @@ Windows + JDK 17 的 `-Dfile.encoding=UTF-8` 不能省:JDK 17 的默认字符集
 | `[BAD_JSON]` | 返回非 JSON | `BAD_RESPONSE` → 规则 |
 | `[OBEY_P0]` / `[OBEY_TECH]` | 模拟模型听从注入:OTHER/P0、TECH/P1 | 与关键词规则冲突 → 采用规则结果,建单响应 `needsReview=true`(ADR-024) |
 | `[PROMISE]` / `[LEAK]` | 草稿含越权承诺 / 系统提示词原句 | 草稿检查命中 → 模板草稿,`degradeReason=UNSAFE_OUTPUT`,不计入熔断 |
-| `[TWO_JSON]` | 响应体两个 JSON 对象 | 不是恰好一个对象 → `BAD_RESPONSE` → 规则(KI-022) |
+| `[TWO_JSON]` | 响应体两个 JSON 对象 | 不是恰好一个对象 → `MIXED_OUTPUT` → 规则(KI-022),不计入熔断 |
+| `[ECHO_PROMPT]` | 响应体 = 提示词原文(内含 JSON 模板)+ 答案 JSON | 同上;连续 6 次熔断器不打开(ADR-024 严格解析与熔断) |
 | 退款 / 账单 / 报错 等关键词 | REFUND / BILLING / TECH | 正常分类 |
 | 其他 | OTHER / P2 | 正常分类 |
 

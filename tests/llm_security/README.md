@@ -50,6 +50,7 @@ reports/call_budget.json  真实调用累计计数(上限 1300,跨会话)
    python tests/llm_security/run_eval.py run --phase phase1 --resume tests/llm_security/reports/phase1-<UTC>   # 断点续跑
    python tests/llm_security/run_eval.py run --phase holdout  # 留出集(本轮为空,直接退出)
    python tests/llm_security/run_eval.py models               # 请求被拒时查上游可用模型(计划 D2)
+   python tests/llm_security/run_eval.py format-split tests/llm_security/reports/<运行目录>   # 分类输出:恰好一个对象 / 夹带 / 读不出(不发请求,ADR-024 修订 #3)
    ```
 
    停止条件(计划 §2-9):`LLM_API_KEY` 不存在 / 上游 401、403;上游连续失败 3 次、等 60 s 重试仍失败;累计调用将超 1300。

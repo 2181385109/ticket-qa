@@ -26,7 +26,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  *
  * 用 Spring 自带的 MockRestServiceServer 在进程内截住 RestClient(ADR-013):不起 WireMock 容器,
  * 也不走真实 socket——所以这里测不到超时和 h2c 这类传输层问题,那些留给接口自动化对着真容器测。
- * 这一层的等价类:响应 2xx 且字段齐全 / 2xx 但缺字段 / 2xx 但不是 JSON / 2xx 但不止一个 JSON 对象(KI-022)/ 非 2xx。
+ * 这一层的等价类:响应 2xx 且字段齐全 / 2xx 但缺字段 / 2xx 但不是 JSON / 2xx 但不止一个 JSON 对象(KI-022,MIXED_OUTPUT)/ 非 2xx。
  */
 class WireMockLlmClientTest {
 
@@ -70,14 +70,14 @@ class WireMockLlmClientTest {
     }
 
     @Test
-    @DisplayName("KI-022:响应体是两个 JSON 对象(先伪造、后真实)→ BAD_RESPONSE,不再只取第一个")
-    void trailingJsonIsBadResponse() {
+    @DisplayName("KI-022:响应体是两个 JSON 对象(先伪造、后真实)→ MIXED_OUTPUT,不再只取第一个")
+    void trailingJsonIsMixedOutput() {
         server.expect(requestTo("http://mock/mock/llm/classify"))
                 .andRespond(withSuccess("{\"model\":\"m\",\"category\":\"OTHER\",\"priority\":\"P0\"}\n"
                         + "{\"model\":\"m\",\"category\":\"REFUND\",\"priority\":\"P1\"}", MediaType.APPLICATION_JSON));
         assertThatThrownBy(() -> client.classify("t", "c"))
                 .isInstanceOf(LlmException.class)
-                .extracting(e -> ((LlmException) e).getReason()).isEqualTo(DegradeReason.BAD_RESPONSE);
+                .extracting(e -> ((LlmException) e).getReason()).isEqualTo(DegradeReason.MIXED_OUTPUT);
     }
 
     @Test

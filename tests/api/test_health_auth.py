@@ -32,7 +32,7 @@ class TestHealth:
                          "http_server_requests_seconds"):
             assert any(n == expected or n.startswith(expected) for n in names), f"缺少指标 {expected}"
 
-    @allure.title("带标签的 LLM 计数在首次发生前就以 0 存在(KI-007 / KI-015):2 场景 × 5 原因的 llm_fallback_total、circuit_open、contract_violation、llm_review_total")
+    @allure.title("带标签的 LLM 计数在首次发生前就以 0 存在(KI-007 / KI-015):2 场景 × 6 原因的 llm_fallback_total、circuit_open、contract_violation、llm_review_total")
     def test_labelled_llm_counters_pre_registered(self, metrics):
         snap = metrics.snapshot()
         for scene, reason in (("CLASSIFY", "PRIORITY_CONFLICT"), ("CLASSIFY", "CATEGORY_CONFLICT"),
@@ -40,7 +40,7 @@ class TestHealth:
             key = ("llm_review_total", frozenset({("scene", scene), ("reason", reason), ("application", "ticket-qa-service")}))
             assert key in snap, f"缺少 llm_review_total{{scene={scene},reason={reason}}}(ADR-024)"
         for scene in ("CLASSIFY", "DRAFT_REPLY"):
-            for reason in ("TIMEOUT", "CIRCUIT_OPEN", "UPSTREAM_ERROR", "BAD_RESPONSE", "UNSAFE_OUTPUT"):
+            for reason in ("TIMEOUT", "CIRCUIT_OPEN", "UPSTREAM_ERROR", "BAD_RESPONSE", "UNSAFE_OUTPUT", "MIXED_OUTPUT"):
                 key = ("llm_fallback_total", frozenset({("scene", scene), ("reason", reason), ("application", "ticket-qa-service")}))
                 assert key in snap, f"缺少 llm_fallback_total{{scene={scene},reason={reason}}}"
             assert any(n == "llm_circuit_open_total" and ("scene", scene) in pairs for (n, pairs) in snap)

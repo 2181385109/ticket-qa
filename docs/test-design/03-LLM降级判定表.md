@@ -10,7 +10,7 @@
 
 条件:
 - C1 熔断器打开?
-- C2 客户端结果:成功 / TIMEOUT / UPSTREAM_ERROR / BAD_RESPONSE
+- C2 客户端结果:成功 / TIMEOUT / UPSTREAM_ERROR / BAD_RESPONSE / MIXED_OUTPUT(第二阶段,见 §1.2)
 - C3 返回的 category 在枚举内?
 - C4 返回的 priority 在枚举内?
 
@@ -53,9 +53,24 @@ R1 在第二阶段被拆开:C3、C4 都合法之后,多一个条件 **C5 与关�
 | R13 | 命中 ∅ / **P0**(注入里夹带"紧急") | OTHER / P0 | LLM | LLM(P0) | 0 | 无 | 否 | **已知绕过**:单测 `keywordStuffingBypassesPriorityCheck`;接口 `test_known_bypass_keyword_stuffing` |
 | R14 | — | 越界字段(R3 / R4) | 按 R3 / R4 | 按 R3 / R4 | 越界字段不参与比对 | 按 R3 / R4 | 否 | 单测 `violatedCategoryIsNotCrossChecked`、`violatedFieldsAreSkipped` |
 
-R8 的 BAD_RESPONSE 在第二阶段多了一个来源:**content 不是恰好一个 JSON 对象**(对象后面还有内容、JSON 但不是对象)。
-修复前只取第一个对象(KI-022)。用例:`OpenAiCompatibleLlmClientTest.trailingObjectIsRejected` / `promptTemplateEchoedFirstIsRejected` / `jsonArray`、
-`WireMockLlmClientTest.trailingJsonIsBadResponse`;接口 `test_trailing_json_is_rejected`(`[TWO_JSON]` 桩)。仍计入熔断(ADR-024 防御一节)。
+### 1.2 第二阶段:严格解析拆成两个原因(ADR-024"严格解析与熔断",2026-09-26 v1 复测前定稿)
+
+修复 KI-022 之后,content 必须**恰好是一个 JSON 对象**。不合格的输出按"文本里某处读不读得出一个完整 JSON 对象"再分两类——
+C2 由原来的一个取值 BAD_RESPONSE 拆成两个,A6(计入熔断)的取值相反:
+
+| # | C1 熔断 | C2 客户端(content 形态) | A1 分类 | A2 优先级 | A3 degraded/reason | A4 model | A5 指标 | A6 计失败 | A7 raw/violated | 用例 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| R8 | 否 | **读不出任何完整对象**(非 JSON、截断、只有 `{` 的自然语言、`[1,2]`)→ BAD_RESPONSE | 规则 | 规则 | true / BAD_RESPONSE | 空 | fallback{BAD_RESPONSE}+1 | **是** | null / 0 | 单测 `notJson` / `truncatedObject` / `braceWithoutObject` / `jsonArrayWithoutObject`、`MixedOutput.badResponseStillTripsBreaker`;接口 `test_bad_json_falls_back` |
+| R8b | 否 | **读得出完整对象但不是恰好一个**(两个对象、对象后跟文字、提示词原文 + JSON、数组包对象)→ **MIXED_OUTPUT** | 规则 | 规则 | true / MIXED_OUTPUT | 空 | fallback{MIXED_OUTPUT}+1 | **否**(记成功,计数清零) | null / 0 | 单测 `trailingObjectIsRejected` / `promptTemplateEchoedFirstIsRejected` / `objectFollowedByProse` / `jsonArrayWrappingObject`、`WireMockLlmClientTest.trailingJsonIsMixedOutput`、`MixedOutput.*`;接口 `test_trailing_json_is_rejected`(`[TWO_JSON]`)、`test_mixed_output_does_not_open_circuit`(`[ECHO_PROMPT]` ×6) |
+
+R8b 和 D6(UNSAFE_OUTPUT)是同一个理由:**攻击者能稳定诱导出来的输出,不能成为熔断开关**——第一阶段 D-004 让模型先复述提示词原文
+(里面带 JSON 模板)、最后才给答案,正是 R8b 的形态;如果它计入熔断,5 张这样的工单就能让全站 LLM 分类熔断 60 秒。
+R8 仍计入:"一个完整对象都读不出来"是模型整体格式崩坏的信号,正是熔断要保护的场景(ADR-004)。
+两类的边界本身用边界值钉住:截断的对象(差一个 `}`)→ R8;数组 `[1,2]` → R8,数组里包着对象 → R8b。
+
+接口用例 `test_mixed_output_does_not_open_circuit` 的 N 取 6(> 阈值 5):连续 6 次 R8b 后 `llm_circuit_open_total` 增量 0、
+`llm_fallback_total{CIRCUIT_OPEN}` 增量 0,紧接着的正常建单 `degraded=0`。反向验证:把 `MIXED_OUTPUT` 改成计入熔断,
+`LlmServiceTest$MixedOutput` 5 条里 3 条变红(2026-09-26 本地手动变异)。
 
 ### 固定断言项(来自 docs/findings/20260920)
 
@@ -112,11 +127,12 @@ D6 与 D2 的区别是 A6:UNSAFE_OUTPUT 是防御动作不是故障——计入�
 | 2xx 字段齐全 | 有效 | 原样返回 raw(含越界值,客户端不做主) | `classifyHappyPath` |
 | 2xx 缺字段 | 有效(缺失 → null) | raw 为 null,由上层按越界处理 | `classifyMissingFieldsBecomeNull` |
 | 2xx 非 JSON | 无效 | BAD_RESPONSE | `nonJsonBodyIsBadResponse` |
+| 2xx 两个 JSON 对象 | 无效(夹带) | MIXED_OUTPUT(§1.2 R8b) | `trailingJsonIsMixedOutput` |
 | 500 / 429 | 无效 | UPSTREAM_ERROR | `serverErrorIsUpstream`、`tooManyRequestsIsUpstream` |
 | draft 缺 / null | 无效 | BAD_RESPONSE | `draftMissingFieldIsBadResponse`、`draftNullIsBadResponse` |
 
 异常翻译(`LlmHttpSupportTest`)按异常类型分等价类:三种超时异常(含 Spring 包在 IOException 里的 `TimeoutException`——联调时的教训)→ TIMEOUT;
-其他 I/O、HTTP 4xx/5xx → UPSTREAM_ERROR;LlmException 透传;其余 → BAD_RESPONSE。
+其他 I/O、HTTP 4xx/5xx → UPSTREAM_ERROR;LlmException 透传(`LlmJson` 抛的 MIXED_OUTPUT / BAD_RESPONSE 走这一条);其余 → BAD_RESPONSE。
 
 ## 5. 规则分类器——等价类(降级路径的确定性保证)
 

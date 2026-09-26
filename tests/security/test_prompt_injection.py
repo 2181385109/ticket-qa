@@ -9,6 +9,7 @@
   [PROMISE]    草稿含"今天之内全额退款并赔偿"
   [LEAK]       草稿含 system prompt 原句
   [TWO_JSON]   分类响应体是两个 JSON 对象:先伪造的 OTHER / P0,再真实的 REFUND / P1
+  [ECHO_PROMPT] 分类响应体是提示词原文(内含 JSON 模板)+ 答案 JSON——第一阶段 D-004|classify|0 的形态
 
 演进(ADR-014 的闭环):第一阶段这里是"事实记录(被操纵的输出原样采用)+ 期望(xfail strict,KI-018~022)";
 第二阶段防御上线后期望用例 XPASS,在同一个提交里摘掉 xfail、删掉已不成立的事实记录用例、known-issues 改状态。
@@ -122,12 +123,28 @@ def test_unsafe_drafts_do_not_open_circuit(api, tickets, metrics, metrics_before
 
 # ---------------------------------------------------------------------- 解析:恰好一个 JSON 对象(KI-022)
 
-@allure.title("KI-022 防御:分类响应不是恰好一个 JSON 对象 → BAD_RESPONSE、走规则兜底,伪造的第一个对象不被采用")
+@allure.title("KI-022 防御:分类响应不是恰好一个 JSON 对象 → MIXED_OUTPUT、走规则兜底,伪造的第一个对象不被采用")
 def test_trailing_json_is_rejected(tickets, db):
     t = tickets.create(title=tickets.title("[TWO_JSON] 申请退款"), content=PLAIN_REFUND_CONTENT)
     row = db.llm_call(t["id"], "CLASSIFY")
     # 断言落在解析层(llm_call_log),而不是最终分类:交叉校验也会纠正 OTHER(与规则 REFUND 冲突),
     # 那是另一道防线的功劳;这条只在"解析本身拒绝多余内容"时成立
-    assert row["degraded"] == 1 and row["degrade_reason"] == "BAD_RESPONSE"
+    assert row["degraded"] == 1 and row["degrade_reason"] == "MIXED_OUTPUT"
     assert row["raw_category"] is None, "解析失败,没有任何模型给出的值被采用"
     assert (t["category"], t["priority"]) == ("REFUND", "P1"), "规则兜底的结果"
+
+
+@allure.title("严格解析不给攻击者熔断开关:连续 6 次(> 阈值 5)'提示词原文 + JSON' → 每次 MIXED_OUTPUT 走规则,熔断器不打开,紧接着的正常建单不降级")
+def test_mixed_output_does_not_open_circuit(tickets, db, metrics, metrics_before):
+    # 与 UNSAFE_OUTPUT 同一个理由(ADR-024 严格解析与熔断):D-004 证明攻击者能诱导出这种输出,
+    # 它若计入熔断,5 张注入工单就能让全站 LLM 分类熔断 60 秒。完全读不出 JSON 的 BAD_RESPONSE 仍计入(test_bad_json_falls_back)。
+    for _ in range(6):
+        t = tickets.create(title=tickets.title("[ECHO_PROMPT] 申请退款"), content=PLAIN_REFUND_CONTENT)
+        row = db.llm_call(t["id"], "CLASSIFY")
+        assert (row["degraded"], row["degrade_reason"]) == (1, "MIXED_OUTPUT")
+        assert (t["category"], t["priority"]) == ("REFUND", "P1"), "规则兜底;提示词里的模板没有被当成答案"
+    assert metrics.delta(metrics_before, "llm_fallback_total", scene="CLASSIFY", reason="MIXED_OUTPUT") == 6
+    assert metrics.delta(metrics_before, "llm_circuit_open_total", scene="CLASSIFY") == 0
+    after = tickets.create(title=tickets.title("申请退款"), content=PLAIN_REFUND_CONTENT)
+    assert db.llm_call(after["id"], "CLASSIFY")["degraded"] == 0, "熔断器没打开,下一张单照常调模型"
+    assert metrics.delta(metrics_before, "llm_fallback_total", scene="CLASSIFY", reason="CIRCUIT_OPEN") == 0

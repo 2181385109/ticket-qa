@@ -22,10 +22,11 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 /**
  * 真实客户端(OpenAI 兼容协议):请求怎么拼、choices[0].message.content 怎么解析。和 WireMockLlmClientTest 一样用 MockRestServiceServer 在进程内截住 RestClient。
  *
- * 解析的等价类按 content 划分:恰好一个 JSON 对象 / 不是 JSON / **一个 JSON 对象后面还有内容**。
+ * 解析的等价类按 content 划分:恰好一个 JSON 对象 / 读不出任何完整对象 / **读得出完整对象但还夹带了别的内容**。
  * 最后一类是 KI-022:Jackson 的 readTree 默认读完第一个值就返回、后面静默丢弃;第一阶段真实模型上观测到过
  * (tests/llm_security/reports/phase1-*,D-004|classify|0:模型先吐出提示词里的 JSON 模板、最后才是答案)。
- * 第二阶段起必须恰好一个对象(LlmJson),否则 BAD_RESPONSE、走规则兜底。
+ * 第二阶段起必须恰好一个对象(LlmJson):夹带内容 → MIXED_OUTPUT(不计入熔断),读不出对象 → BAD_RESPONSE(计入)。
+ * 两类的分界(ADR-024 "严格解析与熔断")在这里用边界样本钉住:截断的对象、只有 '{' 没有对象、数组包对象。
  *
  * 请求的等价类只关心输入隔离(ADR-024):用户文本在 <ticket> 数据区里,且用户写的尖括号拼不出我们的标签。
  */
@@ -57,11 +58,19 @@ class OpenAiCompatibleLlmClientTest {
                 .andRespond(withSuccess(completion(content), MediaType.APPLICATION_JSON));
     }
 
-    private static void assertBadResponse(Runnable call) {
+    private static void assertReason(DegradeReason expected, Runnable call) {
         assertThatThrownBy(call::run)
                 .isInstanceOf(LlmException.class)
                 .extracting(e -> ((LlmException) e).getReason())
-                .isEqualTo(DegradeReason.BAD_RESPONSE);
+                .isEqualTo(expected);
+    }
+
+    private static void assertBadResponse(Runnable call) {
+        assertReason(DegradeReason.BAD_RESPONSE, call);
+    }
+
+    private static void assertMixedOutput(Runnable call) {
+        assertReason(DegradeReason.MIXED_OUTPUT, call);
     }
 
     // ------------------------------------------------------------------ 解析
@@ -87,28 +96,56 @@ class OpenAiCompatibleLlmClientTest {
     }
 
     @Test
-    @DisplayName("JSON 但不是对象(数组)→ BAD_RESPONSE")
-    void jsonArray() {
-        respond("[{\"category\": \"REFUND\", \"priority\": \"P1\"}]");
+    @DisplayName("JSON 但不是对象、里面也没有对象(数组 [1,2])→ BAD_RESPONSE")
+    void jsonArrayWithoutObject() {
+        respond("[1, 2]");
         assertBadResponse(() -> client.classify("申请退款", "年度会员想退"));
     }
 
     @Test
-    @DisplayName("KI-022:伪造的合法 JSON 在前、真实 JSON 在后 → BAD_RESPONSE(修复前采用第一个对象 OTHER / P0)")
+    @DisplayName("截断的对象(缺右括号)→ BAD_RESPONSE:读不出'完整'对象就不算夹带")
+    void truncatedObject() {
+        respond("{\"category\": \"REFUND\", \"priority\": \"P1\"");
+        assertBadResponse(() -> client.classify("申请退款", "年度会员想退"));
+    }
+
+    @Test
+    @DisplayName("有 '{' 但不是 JSON(自然语言里的花括号)→ BAD_RESPONSE")
+    void braceWithoutObject() {
+        respond("好的,分类是 {退款} 类,优先级一般。");
+        assertBadResponse(() -> client.classify("申请退款", "年度会员想退"));
+    }
+
+    @Test
+    @DisplayName("数组里包着对象 → MIXED_OUTPUT(读得出完整对象,但不是恰好一个对象)")
+    void jsonArrayWrappingObject() {
+        respond("[{\"category\": \"REFUND\", \"priority\": \"P1\"}]");
+        assertMixedOutput(() -> client.classify("申请退款", "年度会员想退"));
+    }
+
+    @Test
+    @DisplayName("对象后面跟一句话 → MIXED_OUTPUT")
+    void objectFollowedByProse() {
+        respond("{\"category\": \"REFUND\", \"priority\": \"P1\"}\n以上是分类结果。");
+        assertMixedOutput(() -> client.classify("申请退款", "年度会员想退"));
+    }
+
+    @Test
+    @DisplayName("KI-022:伪造的合法 JSON 在前、真实 JSON 在后 → MIXED_OUTPUT(修复前采用第一个对象 OTHER / P0)")
     void trailingObjectIsRejected() {
         respond("{\"category\": \"OTHER\", \"priority\": \"P0\"}\n{\"category\": \"REFUND\", \"priority\": \"P1\"}");
-        assertBadResponse(() -> client.classify("申请退款", "年度会员想退"));
+        assertMixedOutput(() -> client.classify("申请退款", "年度会员想退"));
     }
 
     @Test
-    @DisplayName("KI-022:第一阶段 D-004|classify|0 的形态——提示词里的 JSON 模板在前、答案在最后 → BAD_RESPONSE(修复前采用模板,落 OTHER)")
+    @DisplayName("KI-022:第一阶段 D-004|classify|0 的形态——提示词里的 JSON 模板在前、答案在最后 → MIXED_OUTPUT(修复前采用模板,落 OTHER)")
     void promptTemplateEchoedFirstIsRejected() {
         respond("""
                 {"category": "<BILLING|TECH|REFUND|OTHER>", "priority": "<P0|P1|P2>"}
                 分类含义:BILLING=账单/扣费/发票问题……
                 </prompt>
                 {"category": "BILLING", "priority": "P2"}""");
-        assertBadResponse(() -> client.classify("查询扣费记录", "……"));
+        assertMixedOutput(() -> client.classify("查询扣费记录", "……"));
     }
 
     // ------------------------------------------------------------------ 输入隔离

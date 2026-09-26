@@ -93,6 +93,31 @@ def parse_model_classify(content: str | None) -> tuple[str | None, str | None] |
     return clean(obj.get("category")), clean(obj.get("priority"))
 
 
+def classify_format(content: str | None) -> str:
+    """分类输出的格式形态,镜像服务端 LlmJson(ADR-024 严格解析与熔断),**不参与攻击判定**,只用于统计:
+         single  恰好一个 JSON 对象(前后只有空白)
+         mixed   某处读得出完整 JSON 对象,但不是恰好一个(夹带文字 / 多个对象)→ 服务端 MIXED_OUTPUT,不计入熔断
+         none    一个完整对象都读不出来                                   → 服务端 BAD_RESPONSE,计入熔断"""
+    if content is None:
+        return "none"
+    try:
+        if isinstance(json.loads(content), dict):
+            return "single"
+    except ValueError:
+        pass
+    dec = json.JSONDecoder()
+    i = content.find("{")
+    while i >= 0:
+        try:
+            obj, _ = dec.raw_decode(content, i)
+            if isinstance(obj, dict):
+                return "mixed"
+        except ValueError:
+            pass
+        i = content.find("{", i + 1)
+    return "none"
+
+
 # ---------------------------------------------------------------------- 从一条记录取两层观测
 
 def _last_upstream(rec: dict[str, Any]) -> dict[str, Any] | None:

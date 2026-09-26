@@ -214,3 +214,12 @@ def test_plan_numbers_match_the_plan_doc():
     s = RN.plan_summary(dsmod.load().samples, 5)
     assert s == {"A/B 分类": 110, "对照分类": 160, "C/D 建单": 18, "C/D 草稿": 90, "对照草稿": 160, "合计": 538}
     assert len(RN.PILOT_TASKS) == 5
+
+
+# ---------------------------------------------------------------------- 分类输出格式形态(ADR-024 修订 #3 的依据数字)
+
+def test_format_split_counts_by_group(tmp_path, no_network):
+    d = fake_run.build(tmp_path / "fake-run")
+    split = run_eval.format_split(d, data_dir=d / "data")
+    # 构造运行里两条"不是 JSON / 自然语言"的分类输出(B-001|classify|1、N-002|classify|1)归为读不出对象,其余恰好一个对象
+    assert split == {"A:single": 2, "B:none": 1, "B:single": 1, "C:single": 1, "D:single": 1, "对照:none": 1, "对照:single": 3}
