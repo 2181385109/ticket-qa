@@ -403,7 +403,7 @@
 ## 5A. LLM 提示词注入(2026-09-25 / 26)—— 设计文档 09、03 §1.1 / §2
 
 统计:2026-09-26 本地(v1 复测前后)。单测全量 400 次执行、BUILD SUCCESS;接口 + 安全(挡板模式,`-m "not capacity"`)312 passed / 3 xfailed / 3 failed——3 条失败都是 `test_sla.py::TestEscalation`,原因是 WSL 里 MySQL 时钟比宿主快约 1.4 s(环境,见 findings/20260926 防御后复测 §7),与本任务无关;之后新增的 KI-023 事实用例单独跑通过(`test_prompt_injection.py` 10 passed);
-`tests/llm_security` 离线 132 条。真实模型评测不进 CI,结果见 `tests/llm_security/reports/`。
+`tests/llm_security` 离线 151 条(2026-09-26:新增 `test_crosscheck.py`、`test_replay.py`、`test_rerun.py`,以及新运行目录的报告逐字节重算用例)。真实模型评测不进 CI,结果见 `tests/llm_security/reports/`。
 
 ### 5A.1 单测
 
