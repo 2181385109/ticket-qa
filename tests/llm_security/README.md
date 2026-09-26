@@ -140,3 +140,10 @@ powershell -ExecutionPolicy Bypass -File tests\llm_security\tools\replay.ps1 -So
 的草稿请求变了。详见 `reports/phase2-v2-replay-20260926T082544Z/replay_check.md` 与 `docs/plans/llm-injection-progress.md`。
 
 规则结论分布(交叉校验替代阈值的依据,不发请求):`python tests/llm_security/run_eval.py rule-signal <运行目录>`。
+
+## 基线复跑(只跑攻击样本,把"时段波动"从防御效果里分离出来)
+
+`run --phase phase1 --run-label rerun-attacks --attacks-only`:用防御前代码(tag `v0.5-injection-baseline`,临时 worktree 打包、真实模式启动)
+只跑 40 条攻击样本(`plan --attacks-only` = 218 次)。报告只数本次跑了的样本;A/B 没有同轮对照,只能报原口径。
+三列对比(第一阶段 / 复跑 / 防御后,不发请求):`python tests/llm_security/run_eval.py rerun-compare <phase1> <复跑> <防御后>`,
+写到复跑目录的 `rerun_compare.md`,同目录 `conclusion.md`(人写结论)原样附在文末。

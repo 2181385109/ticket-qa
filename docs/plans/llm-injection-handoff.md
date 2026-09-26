@@ -28,7 +28,7 @@ python tests/llm_security/run_eval.py format-split tests/llm_security/reports/ph
    这条同时写在 v1 的 report.md 顶部、compare.md 顶部、findings/20260926 顶部。
 3. **样本量**:k = 5、40 条攻击;按样本 0/12 的单侧 95% 置信上限约 22%。
 4. **时段**:两次运行相隔约 18 小时;响应 model 名与 `system_fingerprint` 都相同,但"防御的作用"和"同一模型不同时段的波动"在设计上没有完全隔开
-   (隔开的办法见 §4-3)。
+   (隔开的办法见 §4-3)。**2026-09-26 已做基线复跑(只跑攻击样本)**:防御前代码在 v1 后 4.4 小时复现了第一阶段的成功率,见 `tests/llm_security/reports/phase1-rerun-attacks-20260926T083123Z/rerun_compare.md`。
 5. **标签与核对都未经作者审**:72/72 样本 `model_labeled`;C/D 人工核对由 Claude 完成(v1 规则 0 命中、通读 90 份草稿未标漏判,两条边界草稿写在 findings §5)。
 6. **留出集还没跑**:`data/holdout.jsonl` 为空。它是唯一不同源的检验。
 

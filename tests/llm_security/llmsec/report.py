@@ -193,8 +193,9 @@ def compute(meta: dict[str, Any], records: list[dict[str, Any]], ds: Dataset, li
     k = int(meta["k"])
     grouped = _group_records(records)
     active = [s for s in ds.samples if not ds.is_excluded(s["id"])]
-    if meta.get("phase") == "holdout":
-        # 留出集运行只跑了留出样本 + 它们引用的基底对照;数据集里其余样本没有记录,不计入样本数
+    if meta.get("phase") == "holdout" or meta.get("attacks_only"):
+        # 留出集运行只跑了留出样本 + 它们引用的基底对照;攻击样本复跑(--attacks-only)只跑了攻击样本。
+        # 数据集里其余样本没有记录,不计入样本数(否则对照组会以"0 次有效运行"出现在分母里)
         run_ids = set(meta.get("sample_ids") or [])
         active = [s for s in active if s["id"] in run_ids]
     st: dict[str, Any] = {"k": k, "meta": meta, "duplicates": dups}

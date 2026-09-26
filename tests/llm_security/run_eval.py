@@ -15,6 +15,7 @@
                                                                        回放评估:SOURCE 录到的模型输出经 WireMock 逐条回放给当前服务(不发真实请求);
                                                                        先逐字节验证请求一致,一致才出 report.md / compare.md。一条命令跑完:tools/replay.ps1
   python tests/llm_security/run_eval.py replay-check SOURCE REPLAY     只重算回放验证(不发请求,只读两个运行目录)
+  python tests/llm_security/run_eval.py rerun-compare PHASE1 RERUN AFTER  基线复跑对比:第一阶段 / 复跑 / 防御后,只看攻击样本(不发请求)
   python tests/llm_security/run_eval.py run --phase holdout --run-label pre|post --service-ref REF   留出集(防御前后各跑一次)
                                                                        一条命令跑完前后两次 + 对比:tests/llm_security/tools/holdout_compare.ps1
 
@@ -38,6 +39,7 @@ from llmsec import crosscheck as XC          # noqa: E402
 from llmsec import dataset as dsmod          # noqa: E402
 from llmsec import judge as J                # noqa: E402
 from llmsec import replay as RP              # noqa: E402
+from llmsec import rerun as RR               # noqa: E402
 from llmsec import report as R               # noqa: E402
 from llmsec import runner as RN              # noqa: E402
 
@@ -66,8 +68,16 @@ def load_samples(holdout: bool) -> tuple[dsmod.Dataset, list[dict], frozenset[st
 
 # ---------------------------------------------------------------------- plan
 
+def attacks_only(samples: list[dict]) -> list[dict]:
+    """--attacks-only:只保留攻击样本(基线复跑,作者 2026-09-26:不跑对照组)。
+    代价:A/B 的翻转口径需要同轮基底对照,复跑里没有,只能报原口径(攻击输出对期望),报告里写明"""
+    return [s for s in samples if s["group"] == "attack"]
+
+
 def cmd_plan(args) -> int:
     _, samples, classify_only = load_samples(args.holdout)
+    if getattr(args, "attacks_only", False):
+        samples = attacks_only(samples)
     if not samples:
         _out("holdout.jsonl 为空:没有要跑的样本")
         return 0
@@ -78,6 +88,9 @@ def cmd_plan(args) -> int:
     if args.holdout:
         _out(f"留出集要跑两次(防御前 + 防御后),合计 {2 * s['合计']}")
         _out(f"预算:已用 {budget.total} / 上限 {budget.limit},两次跑完后将为 {budget.total + 2 * s['合计']}")
+        return 0
+    if getattr(args, "attacks_only", False):
+        _out(f"预算:已用 {budget.total} / 上限 {budget.limit},本次运行后将为 {budget.total + s['合计']}(只跑攻击样本,不含试跑)")
         return 0
     _out(f"试跑\t{len(RN.PILOT_TASKS)}")
     _out(f"预算:已用 {budget.total} / 上限 {budget.limit},本次正式运行后将为 {budget.total + s['合计']}")
@@ -136,6 +149,7 @@ def _open_run_dir(args, phase: str, samples: list[dict], ds: dsmod.Dataset, task
         "git": RN.git_state(), "upstream_base": args.upstream, "proxy": f"127.0.0.1:{args.proxy_port}",
         "service_config": _service_config(args, seen), "sessions": [],
         **({"service_ref": args.service_ref} if getattr(args, "service_ref", None) else {}),
+        **({"attacks_only": True} if getattr(args, "attacks_only", False) else {}),
     })
     return run_dir
 
@@ -214,6 +228,8 @@ def pilot_check(run_dir: Path) -> list[str]:
 
 def cmd_run(args) -> int:
     ds, samples, classify_only = load_samples(args.phase == "holdout")
+    if args.attacks_only:
+        samples = attacks_only(samples)
     if not samples:
         _out("没有要跑的样本(holdout.jsonl 为空?)")
         return 0
@@ -414,6 +430,13 @@ def cmd_replay(args) -> int:
     return 0
 
 
+def cmd_rerun_compare(args) -> int:
+    p1, rr, af = (Path(x).resolve() for x in (args.phase1, args.rerun, args.after))
+    out = RR.write(p1, rr, af, dsmod.load(), J.load_lists(dsmod.DATA_DIR))
+    _out(f"已生成 {out}")
+    return 0
+
+
 def cmd_replay_check(args) -> int:
     ok, out = replay_check(Path(args.source).resolve(), Path(args.replay).resolve())
     _out(f"回放验证:{'一致' if ok else '不一致'} → {out}")
@@ -487,6 +510,7 @@ def main(argv: list[str] | None = None) -> int:
     sp = sub.add_parser("plan")
     sp.add_argument("--k", type=int, default=5)
     sp.add_argument("--holdout", action="store_true")
+    sp.add_argument("--attacks-only", action="store_true", help="只算攻击样本(基线复跑)")
     sp.set_defaults(func=cmd_plan)
 
     def live(sp_):
@@ -507,6 +531,7 @@ def main(argv: list[str] | None = None) -> int:
     sp.add_argument("--k", type=int, default=5)
     sp.add_argument("--resume", default=None, help="断点续跑:已有的运行目录")
     sp.add_argument("--service-ref", default=None, help="本次打的是哪一版服务代码(tag / commit),写进 meta 与报告;留出集前后对比必填")
+    sp.add_argument("--attacks-only", action="store_true", help="只跑攻击样本(基线复跑:不跑对照组,A/B 只能报原口径)")
     sp.set_defaults(func=cmd_run)
 
     sp = sub.add_parser("compare")
@@ -537,6 +562,12 @@ def main(argv: list[str] | None = None) -> int:
     sp.add_argument("--service-ref", default=None, help="本次回放打的是哪一版服务代码,写进 meta 与报告")
     sp.add_argument("--wiremock", default=os.environ.get("WIREMOCK_URL", "http://localhost:8089"))
     sp.set_defaults(func=cmd_replay)
+
+    sp = sub.add_parser("rerun-compare")
+    sp.add_argument("phase1")
+    sp.add_argument("rerun")
+    sp.add_argument("after")
+    sp.set_defaults(func=cmd_rerun_compare)
 
     sp = sub.add_parser("replay-check")
     sp.add_argument("source")
