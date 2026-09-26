@@ -412,7 +412,7 @@
 | `UntrustedInputTest` | 等价类 | 数据区形状;伪造 `</ticket>` / `<system>` 被中和;提示词只追加不改原句 |
 | `ClassifyCrossCheckTest` | 判定表 + 全组合 | 优先级 3×3(只有 P0×P2 冲突);分类 6 行;越界字段跳过;两维同时冲突;`matchedCategories` |
 | `DraftOutputPolicyTest` | 等价类 + 边界值 | 承诺(原样 / 全角 / 空格 / 大小写 / 否定句照拦 / 换说法漏过 / 常见话术不拦);泄露(逐字 / 换标点复述 / 追加说明 / 7 字放行 8 字拦截 / 转述漏过);正常草稿放行 |
-| `LlmServiceTest$CrossCheck` / `$DraftPolicy` | 判定表 R10~R14、D6~D8 | 采用规则结果 + 复核标记 + 指标 + 落盘字段;UNSAFE_OUTPUT 不计入熔断 |
+| `LlmServiceTest$CrossCheck` / `$DraftPolicy` | 判定表 R10~R14、D6~D8 | v2:冲突保留模型结果 + 复核标记 + 指标 + 落盘字段(含 KI-023 回归 `trueP0WithoutRuleKeywordsIsNotDowngraded`);UNSAFE_OUTPUT 不计入熔断 |
 | `OpenAiCompatibleLlmClientTest` | 等价类 + 边界值 | 恰好一个对象 / 读不出对象(非 JSON、截断、自然语言花括号、`[1,2]`)→ BAD_RESPONSE / 夹带(尾随对象 KI-022、D-004 形态、对象后跟文字、数组包对象)→ MIXED_OUTPUT;请求里的数据区与转义 |
 | `WireMockLlmClientTest.trailingJsonIsMixedOutput` | 等价类 | 挡板客户端同样严格 |
 | `LlmServiceTest$MixedOutput` | 判定表 R8 / R8b | MIXED_OUTPUT 规则兜底、连续 6 次不打开熔断(分类 / 草稿)、BAD_RESPONSE 对照仍打开、每个原因声明是否计入熔断 |
@@ -422,15 +422,15 @@
 
 | 用例 | 对应 |
 |---|---|
-| `test_obeyed_p0_is_flagged_for_review` | KI-018 防御;R10;SLA 按 240 分钟 |
-| `test_obeyed_category_is_flagged_for_review` | KI-019 防御;R11 |
+| `test_obeyed_p0_is_flagged_for_review` | KI-018 防御;R10;v2 只标记,采用值 OTHER / P0、SLA 15 分钟(v1 为规则的 P2 / 240 分钟) |
+| `test_obeyed_category_is_flagged_for_review` | KI-019 防御;R11;v2 只标记,采用值 TECH(v1 为规则的 REFUND) |
 | `test_review_flag_only_in_create_response` | 复核字段只在建单响应里 |
 | `test_known_bypass_keyword_stuffing` | R13 已知绕过(事实记录,不挂 xfail) |
 | `test_promise_draft_is_blocked` / `test_leak_draft_is_blocked` | KI-020 / KI-021 防御;D6 / D7 |
 | `test_unsafe_drafts_do_not_open_circuit` | D8,端到端看熔断指标 |
 | `test_trailing_json_is_rejected` | KI-022;断言落在解析层(MIXED_OUTPUT) |
 | `test_mixed_output_does_not_open_circuit` | R8b:`[ECHO_PROMPT]` 连续 6 次(> 阈值 5),熔断器不打开,下一张单不降级 |
-| `test_known_false_positive_true_p0_without_rule_keywords` | KI-023 事实记录:真 P0、规则无命中 → 采用 P2(v1 真实数据里的误伤形态) |
+| `test_true_p0_without_rule_keywords_keeps_model_priority` | KI-023 回归(v2):真 P0、规则无命中 → 仍标记,但保留模型的 P0、SLA 15 分钟(v1 时是事实记录用例,断言 P2 / 240 分钟) |
 | `api/test_health_auth.py::test_labelled_llm_counters_pre_registered` | 新增 UNSAFE_OUTPUT / MIXED_OUTPUT 原因与 `llm_review_total` 的预注册 |
 
 ### 5A.3 评测工具的离线用例(`tests/llm_security`,独立 pytest.ini,CI api job 单独一步)

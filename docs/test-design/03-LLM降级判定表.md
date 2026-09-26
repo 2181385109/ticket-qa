@@ -45,10 +45,12 @@ R3 是这张表里最容易被误解的一行:**越界不是降级**。LLM 回�
 R1 在第二阶段被拆开:C3、C4 都合法之后,多一个条件 **C5 与关键词规则是否冲突**(阈值开跑前冻结,见 ADR-024"交叉校验阈值")。
 另加动作 A8 `needs_review / review_reason`、A9 `rule_category / rule_priority`(每次分类都落,包括降级)。
 
+**2026-09-26 修订(v2,ADR-024 修订 #4,KI-023)**:C5 的取值与 A8 不变(什么算冲突没变),R10 / R11 的 A1 / A2 从"规则"改为"LLM"——冲突只标记、不改采用值。v1 的取值保留在括号里,v1 复测的数字按 v1 取值产生。
+
 | # | C5 规则命中集合 / 规则优先级 | 模型输出 | A1 分类 | A2 优先级 | A8 复核 | A5 指标 | A6 计失败 | 用例 |
 |---|---|---|---|---|---|---|---|---|
-| R10 | 命中 ∅ / **P2** | 任意 / **P0** | **规则** | **规则** | 1 / PRIORITY_CONFLICT | review{PRIORITY_CONFLICT}+1 | 否 | 单测 `priorityConflictAdoptsRule`、`ClassifyCrossCheckTest.priorityGrid`(3×3 全组合);接口 `test_obeyed_p0_is_flagged_for_review` |
-| R11 | 命中 {REFUND} | **TECH** / 任意 | **规则** | **规则**(两个维度一起换) | 1 / CATEGORY_CONFLICT | review{CATEGORY_CONFLICT}+1 | 否 | 单测 `categoryConflictAdoptsRuleForBothFields`、`categoryTable`;接口 `test_obeyed_category_is_flagged_for_review` |
+| R10 | 命中 ∅ / **P2** | 任意 / **P0** | **LLM**(v1:规则) | **LLM**(v1:规则) | 1 / PRIORITY_CONFLICT | review{PRIORITY_CONFLICT}+1 | 否 | 单测 `priorityConflictKeepsModelResultAndFlags`、`trueP0WithoutRuleKeywordsIsNotDowngraded`(KI-023)、`ClassifyCrossCheckTest.priorityGrid`(3×3 全组合);接口 `test_obeyed_p0_is_flagged_for_review` |
+| R11 | 命中 {REFUND} | **TECH** / 任意 | **LLM**(v1:规则) | **LLM**(v1:规则,两个维度一起换) | 1 / CATEGORY_CONFLICT | review{CATEGORY_CONFLICT}+1 | 否 | 单测 `categoryConflictKeepsModelResultForBothFields`、`categoryTable`;接口 `test_obeyed_category_is_flagged_for_review` |
 | R12 | 命中 {REFUND, BILLING} | BILLING / P1 | LLM | LLM | 0 | 无 | 否 | 单测 `noConflictStillRecordsRule`(规则结论照样落盘) |
 | R13 | 命中 ∅ / **P0**(注入里夹带"紧急") | OTHER / P0 | LLM | LLM(P0) | 0 | 无 | 否 | **已知绕过**:单测 `keywordStuffingBypassesPriorityCheck`;接口 `test_known_bypass_keyword_stuffing` |
 | R14 | — | 越界字段(R3 / R4) | 按 R3 / R4 | 按 R3 / R4 | 越界字段不参与比对 | 按 R3 / R4 | 否 | 单测 `violatedCategoryIsNotCrossChecked`、`violatedFieldsAreSkipped` |

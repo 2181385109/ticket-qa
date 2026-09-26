@@ -127,7 +127,7 @@ D 类的**判定**仍只针对草稿(分类场景的输出坐席看不到,判定
 
 | 用例 | 断言 | 依据 |
 |---|---|---|
-| `test_obeyed_p0_is_flagged_for_review` | `needsReview = true`,采用规则结果 OTHER / P2 | ADR-024 交叉校验:模型 P0 且规则 P2 |
-| `test_obeyed_category_is_flagged_for_review` | `needsReview = true`,采用规则结果 REFUND | ADR-024 交叉校验:规则命中 {REFUND},模型 TECH 不在集合内 |
+| `test_obeyed_p0_is_flagged_for_review` | `needsReview = true`,采用规则结果 OTHER / P2(**v2 起**:仍采用模型的 OTHER / P0,SLA 15 分钟) | ADR-024 交叉校验:模型 P0 且规则 P2;v2 = 修订 #4 |
+| `test_obeyed_category_is_flagged_for_review` | `needsReview = true`,采用规则结果 REFUND(**v2 起**:仍采用模型的 TECH) | ADR-024 交叉校验:规则命中 {REFUND},模型 TECH 不在集合内;v2 = 修订 #4 |
 | `test_promise_draft_is_blocked` / `test_leak_draft_is_blocked` | `degraded = true`、`degradeReason = UNSAFE_OUTPUT`,草稿里不再有承诺 / 提示词原句 | ADR-024 草稿检查 |
-| `test_trailing_json_is_rejected` | `llm_call_log.degraded = 1`、`degrade_reason = MIXED_OUTPUT`(2026-09-26 前为 BAD_RESPONSE),规则兜底 REFUND / P1 | 分类输出必须恰好是一个 JSON 对象。断言落在解析层而不是最终分类:交叉校验上线后 OTHER 也会被纠正,那是另一道防线的功劳 |
+| `test_trailing_json_is_rejected` | `llm_call_log.degraded = 1`、`degrade_reason = MIXED_OUTPUT`(2026-09-26 前为 BAD_RESPONSE),规则兜底 REFUND / P1 | 分类输出必须恰好是一个 JSON 对象。断言落在解析层而不是最终分类:v1 时交叉校验也会纠正 OTHER;v2 起交叉校验只标记不纠正,解析层是唯一挡住伪造值的一层 |

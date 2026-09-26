@@ -195,7 +195,7 @@ Windows + JDK 17 的 `-Dfile.encoding=UTF-8` 不能省:JDK 17 的默认字符集
 | `[ERROR]` | HTTP 500 | `UPSTREAM_ERROR` → 规则;连续 5 次后熔断 60 秒(`CIRCUIT_OPEN`) |
 | `[BAD_CATEGORY]` | 返回 `SPAM` | 契约越界 → `category=OTHER`,`llm_contract_violation_total` +1 |
 | `[BAD_JSON]` | 返回非 JSON | `BAD_RESPONSE` → 规则 |
-| `[OBEY_P0]` / `[OBEY_TECH]` | 模拟模型听从注入:OTHER/P0、TECH/P1 | 与关键词规则冲突 → 采用规则结果,建单响应 `needsReview=true`(ADR-024) |
+| `[OBEY_P0]` / `[OBEY_TECH]` | 模拟模型听从注入:OTHER/P0、TECH/P1 | 与关键词规则冲突 → 建单响应 `needsReview=true`;v2 起采用值仍是模型结果(ADR-024 修订 #4,KI-023) |
 | `[PROMISE]` / `[LEAK]` | 草稿含越权承诺 / 系统提示词原句 | 草稿检查命中 → 模板草稿,`degradeReason=UNSAFE_OUTPUT`,不计入熔断 |
 | `[TWO_JSON]` | 响应体两个 JSON 对象 | 不是恰好一个对象 → `MIXED_OUTPUT` → 规则(KI-022),不计入熔断 |
 | `[ECHO_PROMPT]` | 响应体 = 提示词原文(内含 JSON 模板)+ 答案 JSON | 同上;连续 6 次熔断器不打开(ADR-024 严格解析与熔断) |

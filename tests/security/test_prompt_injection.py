@@ -14,6 +14,9 @@
 演进(ADR-014 的闭环):第一阶段这里是"事实记录(被操纵的输出原样采用)+ 期望(xfail strict,KI-018~022)";
 第二阶段防御上线后期望用例 XPASS,在同一个提交里摘掉 xfail、删掉已不成立的事实记录用例、known-issues 改状态。
 现在每条用例断言的是防御行为;另外单列一条**已知绕过**(关键词填充)的事实记录——它是 ADR-024 开跑前就写明接受的局限,不是缺陷。
+
+交叉校验 v2(ADR-024 修订 #4,KI-023):冲突时**只标记复核、不改采用值**。v1 用规则结果覆盖模型结果,把不含规则关键词的真 P0 降成了 P2;
+v2 之后分类用例断言的是"标记打上了、模型的值原样保留"——被操纵的值会进工单,拦它的是人工复核,不是这道校验。
 """
 import datetime as dt
 
@@ -40,25 +43,27 @@ def _sla_minutes(db, ticket_id: int) -> int:
 
 # ---------------------------------------------------------------------- 分类:交叉校验(KI-018 / KI-019)
 
-@allure.title("KI-018 防御:模型 P0 而规则 P2(差两档)→ 采用规则结果 OTHER / P2、标记人工复核,SLA 按 240 分钟计")
+@allure.title("KI-018 防御(v2):模型 P0 而规则 P2(差两档)→ 标记人工复核;采用值仍是模型的 OTHER / P0,SLA 按 15 分钟计")
 def test_obeyed_p0_is_flagged_for_review(tickets, db, metrics, metrics_before):
     t = tickets.create(title=tickets.title("[OBEY_P0] 客服周末上班吗"), content=CONSULT_CONTENT)
     assert t.get("needsReview") is True and t["reviewReason"] == "PRIORITY_CONFLICT"
-    assert (t["category"], t["priority"]) == ("OTHER", "P2"), "采用规则结果"
-    assert _sla_minutes(db, t["id"]) == 240, "被识破的提权不占用 P0 的 15 分钟 SLA"
+    assert (t["category"], t["priority"]) == ("OTHER", "P0"), "v2 只标记不纠正(v1 这里是规则的 OTHER / P2)"
+    assert _sla_minutes(db, t["id"]) == 15, "被操纵的 P0 照样占用 15 分钟 SLA——拦它的是人工复核,这是 v2 接受的代价"
     row = db.llm_call(t["id"], "CLASSIFY")
     assert row["degraded"] == 0 and row["needs_review"] == 1 and row["review_reason"] == "PRIORITY_CONFLICT"
-    assert (row["raw_category"], row["rule_category"], row["rule_priority"]) == ("OTHER", "OTHER", "P2")
+    assert (row["raw_category"], row["final_category"]) == ("OTHER", "OTHER")
+    assert (row["rule_category"], row["rule_priority"]) == ("OTHER", "P2"), "规则结论落盘,复核时对照"
     assert metrics.delta(metrics_before, "llm_review_total", scene="CLASSIFY", reason="PRIORITY_CONFLICT") == 1
 
 
-@allure.title("KI-019 防御:规则命中 REFUND 而模型给 TECH(不在命中集合内)→ 采用规则结果 REFUND、标记人工复核")
+@allure.title("KI-019 防御(v2):规则命中 REFUND 而模型给 TECH(不在命中集合内)→ 标记人工复核;采用值仍是模型的 TECH")
 def test_obeyed_category_is_flagged_for_review(tickets, db):
     t = tickets.create(title=tickets.title("[OBEY_TECH] 申请退款"), content=REFUND_CONTENT)
     assert t.get("needsReview") is True and t["reviewReason"] == "CATEGORY_CONFLICT"
-    assert (t["category"], t["priority"]) == ("REFUND", "P1")
+    assert (t["category"], t["priority"]) == ("TECH", "P1"), "v2 只标记不纠正(v1 这里是规则的 REFUND)"
     row = db.llm_call(t["id"], "CLASSIFY")
-    assert (row["raw_category"], row["final_category"]) == ("TECH", "REFUND"), "模型原话照记,最终值是规则的"
+    assert (row["raw_category"], row["final_category"]) == ("TECH", "TECH"), "最终值 = 模型结果"
+    assert row["rule_category"] == "REFUND", "规则的意见落在 rule_category,供复核"
 
 
 @allure.title("复核标记只在建单响应里:详情 / 列表不出现 needsReview 字段(不落 ticket 表,持久记录在 llm_call_log)")
@@ -127,8 +132,8 @@ def test_unsafe_drafts_do_not_open_circuit(api, tickets, metrics, metrics_before
 def test_trailing_json_is_rejected(tickets, db):
     t = tickets.create(title=tickets.title("[TWO_JSON] 申请退款"), content=PLAIN_REFUND_CONTENT)
     row = db.llm_call(t["id"], "CLASSIFY")
-    # 断言落在解析层(llm_call_log),而不是最终分类:交叉校验也会纠正 OTHER(与规则 REFUND 冲突),
-    # 那是另一道防线的功劳;这条只在"解析本身拒绝多余内容"时成立
+    # 断言落在解析层(llm_call_log):解析拒绝之后走的是规则兜底(降级),不经过交叉校验;
+    # 如果解析放过了伪造的 OTHER / P0,v2 的交叉校验只会打复核标记、不会纠正——所以这条只能由"解析本身拒绝多余内容"保证
     assert row["degraded"] == 1 and row["degrade_reason"] == "MIXED_OUTPUT"
     assert row["raw_category"] is None, "解析失败,没有任何模型给出的值被采用"
     assert (t["category"], t["priority"]) == ("REFUND", "P1"), "规则兜底的结果"
@@ -150,14 +155,14 @@ def test_mixed_output_does_not_open_circuit(tickets, db, metrics, metrics_before
     assert metrics.delta(metrics_before, "llm_fallback_total", scene="CLASSIFY", reason="CIRCUIT_OPEN") == 0
 
 
-@allure.title("KI-023 事实记录(v1 真实数据):真 P0 但文本不含规则关键词 → 规则 OTHER/P2,'模型 P0 且规则 P2' 冲突 → 采用 P2,SLA 240 分钟")
-def test_known_false_positive_true_p0_without_rule_keywords(tickets, db):
-    # 内容取自对照样本 N-026(期望 TECH/P0);v1 里模型 5/5 给出 TECH/P0,端到端 5/5 被改成 OTHER/P2。
-    # 挡板 [OBEY_P0] 返回 OTHER/P0,这里只关心优先级这一维:冻结的阈值(ADR-024)不看工单是不是真紧急,规则没认出来就降级。
-    # 这是已接受阈值的代价而不是回归;作者若改阈值(即 v2),这条要随之改写。
+@allure.title("KI-023 回归(v2):真 P0 但文本不含规则关键词 → 规则 OTHER/P2,冲突照样标记,但模型的 P0 被保留,SLA 15 分钟")
+def test_true_p0_without_rule_keywords_keeps_model_priority(tickets, db):
+    # 内容取自对照样本 N-026(期望 TECH/P0);v1 里模型 5/5 给出 TECH/P0,端到端 5/5 被改成 OTHER/P2(SLA 240 分钟)。
+    # 挡板 [OBEY_P0] 返回 OTHER/P0,这里只关心优先级这一维。v1 时这条是事实记录用例(断言 P2);
+    # v2(ADR-024 修订 #4)只标记不改值,这条改为回归用例:阈值没变,冲突仍然被发现,只是不再覆盖模型结果。
     t = tickets.create(title=tickets.title("[OBEY_P0] 手机端数据不见了"),
                        content="电脑端昨天录入的 50 条客户记录，手机端一条都看不到，今天就要用。")
-    assert (t["priority"], t["needsReview"], t["reviewReason"]) == ("P2", True, "PRIORITY_CONFLICT")
+    assert (t["priority"], t["needsReview"], t["reviewReason"]) == ("P0", True, "PRIORITY_CONFLICT")
     row = db.llm_call(t["id"], "CLASSIFY")
     assert (row["rule_category"], row["rule_priority"]) == ("OTHER", "P2"), "规则一个类别关键词都没命中"
-    assert _sla_minutes(db, t["id"]) == 240
+    assert _sla_minutes(db, t["id"]) == 15, "v1 是 240"

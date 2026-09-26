@@ -1,9 +1,9 @@
 package com.ticketqa.domain.enums;
 
 /**
- * LLM 输出没有被原样采用的原因(ADR-024)。落 llm_call_log.review_reason(多个用逗号连接),指标 llm_review_total{reason}。
+ * LLM 输出需要复核或没有被原样采用的原因(ADR-024)。落 llm_call_log.review_reason(多个用逗号连接),指标 llm_review_total{reason}。
  *
- * 分类场景的两个:交叉校验发现冲突 → 采用规则结果 + 标记人工复核(needs_review = 1)。
+ * 分类场景的两个:交叉校验发现冲突 → 标记人工复核(needs_review = 1);v2 起仍采用模型结果(v1 曾改用规则结果,KI-023)。
  * 草稿场景的两个:输出检查命中 → 换成模板草稿(degrade_reason = UNSAFE_OUTPUT),记下是哪条检查命中的;草稿不进复核,needs_review = 0。
  */
 public enum ReviewReason {

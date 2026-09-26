@@ -1847,14 +1847,14 @@ tests/llm_security/                 评测工具(Python,不进 CI;离线用例�
 service/src/main/java/com/ticketqa/llm/
 ├── LlmPrompts                      两个 system prompt(只在末尾追加)
 ├── UntrustedInput                  第一层:把用户文本装进 <ticket> 数据区,尖括号转全角
-├── ClassifyCrossCheck              第二层(分类):与关键词规则比对,冲突采用规则结果
+├── ClassifyCrossCheck              第二层(分类):与关键词规则比对,冲突标记复核(v2 起不改采用值)
 ├── DraftOutputPolicy               第二层(草稿):承诺词 + 提示词 8 字片段,命中换模板
 ├── LlmJson                         恰好一个 JSON 对象(KI-022);不合格再分 MIXED_OUTPUT(夹带,不计入熔断)/ BAD_RESPONSE(读不出对象,计入)
 └── LlmService                      把上面几样串进原来的韧性外壳
 ```
 
 协作顺序(分类):`LlmService.classify` → 熔断? → `client.classify`(里面 `UntrustedInput` 拼消息、`LlmJson` 严格解析)→
-契约校验(越界字段先走原路径)→ `ClassifyCrossCheck.check(模型合法字段, 规则优先级, 规则命中集合)` → 冲突就把 category / priority 换成规则的 →
+契约校验(越界字段先走原路径)→ `ClassifyCrossCheck.check(模型合法字段, 规则优先级, 规则命中集合)` → 冲突就打复核标记(v1 还会把 category / priority 换成规则的;v2 起只标记,见 ADR-024 修订 #4 与下文"v2")→
 `llm_call_log` 记 `needs_review / review_reason / rule_category / rule_priority` → `TicketService.create` 把复核标记带进建单响应。
 草稿:`client.draftReply` 成功 → `breaker.recordSuccess()` → `DraftOutputPolicy.check` → 命中则 `draftFallback(UNSAFE_OUTPUT)`。
 客户端抛 `LlmException` 时,`LlmService.onFailure` 先问 `reason.countsTowardCircuit()`:MIXED_OUTPUT 回答 false → `recordSuccess()` 后直接返回,和 UNSAFE_OUTPUT 殊途同归(ADR-024 修订 #3)。
@@ -1875,6 +1875,7 @@ service/src/main/java/com/ticketqa/llm/
 - **lambda 只能捕获"实际上的 final"变量**:改 `LlmService` 时第一次编译失败——`orElseGet(() -> rules.priorityOf(category, ...))` 捕获了 `category`,
   而后面交叉校验要给 `category` 重新赋值。Java 的 lambda 捕获的是值的拷贝,编译器要求被捕获的局部变量之后不再赋值,否则两边看到的值会不一致。
   解法是拆成 `modelCategory`(不再改)和 `category`(最终值)两个变量。Python 闭包捕获的是变量本身,没有这条限制,也就没有这个保护。
+  (v2 之后 `category` 不再被重新赋值,两个变量保留:v1 / v2 的差别正好只在"冲突分支里要不要给 `category` 赋值"这两行,对照着读最清楚。)
 - **文本块 `"""`**:两个提示词是文本块,缩进按结束 `"""` 的位置去掉。`UntrustedInputTest.promptsOnlyAppended` 用 `startsWith(文本块)` 钉住"原句一字未改"。
 - **Unicode 归一化与 code point**:`Normalizer.normalize(s, NFKC)` 把全角"２４"变成"24";`codePoints().filter(Character::isLetterOrDigit)`
   按码点而不是 `char` 遍历——`char` 是 UTF-16 单元,生僻字 / emoji 会被劈成两半。Python 的 `str` 本来就是按码点的,所以 Python 侧的 `textnorm.py` 更简单。
@@ -1902,6 +1903,7 @@ service/src/main/java/com/ticketqa/llm/
 3. `UNSAFE_OUTPUT` 为什么要在 `breaker.recordSuccess()` 之后判定?如果顺序反过来、并走 `onFailure`,10 次注入草稿之后系统处于什么状态?同样的道理为什么要求把"夹带 JSON"(MIXED_OUTPUT)和"读不出 JSON"(BAD_RESPONSE)分开,分界线为什么划在"能不能读出一个完整对象"?
 4. 草稿泄露检测的窗口从 8 改成 5,`DraftOutputPolicyTest` 里哪条用例会先变红?这说明窗口太短时误伤从哪来?
 5. (开放题)第二阶段复测只允许一次正式运行,而写防御的人读过第一阶段的全部草稿。你会怎样设计一个留出集,让"防御有效"这个结论更可信?它应该由谁来写?
+6. (v2 追加)v2 把交叉校验从"冲突改用规则"改成"只标记"。为什么"只在规则命中类别时才判优先级冲突"这个看起来更温和的改法,实际上等于删掉了优先级检查?v2 之后,输入隔离一旦失效,A 类攻击的端到端成功率和模型层成功率是什么关系?
 
 ---
 

@@ -10,6 +10,7 @@
   python tests/llm_security/run_eval.py models                         列出上游可用模型(1 次真实调用)
   python tests/llm_security/run_eval.py format-split DIR [DIR ...]     分类输出格式形态:恰好一个对象 / 夹带 / 读不出(不发请求)
   python tests/llm_security/run_eval.py compare BEFORE AFTER [--out F]  防御前 / 后两次运行的对比报告(不发请求;默认写 AFTER/compare.md)
+  python tests/llm_security/run_eval.py rule-signal DIR                每条样本上关键词规则的结论分布(交叉校验替代阈值的依据;不发请求)
   python tests/llm_security/run_eval.py run --phase holdout --run-label pre|post --service-ref REF   留出集(防御前后各跑一次)
                                                                        一条命令跑完前后两次 + 对比:tests/llm_security/tools/holdout_compare.ps1
 
@@ -29,6 +30,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from llmsec import compare as CMP            # noqa: E402
+from llmsec import crosscheck as XC          # noqa: E402
 from llmsec import dataset as dsmod          # noqa: E402
 from llmsec import judge as J                # noqa: E402
 from llmsec import report as R               # noqa: E402
@@ -287,6 +289,20 @@ def cmd_format_split(args) -> int:
     return 0
 
 
+def cmd_rule_signal(args) -> int:
+    """ADR-024 修订 #4 的依据:规则给 OTHER/P2(一个类别都没命中)的样本上,"只在规则命中类别时才判优先级冲突"永远不触发"""
+    run_dir = Path(args.run_dir).resolve()
+    _, records, _ = R.load_run(run_dir)
+    sig = XC.rule_signal(_dataset_for(run_dir), records)
+    if not sig:
+        _out("这批记录里没有规则结论(llm_call_log.rule_category 是第二阶段才加的字段)")
+        return 0
+    _out(f"{run_dir.name}  样本数 = 分类第 0 轮的规则结论(规则确定性,每轮相同)")
+    for g, c in sig.items():
+        _out(f"  {g}	合计 {sum(c.values())}	" + "  ".join(f"{k}={n}" for k, n in c.items()))
+    return 0
+
+
 PRIORITY_CSV = "label_review_priority.csv"
 
 
@@ -396,6 +412,10 @@ def main(argv: list[str] | None = None) -> int:
     sp = sub.add_parser("format-split")
     sp.add_argument("run_dirs", nargs="+")
     sp.set_defaults(func=cmd_format_split)
+
+    sp = sub.add_parser("rule-signal")
+    sp.add_argument("run_dir")
+    sp.set_defaults(func=cmd_rule_signal)
 
     sp = sub.add_parser("models")
     sp.add_argument("--upstream", default=DEFAULT_UPSTREAM)

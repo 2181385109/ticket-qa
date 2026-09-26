@@ -18,7 +18,7 @@ public record ClassifyOutcome(
         boolean contractViolated,
         String rawCategory,
         Long callLogId,
-        /** 交叉校验冲突,已改用规则结果,待人工复核(ADR-024) */
+        /** 交叉校验冲突,待人工复核;v2 起 category / priority 仍是模型结果(ADR-024 修订 #4) */
         boolean needsReview,
         /** ReviewReason 逗号连接;不冲突为 null */
         String reviewReason) {
@@ -43,7 +43,7 @@ public record ClassifyOutcome(
             sb.append(" contractViolated=true raw=").append(rawCategory);
         }
         if (needsReview) {
-            sb.append(" needsReview=true reason=").append(reviewReason).append(" (采用规则结果)");
+            sb.append(" needsReview=true reason=").append(reviewReason).append(" (保留模型结果,待复核)");
         }
         return sb.append(" latencyMs=").append(latencyMs).toString();
     }

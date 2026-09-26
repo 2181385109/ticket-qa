@@ -27,7 +27,7 @@ import java.util.Set;
  *        │成功
  *   契约校验:category 越界 → 打点 + 落 OTHER;priority 越界 → 打点 + 规则兜底
  *        │
- *   交叉校验(ADR-024):和规则冲突 → 采用规则结果 + needsReview        草稿:输出检查命中 → 模板(UNSAFE_OUTPUT,不计入熔断)
+ *   交叉校验(ADR-024 v2):和规则冲突 → 只标 needsReview,仍采用模型结果    草稿:输出检查命中 → 模板(UNSAFE_OUTPUT,不计入熔断)
  *        │
  *   落盘 llm_call_log + 打指标
  *
@@ -98,14 +98,14 @@ public class LlmService {
         Set<ReviewReason> conflicts = ClassifyCrossCheck.check(
                 violated ? null : modelCategory, parsedPriority.orElse(null), rule.priority(),
                 rules.matchedCategories(title, content));
+        // v2(ADR-024 修订 #4,KI-023):冲突只标记、不改采用值。规则 P2 里混着"认出是咨询"和"什么都没认出",
+        // 它没有资格推翻模型——v1 用规则结果覆盖,把不含关键词的真 P0 降成了 P2
         boolean needsReview = !conflicts.isEmpty();
         TicketCategory category = modelCategory;
         if (needsReview) {
             conflicts.forEach(metrics::review);
-            log.warn("LLM 分类与规则冲突 {} model={}/{} rule={}/{} → 采用规则结果,待人工复核",
+            log.warn("LLM 分类与规则冲突 {} model={}/{} rule={}/{} → 保留模型结果,标记人工复核",
                     conflicts, modelCategory, priority, rule.category(), rule.priority());
-            category = rule.category();
-            priority = rule.priority();
         }
         String reviewReason = ClassifyCrossCheck.join(conflicts);
 

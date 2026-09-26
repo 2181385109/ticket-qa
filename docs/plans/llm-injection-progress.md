@@ -134,3 +134,22 @@
 - **M9 / M10 完成**(6f9d38f + 本提交):findings/20260926 防御后复测、KI-018~021 补 v1 残余、KI-023 + 事实记录用例、ADR-024 后果与质疑补 v1、
   test-design/09 留出集说明、清单与 README;交接见 `llm-injection-handoff.md`(已知局限含"设计者读过第一阶段草稿"的披露)。tag `v0.6-injection-defense`。
 
+
+## 作者对 handoff §4 的决定(2026-09-26,第四次会话):按顺序执行五项
+
+| # | 内容 | 状态 | commit |
+|---|---|---|---|
+| 1 | KI-023 修复 = v2:交叉校验冲突只标记、不改采用值 | 完成 | 见下 |
+| 2 | v2 回放评估(不发真实请求):先验证请求与 v1 逐字节一致,再用 WireMock 回放 v1 录制的模型输出 | 未开始 | |
+| 3 | 基线复跑:tag `v0.5-injection-baseline` 代码,只跑 A/B/C/D 攻击样本 k=5 | 未开始 | |
+| 4 | `test_sla.py::TestEscalation` 改为只用数据库时间;改前改后各跑 3 次,记为测试自身缺陷 | 未开始 | |
+| 5 | KI-023 相关数字以"全部样本"为主口径;剔除 ⚠ 掩盖损害时明确指出 | 未开始 | |
+
+约束不变:真实调用累计 ≤ 1700;不 push;留出集 `data/holdout.jsonl` 仍为空 → 跳过。
+
+- **1(v2)**:`LlmService.classify` 冲突分支删掉两行赋值(category / priority 不再改成规则的),其余(`ClassifyCrossCheck` 判定、`review_reason`、
+  `llm_review_total`、`rule_category / rule_priority` 落盘)不变;审计备注改为"(保留模型结果,待复核)"。作者指定的就是 ADR-024 候选 ②;
+  ADR-024 修订 #4 + 文末"交叉校验 v2"一节写了为什么不选 v1 原样和候选 ①(候选 ① 在结构上等于删掉优先级检查:规则只有在一个类别都没命中时才给 P2)。
+  新增离线命令 `run_eval.py rule-signal DIR`(ADR 引用的"A 类 12 条里 8 条规则给 OTHER/P2"由它复现)与 `llmsec/crosscheck.py`(第 5 项也用它)。
+  验证:`mvn -o clean verify` 401 条单测全过(含 JaCoCo 门禁);挡板模式 `test_prompt_injection.py` 10 passed、LLM 相关接口用例 74 passed;
+  `tests/llm_security` 离线 138 passed。服务已用 v2 jar 以挡板模式重启。
