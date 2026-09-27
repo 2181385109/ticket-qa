@@ -25,7 +25,7 @@ class TestAssignIsLeaderOnly:
         # 从 ASSIGNED 升级成 ESCALATED 的单仍挂着 assignee=agent_a:写权限够,ESCALATED→ASSIGNED 也是合法边,
         # 唯一拦住它的只能是角色检查
         t = tickets.assigned(Users.AGENT_A)
-        db.set_sla_deadline_now(t["id"], offset_seconds=-1)
+        db.set_sla_deadline_from_last_write(t["id"], offset_seconds=-1)
         api.sla_scan().expect.ok()
         api.get_ticket(t["id"]).expect.ok().data("status").eq("ESCALATED").data("assigneeId").eq(Users.AGENT_A.id)
         api.as_user(Users.AGENT_A).transit(t["id"], "ASSIGNED", assignee_id=Users.AGENT_A.id).expect.error(403, 40302)

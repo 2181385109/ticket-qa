@@ -83,8 +83,8 @@ class TicketFactory:
     def escalated(self, group_id: int = 1, **kw) -> dict[str, Any]:
         """创建 → 截止时间拨到过去 → ADMIN 触发一轮扫描 → ESCALATED"""
         t = self.create(group_id=group_id, **kw)
-        with allure.step(f"造数:把 #{t['id']} 的 sla_deadline 拨到 1 秒前并扫描"):
-            self.db.set_sla_deadline_now(t["id"], offset_seconds=-1)
+        with allure.step(f"造数:把 #{t['id']} 的 sla_deadline 拨到最后一次写入时刻的 1 秒前并扫描"):
+            self.db.set_sla_deadline_from_last_write(t["id"], offset_seconds=-1)
             self.api.sla_scan().expect.ok()
             resp = self.api.get_ticket(t["id"])
             resp.expect.ok().data("status").eq("ESCALATED")

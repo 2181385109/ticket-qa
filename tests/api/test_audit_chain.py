@@ -36,7 +36,7 @@ class TestAuditChain:
         api.as_user(Users.AGENT_A).transit(t["id"], "PENDING", remark="退回").expect.ok()
         api.as_user(Users.AGENT_B).grab(t["id"]).expect.ok()
         api.as_user(Users.LEADER_1).assign(t["id"], Users.AGENT_A.id).expect.ok()
-        db.set_sla_deadline_now(t["id"], offset_seconds=-1)
+        db.set_sla_deadline_from_last_write(t["id"], offset_seconds=-1)
         api.sla_scan().expect.ok()
         api.as_user(Users.LEADER_1).assign(t["id"], Users.AGENT_B.id).expect.ok()
 

@@ -5,10 +5,11 @@ SLA 自动升级——边界值分析 + 场景法(docs/test-design/02)。
 碰不到(扫描的 now 是服务取的),所以这里取 deadline = now-1s(必超时)和 now+3s(必未超时,3.5 秒后再扫变超时)
 两个点夹住边界;精确到毫秒的 <= vs < 由单测 SlaOverdueQueryH2Test 在真实 SQL 上证明。
 
-TestEscalation 的"now"只取自数据库里服务写下的时间(工单的 updated_at,`db.set_sla_deadline_from_last_write`),
-不再取 MySQL 的 NOW(3):扫描比较用的是服务进程的时钟,NOW(3) 是容器的时钟,两者不一致时 NOW(3)-1s 可能还没到期
+构造截止时间的"now"只取自数据库里服务写下的时间(工单的 updated_at,`db.set_sla_deadline_from_last_write`),
+不取 MySQL 的 NOW(3):扫描比较用的是服务进程的时钟,NOW(3) 是容器的时钟,两者不一致时 NOW(3)-1s 可能还没到期
 (2026-09-26 WSL 比宿主快约 1.4 s,3 条失败;findings/20260926-测试缺陷-SLA用例混用两个时钟)。
-其余几个类仍用 NOW(3)(本次只改 TestEscalation,见该 findings 的"影响范围")。
+2026-09-26 先改了 TestEscalation;2026-09-27 本文件其余用例、`tickets.escalated` 夹具、test_audit_chain、
+security/test_vertical_privilege 同样改掉(该 findings §7)。
 """
 import time
 
@@ -80,7 +81,7 @@ class TestNoDoubleEscalation:
     @allure.title("同一工单连续扫两轮:第二轮升级数为 0,SCHEDULER 审计只有一条,skipped 指标不增(第二轮根本扫不到它)")
     def test_second_scan_is_noop(self, tickets, api, db, metrics, metrics_before):
         t = tickets.pending(group_id=1)
-        db.set_sla_deadline_now(t["id"], offset_seconds=-1)
+        db.set_sla_deadline_from_last_write(t["id"], offset_seconds=-1)
         api.sla_scan().expect.ok().data("escalated").ge(1)
         api.sla_scan().expect.ok().data("escalated").eq(0)
         assert sum(1 for l in db.audit_logs(t["id"]) if l["source"] == "SCHEDULER") == 1
@@ -99,7 +100,7 @@ class TestNoDoubleEscalation:
     def test_batch_escalation(self, tickets, api, db):
         ids = [tickets.pending(group_id=g)["id"] for g in (1, 2, 1)]
         for i in ids:
-            db.set_sla_deadline_now(i, offset_seconds=-1)
+            db.set_sla_deadline_from_last_write(i, offset_seconds=-1)
         api.sla_scan().expect.ok().data("escalated").ge(3)
         for i in ids:
             assert db.ticket(i)["status"] == "ESCALATED"

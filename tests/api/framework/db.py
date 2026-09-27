@@ -54,18 +54,14 @@ class Db:
     def ticket(self, ticket_id: int) -> dict | None:
         return self.one("SELECT * FROM ticket WHERE id = %s", (ticket_id,))
 
-    def set_sla_deadline_now(self, ticket_id: int, offset_seconds: float = 0) -> None:
-        """把截止时间设成数据库的 NOW(3) + offset;用 DB 时钟避免宿主与容器时钟不一致"""
-        self.execute("UPDATE ticket SET sla_deadline = TIMESTAMPADD(MICROSECOND, %s, NOW(3)) WHERE id = %s",
-                     (int(offset_seconds * 1_000_000), ticket_id))
-
     def set_sla_deadline_from_last_write(self, ticket_id: int, offset_seconds: float) -> None:
         """把截止时间设成这张工单**最后一次被服务写入的时刻**(updated_at)+ offset。
 
         为什么不用 NOW(3):SLA 扫描拿来比较的 now 是服务进程的时钟(宿主),NOW(3) 是 MySQL 的时钟(WSL 里的容器),
         两者差 1.4 s 时 NOW(3)-1s 在服务看来还没到期(findings/20260926-测试缺陷-SLA用例混用两个时钟)。
         updated_at 是服务用自己的时钟写进库里的,库里只剩这一个时间来源:deadline 与扫描的 now 出自同一个时钟,
-        两台机器的时钟差多少都不影响判定。前提只剩"服务的时钟不倒退"。"""
+        两台机器的时钟差多少都不影响判定。前提只剩"服务的时钟不倒退"。
+        2026-09-27 起所有构造 SLA 超时的用例都走这里,原来基于 NOW(3) 的 set_sla_deadline_now 已删除,避免再被新用例用上。"""
         self.execute("UPDATE ticket SET sla_deadline = TIMESTAMPADD(MICROSECOND, %s, updated_at) WHERE id = %s",
                      (int(offset_seconds * 1_000_000), ticket_id))
 

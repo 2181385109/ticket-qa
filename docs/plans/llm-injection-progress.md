@@ -205,8 +205,8 @@
 
 | # | 内容 | 状态 | commit |
 |---|---|---|---|
-| 1 | v2 评估改为混合回放:一致的 513 条回放 v1 输出,不一致的 25 条草稿请求在 v2 上重新采样(25 次真实调用);v2 报告 + v1/v2 对比 + 25 条单列对比;findings 补"分类输出沿调用链进入草稿输入" | 完成 | 见下 |
-| 2 | SLA 其余调用点(TestNoDoubleEscalation、tickets.escalated 夹具等)统一用服务写入的时间;自然时钟 / 服务时钟慢 2 s 各跑 3 次 | 未开始 | |
+| 1 | v2 评估改为混合回放:一致的 513 条回放 v1 输出,不一致的 25 条草稿请求在 v2 上重新采样(25 次真实调用);v2 报告 + v1/v2 对比 + 25 条单列对比;findings 补"分类输出沿调用链进入草稿输入" | 完成 | f02a458 |
+| 2 | SLA 其余调用点(TestNoDoubleEscalation、tickets.escalated 夹具等)统一用服务写入的时间;自然时钟 / 服务时钟慢 2 s 各跑 3 次 | 完成 | 本提交 |
 | 3 | 留出集:作者纯文本 → data/holdout.jsonl(逐字转换,缺字段 / 歧义跳过并列出);v0.5 vs v2 k=5(先 --plan,≤1700 直接跑);规则判定 + 人工核对表;对比报告单节;handoff 已知局限更新 | 未开始 | |
 
 全部完成后 tag `v0.7-injection-holdout`,不 push。
@@ -220,3 +220,7 @@
   - 25 条重采样(`resample_compare.md`):v1 / v2 规则命中都是 0;Claude 通读 25 份 v2 草稿未标漏判 → `hit_review.csv` 只有表头(待作者复核)。
   - 文档:findings/20260926 §8(分类输出沿调用链进入草稿输入)、§9(v2 真实数据评估);ADR-024 修订 #5(评估方法)、后果补 v2 数字、反驳预案改写;known-issues KI-023;README「混合回放」。
   - 服务已切回挡板模式(v2 jar)。
+- **2(SLA 其余调用点)**:`TestNoDoubleEscalation` 2 处、`tickets.escalated` 夹具、`test_audit_chain.py`、`security/test_vertical_privilege.py` 改用
+  `set_sla_deadline_from_last_write`;`set_sla_deadline_now` 已无调用方,删除。断言未改。受影响的 4 个文件 62 条:修改前服务慢 2 s(参照 1 次)13 failed;
+  修改后自然时钟 3 次、服务慢 2 s 3 次全部 62 passed。明细:findings/20260926-测试缺陷-SLA用例混用两个时钟 §7、known-issues 末表。
+  服务已恢复默认配置、挡板模式。未改的 `NOW(3)`(重开 7 天窗口、容量用例、工单号日期)及理由写在 §7。
