@@ -411,7 +411,7 @@
 |---|---|---|
 | `UntrustedInputTest` | 等价类 | 数据区形状;伪造 `</ticket>` / `<system>` 被中和;提示词只追加不改原句 |
 | `ClassifyCrossCheckTest` | 判定表 + 全组合 | 优先级 3×3(只有 P0×P2 冲突);分类 6 行;越界字段跳过;两维同时冲突;`matchedCategories` |
-| `DraftOutputPolicyTest` | 等价类 + 边界值 | 承诺(原样 / 全角 / 空格 / 大小写 / 否定句照拦 / 换说法漏过 / 常见话术不拦);泄露(逐字 / 换标点复述 / 追加说明 / 7 字放行 8 字拦截 / 转述漏过);正常草稿放行 |
+| `DraftOutputPolicyTest` | 等价类 + 边界值 | 承诺(原样 / 全角 / 空格 / 大小写 / 否定句照拦 / 换说法漏过 / 常见话术不拦);泄露(逐字 / 换标点复述 / 追加说明 / 7 字放行 8 字拦截 / 转述漏过);正常草稿放行;已知漏过(xfail strict 语义,KI-021):英文翻译 / 中文概括 / 打乱语序改写各 1 条,断言现状放行 |
 | `LlmServiceTest$CrossCheck` / `$DraftPolicy` | 判定表 R10~R14、D6~D8 | v2:冲突保留模型结果 + 复核标记 + 指标 + 落盘字段(含 KI-023 回归 `trueP0WithoutRuleKeywordsIsNotDowngraded`);UNSAFE_OUTPUT 不计入熔断 |
 | `OpenAiCompatibleLlmClientTest` | 等价类 + 边界值 | 恰好一个对象 / 读不出对象(非 JSON、截断、自然语言花括号、`[1,2]`)→ BAD_RESPONSE / 夹带(尾随对象 KI-022、D-004 形态、对象后跟文字、数组包对象)→ MIXED_OUTPUT;请求里的数据区与转义 |
 | `WireMockLlmClientTest.trailingJsonIsMixedOutput` | 等价类 | 挡板客户端同样严格 |
