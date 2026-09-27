@@ -122,7 +122,7 @@ def _outs(grouped, sid: str, layer: str) -> list[str]:
 def uncertain_breakdown(ds: Dataset, grouped, attacks: list[dict[str, Any]]) -> list[dict[str, Any]]:
     rows = []
     for s in attacks:
-        if s["attack_class"] not in ("A", "B") or not ds.is_uncertain(s["id"]):
+        if s["attack_class"] not in ("A", "B") or not ds.is_uncertain(s["id"]) or not s.get("base_id"):
             continue
         base = ds.by_id[s["base_id"]]
         rows.append({"id": s["id"], "class": s["attack_class"], "base_id": base["id"],
@@ -311,11 +311,13 @@ def compute(ds: Dataset, grouped, records, lists: J.JudgeLists, attacks: list[di
             controls: list[dict[str, Any]], layers, versions, hit_review: list[dict[str, str]] | None) -> dict[str, Any]:
     rv: dict[str, Any] = {"flips": {}, "pairs": {}}
     for layer in layers:
-        pairs = {s["id"]: paired_runs(ds, grouped, s, layer) for s in attacks if s["attack_class"] in ("A", "B")}
+        # 翻转口径要基底;留出样本没有基底,不参与(它们的主口径见 holdout.py)
+        pairs = {s["id"]: paired_runs(ds, grouped, s, layer) for s in attacks if s["attack_class"] in ("A", "B") and s.get("base_id")}
         rv["pairs"][layer] = pairs
         for cls in ("A", "B"):
             for ver in versions:
-                ids = [s["id"] for s in attacks if s["attack_class"] == cls and (ver == "all" or not ds.is_uncertain(s["id"]))]
+                ids = [s["id"] for s in attacks if s["attack_class"] == cls and s["id"] in pairs
+                       and (ver == "all" or not ds.is_uncertain(s["id"]))]
                 rv["flips"].setdefault(cls, {}).setdefault(layer, {})[ver] = agg_flips({i: pairs[i] for i in ids})
     rv["uncertain"] = uncertain_breakdown(ds, grouped, sorted(attacks, key=lambda x: x["id"]))
     rv["control_misses"] = control_misses(ds, grouped, sorted(controls, key=lambda x: x["id"]))

@@ -3,7 +3,8 @@
 
 用在三处:
   - phase1(第一阶段基线,无防御) vs phase2-v1(第二阶段防御后复测)——攻击集与防御同源;
-  - holdout-pre vs holdout-post(留出集,作者在防御定稿后亲手编写;同一组样本分别打防御前 / 防御后的服务);
+  - holdout-pre vs holdout-post(留出集,防御定稿后另行起草的新样本,来源见 report.HO_SOURCE_NOTE;同一组样本分别打防御前 / 防御后的服务;
+    主体是 holdout.py 生成的"留出集"一节,依赖基底 / 对照组的通用章节不出现);
   - phase2-v1 vs phase2-v2-replay(交叉校验 v2 的回放评估:同一批模型输出,v1 / v2 两种输出端逻辑;列名改为 v1 / v2);
   - phase2-v1 vs phase2-v2-hybrid(混合回放:请求一致的复用 v1 输出,不一致的 25 个草稿请求重新采样,llmsec/hybrid.py)。
 
@@ -19,6 +20,7 @@ from pathlib import Path
 from typing import Any
 
 from . import crosscheck as XC
+from . import holdout as HO
 from . import judge as J
 from . import report as R
 from . import review as RV
@@ -42,6 +44,8 @@ def _stats(run_dir: Path, ds: Dataset, lists: J.JudgeLists) -> dict[str, Any]:
     st["p0_controls"] = {sid: ds.by_id[sid]["expected"]["priority"] == "P0" for sid in st["control_outputs"]}
     st["xc"] = XC.stats(ds, records, set(meta["sample_ids"]) if meta.get("sample_ids") else None)
     st["ds"] = ds
+    if meta.get("phase") == "holdout":
+        st["ho"] = HO.compute(run_dir, ds, lists)
     return st
 
 
@@ -68,12 +72,13 @@ def _manual_cells(st: dict[str, Any], cls: str, layer: str, ver: str) -> tuple[s
 def _notes(mb: dict[str, Any], ma: dict[str, Any]) -> list[str]:
     L = []
     if ma.get("phase") == "holdout":
-        L += ["> **样本来源**:留出集 `data/holdout.jsonl` 由作者在第二阶段防御定稿(tag `v0.6-injection-defense` 之前的 v1 复测已完成)之后亲手编写,"
-              "写防御的 Claude 没有见过这些样本——这是本对比与 phase1 vs phase2 对比的根本区别。两次运行打的是同一组样本、同一个上游,"
+        L += ["> **样本来源**:留出集 `data/holdout.jsonl`(由 `data/holdout_source.txt` 逐字转换)在第二阶段防御定稿之后起草——"
+              + R.HO_SOURCE_NOTE + "所以它与防御不同源,但**不是盲测**:起草时针对的就是已知的防御设计。两次运行打的是同一组样本、同一个上游,"
               f"只有服务代码不同:防御前 = {mb.get('service_ref') or '未记录'},防御后 = {ma.get('service_ref') or '未记录'}。", ""]
+        return L
     else:
         L += ["> **攻击集与防御同源**:攻击集由 Claude 编写,防御也由 Claude 编写,防御后的数字偏乐观。不同源的检验见留出集对比"
-              "(作者在防御定稿后亲手编写样本,`tests/llm_security/README.md`「留出集」)。", "",
+              "(防御定稿后另行起草的新样本,`tests/llm_security/README.md`「留出集」)。", "",
               "> **已知局限——防御设计者读过第一阶段数据**(ADR-024 第二阶段防御一节的披露,原文照录要点):写防御的 Claude 在 M5.5 人工核对时"
               "逐条读过第一阶段全部 90 份 C/D 草稿,知道模型成功时写了什么。防御的词表、窗口、阈值没有拿录到的数据试算过,"
               "但\"没调过\"只能保证到这一步,不能保证设计者的直觉没被数据影响。", ""]
@@ -111,6 +116,8 @@ def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, 
     L += ["## 1. 两次运行", ""]
     L += R._md_table(["", "运行目录", "git commit(开跑时)", "服务代码", "k", "raw 记录", "上游调用", "开始 / 结束(UTC)", "C/D 人工核对表"], rows)
     L += ["", f"复现本文件(不发请求):`python tests/llm_security/run_eval.py compare {_rel(before_dir)} {_rel(after_dir)}`", ""]
+    if ma.get("phase") == "holdout":
+        return "\n".join(_render_holdout(sb, sa, lb, la, L))
 
     # ---- 主口径
     L += [f"## 2. 主口径:{lb} → {la}", ""]
@@ -177,23 +184,7 @@ def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, 
 
     L += _render_crosscheck(sb, sa, lb, la)
 
-    # ---- 无效运行与格式
-    L += ["## 6. 无效运行、降级原因与分类输出格式", ""]
-    keys = sorted(set(sb["calls"]["invalid"]["e2e"]) | set(sa["calls"]["invalid"]["e2e"]))
-    rows = [[k, sb["calls"]["invalid"]["e2e"].get(k, 0), sa["calls"]["invalid"]["e2e"].get(k, 0)] for k in keys]
-    L += ["端到端无效运行(不进分母):", ""]
-    L += R._md_table(["场景:原因", lb, la], rows or [["无", 0, 0]])
-    L += ["", "攻击样本上的格式类降级:", ""]
-    L += R._md_table(["原因", lb, la], [
-        ["BAD_RESPONSE(读不出对象,计入熔断)", len(sb["calls"]["bad_response_attacks"]), len(sa["calls"]["bad_response_attacks"])],
-        ["MIXED_OUTPUT(夹带,不计入熔断)", len(sb["calls"]["mixed_output_attacks"]), len(sa["calls"]["mixed_output_attacks"])]])
-    groups = sorted({k.split(":")[0] for st in (sb, sa) for k in st["calls"]["formats"]}, key=lambda g: (g == "对照", g))
-    rows = []
-    for g in groups:
-        rows.append([g] + [f"{sb['calls']['formats'].get(f'{g}:{f}', 0)} → {sa['calls']['formats'].get(f'{g}:{f}', 0)}" for f in FORMATS])
-    L += ["", f"分类场景模型原始输出的格式形态({lb} → {la};按服务端 `LlmJson` 同样的规则归类):", ""]
-    L += R._md_table(["样本组"] + [R.FORMAT_NAMES[f] for f in FORMATS], rows or [["—", "", "", ""]])
-    L += [""]
+    L += _render_invalid(sb, sa, lb, la, 6)
 
     # ---- 逐样本
     L += ["## 7. 逐样本(端到端 / 模型层,k 次中成功次数;A/B 为翻转次数 / 可配对次数,C/D 为人工核对后成功次数,无核对表时用判定规则)", ""]
@@ -228,6 +219,44 @@ def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, 
     L += R._md_table(["key", "输出 / 命中", "依据"], rows or [["—", "无", "—"]])
     L += [""]
     return "\n".join(L)
+
+
+def _render_invalid(sb: dict[str, Any], sa: dict[str, Any], lb: str, la: str, n: int) -> list[str]:
+    L = [f"## {n}. 无效运行、降级原因与分类输出格式", ""]
+    keys = sorted(set(sb["calls"]["invalid"]["e2e"]) | set(sa["calls"]["invalid"]["e2e"]))
+    rows = [[k, sb["calls"]["invalid"]["e2e"].get(k, 0), sa["calls"]["invalid"]["e2e"].get(k, 0)] for k in keys]
+    L += ["端到端无效运行(不进分母):", ""]
+    L += R._md_table(["场景:原因", lb, la], rows or [["无", 0, 0]])
+    L += ["", "攻击样本上的格式类降级:", ""]
+    L += R._md_table(["原因", lb, la], [
+        ["BAD_RESPONSE(读不出对象,计入熔断)", len(sb["calls"]["bad_response_attacks"]), len(sa["calls"]["bad_response_attacks"])],
+        ["MIXED_OUTPUT(夹带,不计入熔断)", len(sb["calls"]["mixed_output_attacks"]), len(sa["calls"]["mixed_output_attacks"])]])
+    groups = sorted({k.split(":")[0] for st in (sb, sa) for k in st["calls"]["formats"]}, key=lambda g: (g == "对照", g))
+    rows = []
+    for g in groups:
+        rows.append([g] + [f"{sb['calls']['formats'].get(f'{g}:{f}', 0)} → {sa['calls']['formats'].get(f'{g}:{f}', 0)}" for f in FORMATS])
+    L += ["", f"分类场景模型原始输出的格式形态({lb} → {la};按服务端 `LlmJson` 同样的规则归类):", ""]
+    L += R._md_table(["样本组"] + [R.FORMAT_NAMES[f] for f in FORMATS], rows or [["—", "", "", ""]])
+    L += [""]
+    return L
+
+
+def _render_holdout(sb: dict[str, Any], sa: dict[str, Any], lb: str, la: str, L: list[str]) -> list[str]:
+    """留出集:没有基底、没有对照组,翻转口径与对照误伤两节不适用;主体是 holdout.render_section"""
+    rows = []
+    for label, st in ((lb, sb), (la, sa)):
+        c = st["calls"]
+        rows.append([label, _cell_json(c["request_models"]), _cell_json(c["response_models"]), _cell_json(c["fingerprints"]),
+                     _cell_json(c["upstream_status"])])
+    L += R._md_table(["", "请求模型名", "响应模型名", "system_fingerprint", "上游 HTTP 状态"], rows)
+    L += [""]
+    L += HO.render_section(sb["ho"], sa["ho"], lb, la, 2)
+    L += _render_invalid(sb, sa, lb, la, 3)
+    return L
+
+
+def _cell_json(d: dict[str, Any]) -> str:
+    return ", ".join(f"{k} ×{v}" for k, v in d.items()) or "—"
 
 
 def _xc_rows(st: dict[str, Any], ver: str) -> list[tuple[str, str]]:

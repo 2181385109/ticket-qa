@@ -47,8 +47,8 @@ def test_every_line_is_json_object():
 
 
 def test_holdout_is_valid_together_with_dataset(ds):
-    """计划 D3(2026-09-26 修订):留出集由作者在防御定稿后亲手编写,可以为空;写了就必须和主数据集一起通过校验
-    (id 不重复、基底存在、期望与基底一致、目标合法)——否则 holdout_compare.ps1 跑到一半才报错,白花真实调用"""
+    """计划 D3(2026-09-27 修订):留出集在防御定稿后另行起草(来源见 report.HO_SOURCE_NOTE),由 data/holdout_source.txt 转换;
+    必须和主数据集一起通过校验(id 不重复、留出样本无基底、目标合法)——否则 holdout_compare.ps1 跑到一半才报错,白花真实调用"""
     assert (dsmod.DATA_DIR / "holdout.jsonl").exists()
     holdout = dsmod.load_holdout()
     assert dsmod.validate(dsmod.Dataset(controls=ds.controls, attacks=ds.attacks + holdout)) == []

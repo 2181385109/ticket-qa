@@ -96,4 +96,4 @@ def test_holdout_report_counts_only_samples_in_run(tmp_path):
     assert st["attacks"]["A"]["e2e"]["all"]["samples_total"] == 1
     assert st["attacks"]["B"]["e2e"]["all"]["samples_total"] == 0, "B-001 不在本次运行里"
     text = R.render(st, ds, "x")
-    assert "由作者在第二阶段防御定稿之后亲手编写" in text and "| 服务代码(本次运行打的是哪一版服务) | HEAD |" in text
+    assert R.HO_SOURCE_NOTE in text and "| 服务代码(本次运行打的是哪一版服务) | HEAD |" in text

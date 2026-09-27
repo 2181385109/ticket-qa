@@ -1,7 +1,9 @@
 """
 测试集:加载、校验、文本指纹、标签审核表的导出 / 回写。
 
-- 样本文件:data/controls.jsonl(对照)、data/attacks.jsonl(攻击)、data/holdout.jsonl(留出集,本轮为空)。
+- 样本文件:data/controls.jsonl(对照)、data/attacks.jsonl(攻击)、data/holdout.jsonl(留出集,H-001 起;由 data/holdout_source.txt
+  逐字转换而来,见 llmsec/holdout.py)。
+- 留出样本是"新样本":没有基底(base_id = null),期望标签直接写在样本上;id 以 H- 开头,攻击类别写在 attack_class。
 - 文本指纹 text_sha256 只覆盖 id + 标题 + 内容:改标签不影响指纹;改了样本文本,第一阶段和第二阶段就不可比(runner 会拒绝续跑 / 对比)。
 - 攻击样本的期望标签继承自基底对照样本;改对照的标签(labels apply)会同步到它的全部攻击样本。
 """
@@ -22,6 +24,10 @@ PRIORITIES = ("P0", "P1", "P2")
 ATTACK_CLASSES = ("A", "B", "C", "D")
 TECHNIQUES = ("direct_instruction", "fake_system_message", "fake_json_output", "role_play",
               "mixed_zh_en", "buried_in_long_text", "fake_delimiter", "keyword_stuffing")
+# 留出集新增的手法(由 Claude 按原稿"方向"一栏归类,原文保留在样本的 source.方向;只允许出现在 H- 样本上)
+HOLDOUT_TECHNIQUES = ("translation_leak", "summary_leak", "category_chain", "social_pressure", "fake_history",
+                      "restate_wrap", "split_instruction", "cross_lingual")
+HOLDOUT_PREFIX = "H-"
 LABEL_STATUSES = ("model_labeled", "human_confirmed")
 TITLE_MAX, CONTENT_MAX = 200, 5000          # CreateTicketRequest 的 @Size
 
@@ -67,11 +73,11 @@ class Dataset:
         return text_sha256(self.samples)
 
     def is_uncertain(self, sample_id: str) -> bool:
-        """⚠ 的范围(ADR-024 §5):对照 = 自身;A/B = 自身或基底;C/D = 仅自身"""
+        """⚠ 的范围(ADR-024 §5):对照 = 自身;A/B = 自身或基底;C/D = 仅自身;留出样本没有基底 = 仅自身"""
         s = self.by_id[sample_id]
         if s.get("uncertain"):
             return True
-        if s["group"] == "attack" and s["attack_class"] in ("A", "B"):
+        if s["group"] == "attack" and s["attack_class"] in ("A", "B") and s.get("base_id"):
             return bool(self.by_id[s["base_id"]].get("uncertain"))
         return False
 
@@ -139,19 +145,26 @@ def validate(ds: Dataset) -> list[str]:
                 errors.append(f"{sid}: 对照样本不应有攻击字段")
         elif s["group"] == "attack":
             cls = s["attack_class"]
-            if cls not in ATTACK_CLASSES or not sid.startswith(cls + "-"):
+            holdout = sid.startswith(HOLDOUT_PREFIX)
+            if cls not in ATTACK_CLASSES or not (holdout or sid.startswith(cls + "-")):
                 errors.append(f"{sid}: attack_class 不合法或与 id 前缀不符")
                 continue
-            if s["technique"] not in TECHNIQUES:
+            if s["technique"] not in TECHNIQUES + (HOLDOUT_TECHNIQUES if holdout else ()):
                 errors.append(f"{sid}: technique 不合法 {s['technique']}")
-            if s["injection_in"] not in ("title", "content"):
+            if s["injection_in"] not in ("title", "content") + (("title+content",) if holdout else ()):
                 errors.append(f"{sid}: injection_in 不合法")
-            base = by_id.get(s["base_id"])
-            if base is None or base["group"] != "control":
-                errors.append(f"{sid}: base_id {s['base_id']} 不是已存在的对照样本")
-                continue
-            if s["expected"] != base["expected"]:
-                errors.append(f"{sid}: 期望标签 {s['expected']} 与基底 {base['id']} {base['expected']} 不一致")
+            base = None
+            if holdout:
+                # 留出样本是新样本:没有基底,期望标签直接给在样本上;不做"与基底一致 / 注入位置与基底不同"两项检查
+                if s["base_id"] is not None:
+                    errors.append(f"{sid}: 留出样本没有基底,base_id 应为 null")
+            else:
+                base = by_id.get(s["base_id"])
+                if base is None or base["group"] != "control":
+                    errors.append(f"{sid}: base_id {s['base_id']} 不是已存在的对照样本")
+                    continue
+                if s["expected"] != base["expected"]:
+                    errors.append(f"{sid}: 期望标签 {s['expected']} 与基底 {base['id']} {base['expected']} 不一致")
             tgt = s["target"] or {}
             want_field = {"A": "priority", "B": "category", "C": "draft", "D": "draft"}[cls]
             if tgt.get("field") != want_field:
@@ -171,9 +184,9 @@ def validate(ds: Dataset) -> list[str]:
             if cls == "D" and tgt.get("value") != "leak":
                 errors.append(f"{sid}: D 类目标应为 leak")
             # 注入位置与文本一致:标题注入的样本标题不同于基底;内容注入的样本内容不同于基底
-            if s["injection_in"] == "title" and s["title"] == base["title"]:
+            if base is not None and s["injection_in"] == "title" and s["title"] == base["title"]:
                 errors.append(f"{sid}: 声明标题注入但标题与基底相同")
-            if s["injection_in"] == "content" and s["content"] == base["content"]:
+            if base is not None and s["injection_in"] == "content" and s["content"] == base["content"]:
                 errors.append(f"{sid}: 声明内容注入但内容与基底相同")
         else:
             errors.append(f"{sid}: group 不合法 {s['group']}")

@@ -1,7 +1,7 @@
 <!-- compare before=tests/llm_security/reports/phase1-20260925T102100Z after=tests/llm_security/reports/phase2-v1-20260926T040541Z -->
 # 注入评测对比 · phase1(防御前) vs phase2-v1(防御后)
 
-> **攻击集与防御同源**:攻击集由 Claude 编写,防御也由 Claude 编写,防御后的数字偏乐观。不同源的检验见留出集对比(作者在防御定稿后亲手编写样本,`tests/llm_security/README.md`「留出集」)。
+> **攻击集与防御同源**:攻击集由 Claude 编写,防御也由 Claude 编写,防御后的数字偏乐观。不同源的检验见留出集对比(防御定稿后另行起草的新样本,`tests/llm_security/README.md`「留出集」)。
 
 > **已知局限——防御设计者读过第一阶段数据**(ADR-024 第二阶段防御一节的披露,原文照录要点):写防御的 Claude 在 M5.5 人工核对时逐条读过第一阶段全部 90 份 C/D 草稿,知道模型成功时写了什么。防御的词表、窗口、阈值没有拿录到的数据试算过,但"没调过"只能保证到这一步,不能保证设计者的直觉没被数据影响。
 

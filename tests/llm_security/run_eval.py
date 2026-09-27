@@ -23,6 +23,8 @@
   python tests/llm_security/run_eval.py rerun-compare PHASE1 RERUN AFTER  基线复跑对比:第一阶段 / 复跑 / 防御后,只看攻击样本(不发请求)
   python tests/llm_security/run_eval.py run --phase holdout --run-label pre|post --service-ref REF   留出集(防御前后各跑一次)
                                                                        一条命令跑完前后两次 + 对比:tests/llm_security/tools/holdout_compare.ps1
+  python tests/llm_security/run_eval.py holdout-convert                data/holdout_source.txt → data/holdout.jsonl(逐字转换,不发请求)
+  python tests/llm_security/run_eval.py holdout-review DIR [DIR ...]   写 / 更新留出集运行的 C/D 逐条人工核对表 holdout_review.csv(不发请求)
 
 真实调用的前提:环境变量 LLM_API_KEY 存在(本脚本只检查存在、不读值——key 由服务进程自己读;models 子命令除外,
 它直接调上游,值只放进请求头,不打印不落盘);服务以 LLM_MODE=real 启动且 LLM_BASE_URL 指向本脚本起的录制代理。
@@ -42,6 +44,7 @@ sys.path.insert(0, str(HERE))
 from llmsec import compare as CMP            # noqa: E402
 from llmsec import crosscheck as XC          # noqa: E402
 from llmsec import dataset as dsmod          # noqa: E402
+from llmsec import holdout as HO           # noqa: E402
 from llmsec import hybrid as HY             # noqa: E402
 from llmsec import judge as J                # noqa: E402
 from llmsec import replay as RP              # noqa: E402
@@ -258,6 +261,9 @@ def cmd_run(args) -> int:
     code = _execute(args, run_dir, samples, tasks, seen)
     if code == 0:
         rejudge_one(run_dir, ds)
+        if args.phase == "holdout":
+            path, n, _ = HO.export_review(run_dir, ds, J.load_lists(dsmod.DATA_DIR))
+            _out(f"C/D 逐条人工核对表骨架 {n} 行 → {path}(填好结论与理由后 compare)")
     return code
 
 
@@ -545,6 +551,24 @@ def cmd_resample_compare(args) -> int:
     return 0
 
 
+def cmd_holdout_convert(args) -> int:
+    try:
+        out = HO.convert_file(dsmod.DATA_DIR)
+    except HO.SourceError as e:
+        _out(f"原稿结构不符,未转换:{e}")
+        return 2
+    _out(f"已生成 {out}")
+    return 0
+
+
+def cmd_holdout_review(args) -> int:
+    for d in args.run_dirs:
+        run_dir = Path(d).resolve()
+        path, n, kept = HO.export_review(run_dir, _dataset_for(run_dir), J.load_lists(dsmod.DATA_DIR))
+        _out(f"{path}:{n} 行,保留已有结论 {kept} 行")
+    return 0
+
+
 def cmd_rerun_compare(args) -> int:
     p1, rr, af = (Path(x).resolve() for x in (args.phase1, args.rerun, args.after))
     out = RR.write(p1, rr, af, dsmod.load(), J.load_lists(dsmod.DATA_DIR))
@@ -696,6 +720,13 @@ def main(argv: list[str] | None = None) -> int:
     sp.add_argument("source")
     sp.add_argument("hybrid")
     sp.set_defaults(func=cmd_resample_compare)
+
+    sp = sub.add_parser("holdout-convert")
+    sp.set_defaults(func=cmd_holdout_convert)
+
+    sp = sub.add_parser("holdout-review")
+    sp.add_argument("run_dirs", nargs="+")
+    sp.set_defaults(func=cmd_holdout_review)
 
     sp = sub.add_parser("rerun-compare")
     sp.add_argument("phase1")
