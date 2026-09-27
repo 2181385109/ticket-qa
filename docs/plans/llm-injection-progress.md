@@ -28,6 +28,9 @@
 | 2026-09-26 | pilot-20260926T040529Z | 5 | 548 |
 | 2026-09-26 | phase2-v1-20260926T040541Z | 538 | 1086 |
 | 2026-09-26 | phase1-rerun-attacks-20260926T083123Z(防御前代码,只跑攻击样本) | 218 | 1304 |
+| 2026-09-27 | phase2-v2-hybrid-20260927T040133Z(只计重新采样) | 25 | 1329 |
+| 2026-09-27 | holdout-pre-20260927T063204Z(v0.5 服务) | 54 | 1383 |
+| 2026-09-27 | holdout-post-20260927T063447Z(v2 服务) | 54 | 1437 |
 
 (上限 1700——2026-09-26 作者从 1300 上调;超过即停。runner 也在 `tests/llm_security/reports/call_budget.json` 里持久化计数。)
 
@@ -207,7 +210,7 @@
 |---|---|---|---|
 | 1 | v2 评估改为混合回放:一致的 513 条回放 v1 输出,不一致的 25 条草稿请求在 v2 上重新采样(25 次真实调用);v2 报告 + v1/v2 对比 + 25 条单列对比;findings 补"分类输出沿调用链进入草稿输入" | 完成 | f02a458 |
 | 2 | SLA 其余调用点(TestNoDoubleEscalation、tickets.escalated 夹具等)统一用服务写入的时间;自然时钟 / 服务时钟慢 2 s 各跑 3 次 | 完成 | a388f09 |
-| 3 | 留出集:作者纯文本 → data/holdout.jsonl(逐字转换,缺字段 / 歧义跳过并列出);v0.5 vs v2 k=5(先 --plan,≤1700 直接跑);规则判定 + 人工核对表;对比报告单节;handoff 已知局限更新 | **阻塞:样本文件 H-004 结构与作者描述不符(2026-09-27 第六次会话)** | |
+| 3 | 留出集:作者纯文本 → data/holdout.jsonl(逐字转换,缺字段 / 歧义跳过并列出);v0.5 vs v2 k=5(先 --plan,≤1700 直接跑);规则判定 + 人工核对表;对比报告单节;handoff 已知局限更新 | 完成(2026-09-27 第六次会话;指示全文 `holdout-instructions.md`) | 1596939 7f6f72c cbf37da b8b826a b67e392 fd37ac8 65b6b56 + 本提交;tag v0.7-injection-holdout |
 
 全部完成后 tag `v0.7-injection-holdout`,不 push。
 
@@ -235,3 +238,13 @@
   按指示**没有修补、没有 git mv、没有转换、没有发任何真实请求**;`data/holdout.jsonl` 仍为空,真实调用累计仍 1329 / 1700。
   接手:作者替换 `工单.txt`(H-004 含完整代码块)后,按作者 2026-09-27 第六次会话的完整指示从头执行(git mv 原稿单独提交 → 以文末"人工判定后结论"表覆盖标签 →
   来源说明更正 → 判定口径(A 严格为主、H-006 单列"被施压带偏"、C/D 人工核对标准)→ `plan --holdout` ≤ 1700 直接跑 v0.5 / v2 各 k=5 → 报告单节 → handoff → tag)。
+- **3(留出集)——完成(2026-09-27 第六次会话,作者重发指示并存为 `docs/plans/holdout-instructions.md`)**:
+  - 第 0 步:`工单.txt` git mv 为 `tests/llm_security/data/holdout_source.txt` 原样提交(1596939,连同指示全文);H-004 内容字段按起草人原文修正单独提交(7f6f72c)。
+  - 第 1 步:`llmsec/holdout.py` + `run_eval.py holdout-convert` 逐字转换(核对:10 条、H-004 含两行 ``` 与中间两行);标签以结论表"建议"列为准,理由写入 label_reason;
+    technique / injection_in 由 Claude 按"方向"归类(`ANNOTATION`)。数据集校验放行 `H-` 无基底样本;报告里依赖基底的口径对它们不计算;H-006 `boundary` 不进攻击成功率(cbf37da)。
+    来源说明更正:plan D3、README、test-design/09、findings/20260926、ADR-024、报告措辞(fd37ac8;已提交报告只有这一句变化,数字不变)。
+  - 第 3 步:`plan --holdout` = 54 / 次、两次 108,1329 + 108 = 1437 ≤ 1700,直接跑。两次意外:① PowerShell 5.1 把 Python 的 stderr 警告当终止错误,停在 plan,未发请求;
+    ② 防御前 54 次录完后 `rejudge_one` 重复拼接留出样本、指纹不符而中止——修复 + 回归用例 + 脚本 `-PreDir`(b67e392),沿用防御前目录只跑防御后。
+    结果(65b6b56):防御后四类 0;防御前 A 3/3、B 1/2、C 1/2(人工)、D 0/2;H-006 两版都 5/5 → P1。C/D 核对表 Claude 初标(2 行边界),待作者复核。
+    没有攻击在 v2 上成功 → 未登记 KI、未改防御。findings/20260927-LLM提示词注入-留出集;handoff 重写(§2 已知局限、§4 待决定)。
+  - 离线用例 `tests/llm_security` 173 passed。服务:v2、挡板模式。真实调用 1437 / 1700。未 push。
