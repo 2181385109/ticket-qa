@@ -1,6 +1,6 @@
 ﻿# 留出集:同一组样本分别打"防御前"(tag v0.5-injection-baseline 的服务代码)和"防御后"(当前工作区)的服务,输出对比报告。
 #
-# 留出集 data/holdout.jsonl 由作者在第二阶段防御定稿之后亲手编写(格式与 attacks.jsonl 相同,见 tests/llm_security/README.md「留出集」)。
+# 留出集 data/holdout.jsonl 由 data/holdout_source.txt 逐字转换(run_eval.py holdout-convert;来源说明见 tests/llm_security/README.md「留出集」)。
 # 本脚本一条命令做完:
 #   1. 检查留出集非空、打印调用次数(防御前 + 防御后两次)与预算;
 #   2. 停掉当前服务(logs/app.pid);
@@ -170,4 +170,4 @@ if ($SmokeTest) { Say "冒烟完成:两版服务都能打包、启动、健康�
 # ------------------------------------------------------------------ 3. 对比
 Invoke-RunEval @('compare', $preDir, $postDir)
 Say "对比报告:$postDir\compare.md"
-Say "C/D 命中的人工核对:分别在两个运行目录放 hit_review.csv(格式见 README「基线复核」),然后 rejudge 两个目录并重新 compare"
+Say "C/D 逐条人工核对:两个运行目录里的 holdout_review.csv 骨架已生成,填好核对结论与理由后重新 compare(README「留出集」)"
