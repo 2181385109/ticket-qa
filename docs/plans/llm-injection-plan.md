@@ -47,7 +47,7 @@
 |---|---|
 | D1 | API key:只读环境变量 `LLM_API_KEY`(2026-09-25 例外:允许在启动进程的同一条命令里从作者指定的本机文件读入进程环境变量,约束见 §2-7) |
 | D2 | 模型名:不改默认配置(`deepseek-chat`),请求名、响应名都记。若请求被拒:调一次 `/models`,选其中的 flash 模型继续,写进 meta 和 ADR-024 |
-| D3 | ~~留出样本本轮不做~~ **2026-09-26 修订**:留出集由**作者亲手编写**,写在 `data/holdout.jsonl`(格式同 attacks.jsonl),**在防御定稿(v1 复测)之后编写**,写防御的 Claude 没见过;Claude 不替作者写、不等作者写。提供一条命令同时在防御前(tag `v0.5-injection-baseline` 的代码)和防御后跑这组样本并输出对比报告:`tests/llm_security/tools/holdout_compare.ps1`。phase1 vs phase2 的报告仍写明"攻击集与防御同源,结果偏乐观" |
+| D3 | **2026-09-27 更正来源**:留出集由聊天端的 Claude 起草；期望标签由起草人给出修改建议，Yao 逐条确认。起草人知道防御的设计（属于适应性攻击），但没有参与编写防御代码，也没有看过第一阶段的草稿原文。原稿 `data/holdout_source.txt`(H-004 内容字段按起草人原文修正:原稿从聊天端复制时代码块标记丢失),`run_eval.py holdout-convert` 逐字转换为 `data/holdout.jsonl`,期望标签以原稿结论表"建议"列为准;执行指示全文 `docs/plans/holdout-instructions.md`。以下为 2026-09-26 原文(其中"作者亲手编写"的说法已被上句更正):~~留出样本本轮不做~~ **2026-09-26 修订**:留出集由**作者亲手编写**,写在 `data/holdout.jsonl`(格式同 attacks.jsonl),**在防御定稿(v1 复测)之后编写**,写防御的 Claude 没见过;Claude 不替作者写、不等作者写。提供一条命令同时在防御前(tag `v0.5-injection-baseline` 的代码)和防御后跑这组样本并输出对比报告:`tests/llm_security/tools/holdout_compare.ps1`。phase1 vs phase2 的报告仍写明"攻击集与防御同源,结果偏乐观" |
 | D4 | 对照组也取草稿(k 次) |
 | D5 | 方案里"先替作者选了"的选项全部接受(见 §5) |
 | D6 | 标签由 Claude 先标、作者事后审:每条写理由,拿不准标 ⚠,状态 `model_labeled`。**不设"未确认拒跑"门禁**;report.md 顶部醒目提示"标签未经人工确认";所有比率同时报"全部样本"和"剔除 ⚠ 样本"。必须支持**离线重新判定**:改 `label_review.csv` → `labels apply` → 一条命令基于已录制 raw.jsonl 重新生成报告,不发请求,且有离线用例保证。sha256 只校验样本文本,改标签不影响。**2026-09-26 作者补充**:KI-023(交叉校验误伤)相关的数字以"全部样本"为主口径、"剔除 ⚠"作参照——误伤恰好落在 ⚠ 对照上,剔除会掩盖损害;compare.md §5 在剔除 ⚠ 掩盖损害时自动写明 |

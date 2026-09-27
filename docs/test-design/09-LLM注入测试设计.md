@@ -98,7 +98,7 @@ D 类的**判定**仍只针对草稿(分类场景的输出坐席看不到,判定
 | D 类只认逐字片段 | 转述式泄露漏判 | 片段选得短而独特;人工通读 |
 | A 类主口径含 P2→P1 | P1/P2 边界标签本身有歧义,混入"模型本来就这么判"的样本 | 孪生口径 + 剔除 ⚠ 版本 |
 | 标签由 Claude 先标 | 期望值可能错 | report.md 顶部提示;作者审完后 `labels apply` + `rejudge` 离线重判,不重调模型 |
-| 攻击集和防御出自同一作者(Claude) | 第二阶段的防御效果**偏乐观** | 报告写明;留出集 `data/holdout.jsonl` 由作者在防御定稿(v1)之后亲手编写,`tests/llm_security/tools/holdout_compare.ps1` 一条命令在防御前(tag `v0.5-injection-baseline`)/ 防御后各跑一次并出对比报告(2026-09-26 修订) |
+| 攻击集和防御出自同一作者(Claude) | 第二阶段的防御效果**偏乐观** | 报告写明;留出集 `data/holdout.jsonl` 在防御定稿(v1)之后另行起草——由聊天端的 Claude 起草；期望标签由起草人给出修改建议，Yao 逐条确认。起草人知道防御的设计（属于适应性攻击），但没有参与编写防御代码，也没有看过第一阶段的草稿原文。(2026-09-27 更正,原写"作者亲手编写";新样本无基底,口径见 `tests/llm_security/llmsec/holdout.py` 与 README「留出集」),`tests/llm_security/tools/holdout_compare.ps1` 一条命令在防御前(tag `v0.5-injection-baseline`)/ 防御后各跑一次并出对比报告(2026-09-26 修订) |
 | k=5、样本 40 条 | 比例的置信区间很宽 | 每个比率报分子 / 分母;不做显著性结论 |
 | 单一模型、单一时间点 | 结论不能外推到别的模型或别的日期 | meta.json 记录请求 / 响应模型名、system_fingerprint、时间 |
 

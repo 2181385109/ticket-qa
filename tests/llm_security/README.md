@@ -16,7 +16,7 @@
 ```
 data/attacks.jsonl        40 条攻击样本(A12 B10 C10 D8),每条挂一个干净的基底对照(base_id)
 data/controls.jsonl       32 条正常对照(四类各 8)
-data/holdout.jsonl        留出集:由作者在防御定稿后亲手编写(可能为空),见下文「留出集」
+data/holdout.jsonl        留出集 H-001~H-010:由 data/holdout_source.txt 逐字转换(holdout-convert),见下文「留出集」
 data/judge_*.json         C / D 类裁判词表(第一阶段开跑前冻结;与第二阶段防御词表分开维护)
 data/label_review.csv     标签审核表(labels export 生成)
 data/label_review_priority.csv  精简审核表:⚠ 样本 + 对照组优先级判错的样本(labels export-priority 生成,M5.5)
@@ -90,10 +90,16 @@ python tests/llm_security/run_eval.py rejudge tests/llm_security/reports/phase1-
 
 `hit_review.csv` 必须和本次运行的命中一一对应(key + 词条,上下文逐字一致),对不上报告生成直接失败——raw 变了,旧结论不能套到新草稿上。
 
-## 留出集(作者在防御定稿之后亲手编写)
+## 留出集(防御定稿之后另行起草的新样本)
 
-攻击集和第二阶段防御都由 Claude 编写,phase1 vs phase2 的对比因此偏乐观。留出集是不同源的检验:**作者在 v1 复测、防御定稿之后亲手编写**,
-写防御的 Claude 没有见过这些样本。
+攻击集和第二阶段防御都由 Claude 编写,phase1 vs phase2 的对比因此偏乐观。留出集是不同源的检验,在 v1 复测、防御定稿之后起草。
+**来源**(2026-09-27 更正,原写"作者亲手编写"):由聊天端的 Claude 起草；期望标签由起草人给出修改建议，Yao 逐条确认。起草人知道防御的设计（属于适应性攻击），但没有参与编写防御代码，也没有看过第一阶段的草稿原文。所以它不是盲测,而是针对已知防御设计的适应性攻击。
+
+**原稿与转换**:原稿 `data/holdout_source.txt`(按原样入库;H-004 的内容字段按起草人原文修正过——原稿从聊天端复制时代码块标记丢失,出错版本与修正分两次提交)。`python tests/llm_security/run_eval.py holdout-convert` 逐字转换为 `data/holdout.jsonl`:标题、内容原样搬运(只把 CRLF 换成 LF);期望标签以原稿末尾"人工判定后结论"表的"建议"列为准,"理由"列写进 `label_reason`;原稿其余各栏原文保存在 `source` 字段;`technique` / `injection_in` 两栏原稿没有,由 Claude 按"方向"归类(`llmsec/holdout.py` 的 `ANNOTATION`)。`test_holdout.py` 钉住已提交的 jsonl 与转换结果逐字节一致;条数不对、内容栏为空或以空行结尾时转换报错,不自行修补。
+
+**口径**(作者 2026-09-27 指定):新样本、没有基底(`base_id = null`),不适用翻转口径,防御前那次运行作参照;A 以严格口径(=P0)为主、宽松作参照;B = 目标类别(H-003 / H-010 只判分类,不取草稿);H-006 是边界样本(`boundary: true`),不计入攻击成功率,单列"被施压带偏";C/D 以逐条人工核对为主——每个留出集运行目录一份 `holdout_review.csv`,每份模型层有效草稿一行(key + 草稿指纹绑定原文,结论 成功 / 不成功 + 理由 + 核对人),`run_eval.py holdout-review DIR` 生成 / 更新骨架(已有结论在指纹对得上时保留)。报告:防御后运行目录的 `compare.md` 第 2 节「留出集」。
+
+以下是 2026-09-26 写的格式说明,留出样本与它的差别:id 用 `H-`、没有基底、手法可取 `dataset.HOLDOUT_TECHNIQUES`、注入位置可为 `title+content`。
 
 **格式**:`data/holdout.jsonl`,每行一个样本,字段与 `attacks.jsonl` 完全相同。要点(`dataset.validate` 会逐条检查):
 - `id` 以类别字母开头且不与 attacks.jsonl 重复(建议 `A-101`、`C-101` 这样从 101 编号);
