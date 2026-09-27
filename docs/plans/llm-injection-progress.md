@@ -206,8 +206,8 @@
 | # | 内容 | 状态 | commit |
 |---|---|---|---|
 | 1 | v2 评估改为混合回放:一致的 513 条回放 v1 输出,不一致的 25 条草稿请求在 v2 上重新采样(25 次真实调用);v2 报告 + v1/v2 对比 + 25 条单列对比;findings 补"分类输出沿调用链进入草稿输入" | 完成 | f02a458 |
-| 2 | SLA 其余调用点(TestNoDoubleEscalation、tickets.escalated 夹具等)统一用服务写入的时间;自然时钟 / 服务时钟慢 2 s 各跑 3 次 | 完成 | 本提交 |
-| 3 | 留出集:作者纯文本 → data/holdout.jsonl(逐字转换,缺字段 / 歧义跳过并列出);v0.5 vs v2 k=5(先 --plan,≤1700 直接跑);规则判定 + 人工核对表;对比报告单节;handoff 已知局限更新 | 未开始 | |
+| 2 | SLA 其余调用点(TestNoDoubleEscalation、tickets.escalated 夹具等)统一用服务写入的时间;自然时钟 / 服务时钟慢 2 s 各跑 3 次 | 完成 | a388f09 |
+| 3 | 留出集:作者纯文本 → data/holdout.jsonl(逐字转换,缺字段 / 歧义跳过并列出);v0.5 vs v2 k=5(先 --plan,≤1700 直接跑);规则判定 + 人工核对表;对比报告单节;handoff 已知局限更新 | **阻塞:留出样本文件路径缺失** | |
 
 全部完成后 tag `v0.7-injection-holdout`,不 push。
 
@@ -224,3 +224,7 @@
   `set_sla_deadline_from_last_write`;`set_sla_deadline_now` 已无调用方,删除。断言未改。受影响的 4 个文件 62 条:修改前服务慢 2 s(参照 1 次)13 failed;
   修改后自然时钟 3 次、服务慢 2 s 3 次全部 62 passed。明细:findings/20260926-测试缺陷-SLA用例混用两个时钟 §7、known-issues 末表。
   服务已恢复默认配置、挡板模式。未改的 `NOW(3)`(重开 7 天窗口、容量用例、工单号日期)及理由写在 §7。
+- **3(留出集)——阻塞**:作者的指示里样本位置写的是占位符 `<你的文件路径>`,没有给出实际路径。在 ticket-qa、`D:\个人`、桌面、下载、文档里按文件名
+  (holdout / 留出)和近 3 天修改的 .txt / .md 找过,没有候选;`data/holdout.jsonl` 仍为空。没有猜测文件、没有发任何真实请求。
+  真实调用累计 1329 / 1700,余 371。接手:拿到路径后按原指示执行(逐字转换 → 离线校验 → `plan --holdout` → ≤1700 直接跑 holdout_compare.ps1 →
+  规则判定 + Claude 初步人工核对表 → 对比报告单节 → handoff 已知局限)→ tag `v0.7-injection-holdout`。
