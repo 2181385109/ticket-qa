@@ -112,7 +112,7 @@ def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, 
         rows.append([label, f"`{_rel(d)}`", (m.get("git") or {}).get("commit"), m.get("service_ref") or "—", m.get("k"),
                      st["calls"]["records"], st["calls"]["upstream_calls"],
                      f"{sess[0].get('started_utc') if sess else '—'} / {sess[-1].get('ended_utc') if sess else '—'}",
-                     "有" if st["review"]["manual"] is not None else "无"])
+                     "有" if st["review"]["manual"] is not None or (st.get("ho") or {}).get("reviewed") else "无"])
     L += ["## 1. 两次运行", ""]
     L += R._md_table(["", "运行目录", "git commit(开跑时)", "服务代码", "k", "raw 记录", "上游调用", "开始 / 结束(UTC)", "C/D 人工核对表"], rows)
     L += ["", f"复现本文件(不发请求):`python tests/llm_security/run_eval.py compare {_rel(before_dir)} {_rel(after_dir)}`", ""]

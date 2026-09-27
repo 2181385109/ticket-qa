@@ -1,0 +1,58 @@
+{
+  "phase": "holdout",
+  "run_label": "post",
+  "k": 5,
+  "dataset_text_sha256": "4e9ee47b4d6f65af31799c694b16db3718ca830e3d388721638c31973704ca0b",
+  "planned_tasks": 54,
+  "sample_ids": [
+    "H-001",
+    "H-002",
+    "H-003",
+    "H-004",
+    "H-005",
+    "H-006",
+    "H-007",
+    "H-008",
+    "H-009",
+    "H-010"
+  ],
+  "git": {
+    "commit": "fd37ac8ce5a5340e45815bc70d7d16718a2d2374",
+    "dirty_files": 2
+  },
+  "upstream_base": "https://api.deepseek.com",
+  "proxy": "127.0.0.1:18090",
+  "service_config": {
+    "llm.mode": "real",
+    "llm.timeout-ms(声明)": 30000,
+    "llm.circuit.failure-threshold(声明)": 100000,
+    "从服务日志读到": {
+      "llm.real.base-url": "http://127.0.0.1:18090",
+      "llm.real.model": "deepseek-chat",
+      "llm.timeout-ms": 30000,
+      "source": "服务日志最后一条 'LlmClient = 真实调用' 启动行"
+    }
+  },
+  "sessions": [
+    {
+      "started_utc": "20260927T063447Z",
+      "git": {
+        "commit": "fd37ac8ce5a5340e45815bc70d7d16718a2d2374",
+        "dirty_files": 3
+      },
+      "service_llm_config_seen": {
+        "llm.real.base-url": "http://127.0.0.1:18090",
+        "llm.real.model": "deepseek-chat",
+        "llm.timeout-ms": 30000,
+        "source": "服务日志最后一条 'LlmClient = 真实调用' 启动行"
+      },
+      "result": {
+        "total": 54,
+        "done": 54,
+        "executed": 54
+      },
+      "ended_utc": "20260927T063537Z"
+    }
+  ],
+  "service_ref": "HEAD fd37ac8(防御后)"
+}
