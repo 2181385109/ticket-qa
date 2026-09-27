@@ -271,10 +271,9 @@ def cmd_run(args) -> int:
 
 def rejudge_one(run_dir: Path, ds: dsmod.Dataset | None = None, data_dir: Path | None = None) -> Path:
     data_dir = data_dir or dsmod.DATA_DIR
-    ds = ds or dsmod.load(data_dir)
-    meta = RN.read_meta(run_dir)
-    if meta.get("phase") == "holdout":
-        ds = dsmod.Dataset(controls=ds.controls, attacks=ds.attacks + dsmod.load_holdout(data_dir))
+    # 传入的 ds 由调用方按运行类型备好(留出集运行已含留出样本);不传才按 meta 现组——原来这里对传入的 ds 再拼一次留出集,
+    # 留出样本重复、文本指纹对不上,留出集运行跑完生成报告时报错(2026-09-27 第一次真实运行暴露)
+    ds = ds or _dataset_for(run_dir, data_dir)
     out = R.write(run_dir, ds, J.load_lists(data_dir))
     _out(f"已生成 {out}")
     return out

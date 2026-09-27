@@ -19,6 +19,7 @@
 # 冒烟(不读 key、不发请求,只验证 worktree / 打包 / 起停):加 -SmokeTest。
 # 中途失败:已完成的那一次运行目录保留;用 run_eval.py run --phase holdout --run-label pre|post --resume <目录> 续跑,
 # 最后手动 run_eval.py compare <pre 目录> <post 目录>。
+# 防御前那次已经跑完(例如跑完后才失败在后面):加 -PreDir <pre 运行目录>,跳过防御前,只跑防御后并出对比(2026-09-27 加)。
 param(
     [string]$KeyFile,
     [int]$K = 5,
@@ -28,7 +29,9 @@ param(
     [string]$Python = "python",
     [int]$HealthTimeoutSeconds = 180,
     # 冒烟:不读 key、不发任何真实请求。两版服务都以挡板模式起、查健康、停掉,只验证 worktree / 打包 / 起停这套流程
-    [switch]$SmokeTest
+    [switch]$SmokeTest,
+    # 已完成的防御前运行目录:给出时跳过第 1 步(不再打 PreRef 的服务、不再花调用)
+    [string]$PreDir
 )
 $ErrorActionPreference = "Stop"
 $Repo = (Resolve-Path (Join-Path $PSScriptRoot "..\..\..")).Path
@@ -124,6 +127,11 @@ if ($SmokeTest) {
     exit 0
 }
 if (-not $SmokeTest) { Invoke-RunEval @('plan', '--holdout', '--k', "$K") }
+if ($PreDir) {
+    $PreDir = (Resolve-Path $PreDir).Path
+    if (-not (Test-Path (Join-Path $PreDir 'raw.jsonl'))) { throw "-PreDir 不是运行目录:$PreDir" }
+    Say "跳过防御前:沿用 $PreDir(本次只跑防御后,调用数为上面合计的一半)"
+}
 
 if ($SmokeTest) { }
 elseif ($KeyFile) {
@@ -143,16 +151,18 @@ $postCommit = (git -C $Repo rev-parse --short HEAD).Trim()
 $dirty = (git -C $Repo status --porcelain -- service | Measure-Object).Count
 $postRef = "HEAD $postCommit" + $(if ($dirty) { "(service/ 下有 $dirty 个未提交改动)" } else { "" })
 
-$preDir = $null; $postDir = $null
+$preDir = $PreDir; $postDir = $null
 try {
     # ------------------------------------------------------------------ 1. 防御前
     Stop-TicketService
+    if (-not $PreDir) {
     if (Test-Path $Worktree) { Invoke-Git @('worktree', 'remove', '--force', $Worktree) | Out-Null; Remove-Item -Recurse -Force $Worktree -ErrorAction SilentlyContinue }
     if ((Invoke-Git @('worktree', 'add', '--detach', $Worktree, $PreRef)) -ne 0) { throw "git worktree add $PreRef 失败" }
     Build-Jar (Join-Path $Worktree "service")
     Start-TicketService (Join-Path $Worktree "service") $mode
     if (-not $SmokeTest) { $preDir = Run-Holdout "pre" (Join-Path $Worktree "service") "$PreRef $preCommit(防御前)" }
     Stop-TicketService
+    }
 
     # ------------------------------------------------------------------ 2. 防御后
     Build-Jar (Join-Path $Repo "service")

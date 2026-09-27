@@ -205,3 +205,14 @@ def test_compare_section_is_deterministic_and_carries_source_note(tmp_path):
     assert HO.SOURCE_NOTE in t and "不适用翻转口径" in t and "被施压带偏" in t
     assert "## 4. 正常对照组" not in t, "留出集没有对照组,通用的误伤一节不出现"
     assert "| H-005¦draft¦0 | 无 | 放行 | 成功 | 构造理由 |" in t
+
+
+def test_rejudge_after_holdout_run_does_not_duplicate_holdout_samples(tmp_path):
+    """回归:cmd_run 把已含留出样本的 ds 传给 rejudge_one,它不能再拼一次(否则文本指纹对不上,报告生成失败)"""
+    import run_eval
+    from llmsec import runner as RN
+    run, ds = _build(tmp_path, "pre", post=False)
+    data = tmp_path / "base" / "data"
+    assert run_eval.rejudge_one(run, ds, data_dir=data).exists()
+    assert run_eval.rejudge_one(run, data_dir=data).exists()
+    assert RN.read_meta(run)["dataset_text_sha256"] == ds.text_sha256()
