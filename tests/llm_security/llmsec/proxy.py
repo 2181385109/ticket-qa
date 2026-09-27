@@ -27,17 +27,31 @@ def _utc_now() -> str:
     return _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
+REQUEST_KEYS = ("model", "temperature", "max_tokens", "response_format", "messages")
+
+
+def _parse_request(req_body: bytes) -> dict[str, Any]:
+    try:
+        req = json.loads(req_body.decode("utf-8")) if req_body else {}
+    except ValueError:
+        req = {}
+    return req if isinstance(req, dict) else {}
+
+
+def request_view(req: dict[str, Any] | bytes) -> dict[str, Any]:
+    """记录里保存的请求字段(也是回放比对的字段)"""
+    if isinstance(req, (bytes, bytearray)):
+        req = _parse_request(bytes(req))
+    return {k: req.get(k) for k in REQUEST_KEYS if k in req}
+
+
 def summarize(method: str, path: str, req_body: bytes, status: int | None, resp_body: bytes,
               latency_ms: int, error: str | None) -> dict[str, Any]:
     """把一次转发整理成记录(纯函数,离线可测)"""
     rec: dict[str, Any] = {"t_utc": _utc_now(), "method": method, "path": path, "status": status,
                            "latency_ms": latency_ms, "error": error}
-    try:
-        req = json.loads(req_body.decode("utf-8")) if req_body else {}
-    except ValueError:
-        req = {}
-    rec["request"] = {k: req.get(k) for k in ("model", "temperature", "max_tokens", "response_format", "messages")
-                      if k in req}
+    req = _parse_request(req_body)
+    rec["request"] = request_view(req)
     rec["request_model"] = req.get("model")
     try:
         resp = json.loads(resp_body.decode("utf-8")) if resp_body else None
@@ -97,16 +111,9 @@ class RecordingProxy:
                 headers = {k: v for k, v in self.headers.items() if k.lower() in FORWARD_HEADERS}
                 headers["Accept-Encoding"] = "identity"
                 t0 = time.perf_counter()
-                status, resp_body, ctype, error = None, b"", "application/json", None
-                try:
-                    r = proxy._session.request(self.command, proxy.upstream_base + self.path, data=body or None,
-                                               headers=headers, timeout=proxy.timeout)
-                    status, resp_body = r.status_code, r.content
-                    ctype = r.headers.get("Content-Type", ctype)
-                except requests.RequestException as e:
-                    error = f"{type(e).__name__}: {str(e)[:300]}"
+                status, resp_body, ctype, error, extra = proxy.respond(self.command, self.path, body, headers)
                 latency = int((time.perf_counter() - t0) * 1000)
-                proxy._add(summarize(self.command, self.path, body, status, resp_body, latency, error))
+                proxy._add({**summarize(self.command, self.path, body, status, resp_body, latency, error), **extra})
                 out_status = status if status is not None else 502
                 if status is None:
                     resp_body = json.dumps({"error": {"message": "recording proxy: upstream unreachable"}}).encode()
@@ -136,6 +143,19 @@ class RecordingProxy:
     @property
     def url(self) -> str:
         return f"http://{self.host}:{self.port}"
+
+    # ------------------------------------------------------------------ 响应
+
+    def respond(self, method: str, path: str, body: bytes,
+                headers: dict[str, str]) -> tuple[int | None, bytes, str, str | None, dict[str, Any]]:
+        """(状态, 响应体, Content-Type, 错误, 追加到记录里的字段)。默认原样转发到上游;
+        混合回放(llmsec/hybrid.py)覆盖它:请求与源运行一致时直接给出录制的响应,不一致时才转发"""
+        try:
+            r = self._session.request(method, self.upstream_base + path, data=body or None,
+                                      headers=headers, timeout=self.timeout)
+            return r.status_code, r.content, r.headers.get("Content-Type", "application/json"), None, {}
+        except requests.RequestException as e:
+            return None, b"", "application/json", f"{type(e).__name__}: {str(e)[:300]}", {}
 
     # ------------------------------------------------------------------ 记录
 

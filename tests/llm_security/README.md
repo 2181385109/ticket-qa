@@ -27,6 +27,7 @@ reports/<阶段>-<UTC>/     raw.jsonl(每次调用一行)、meta.json、report.m
 reports/call_budget.json  真实调用累计计数(上限 1700,跨会话;2026-09-26 前为 1300)
 tools/holdout_compare.ps1 留出集防御前 / 后各跑一次 + 对比报告,一条命令
 tools/replay.ps1          回放评估:已录制运行的模型输出经 WireMock 回放给当前服务(不发真实请求),一条命令
+tools/hybrid.ps1          混合回放:请求一致的回放、不一致的重新采样(llmsec/hybrid.py)
 llmsec/replay.py          回放桩、请求逐字节比对、对齐检查;llmsec/crosscheck.py  交叉校验离线统计(KI-023)
 ```
 
@@ -138,6 +139,23 @@ powershell -ExecutionPolicy Bypass -File tests\llm_security\tools\replay.ps1 -So
 2026-09-26 对 v2 的回放:**验证不通过**,25 / 538 个请求不一致,全部是草稿请求 user 消息里的 `分类:` 一行——
 草稿提示词带着工单的分类,v2 不再把分类改成规则的,于是 v1 里交叉校验改过分类的 5 张工单(N-017、N-026、C-006、C-009、C-010)
 的草稿请求变了。详见 `reports/phase2-v2-replay-20260926T082544Z/replay_check.md` 与 `docs/plans/llm-injection-progress.md`。
+
+### 混合回放(ADR-024 修订 #5;只对不一致的请求发真实调用)
+
+纯回放验证不通过时(输出端改动沿调用链改变了下一次调用的输入),用混合回放:请求与源运行逐字节一致的回放源输出,
+不一致的在当前服务上用真实模型重新采样。预期的重采样集合 = 纯回放运行里请求不一致的任务;集合之外的不一致由代理拒绝、整次运行停止,
+所以真实调用数有上界(本次 25)。key 与 holdout_compare.ps1 同样只在脚本进程里读入。
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tests\llm_security\tools\hybrid.ps1 -KeyFile '<key 文件路径>' `
+  -Source tests\llm_security\reports\phase2-v1-20260926T040541Z -Replay tests\llm_security\reports\phase2-v2-replay-20260926T082544Z `
+  -JavaHome D:\tools\jdk-17 -Maven D:\tools\maven\bin\mvn.cmd -Python E:\python\python.exe
+```
+
+- 代理(`llmsec/hybrid.py` 的 `HybridProxy`)在请求到达时判定:与源运行一致 → 返回源运行录到的响应;不一致且在预期集合 → 转发上游(计入预算);其余 → 502 并停止。
+- 产物:`hybrid_check.md`(哪些回放、哪些重采样,逐条验证)、`report.md`、`compare.md`(v1 vs v2)、`resample_compare.md`(重采样请求与其 v1 版本逐条并排,含草稿全文)。
+- 只重算(不发请求):`run_eval.py hybrid-check <源> <混合> <纯回放>`、`run_eval.py resample-compare <源> <混合>`;离线用例 `test_hybrid.py` 校验已提交的两份文件逐字节可重算。
+- 2026-09-27 对 v2 的混合回放:`reports/phase2-v2-hybrid-20260927T040133Z`,回放 513、重采样 25,验证通过。
 
 规则结论分布(交叉校验替代阈值的依据,不发请求):`python tests/llm_security/run_eval.py rule-signal <运行目录>`。
 

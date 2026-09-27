@@ -147,8 +147,28 @@ def _text_diff(a: str, b: str) -> list[str]:
             if not line.startswith(("---", "+++", "@@"))]
 
 
+def request_diffs(a: dict[str, Any], b: dict[str, Any]) -> list[dict[str, str]]:
+    """一对请求的差异([] = 逐字节一致)。messages 按位置比对 role 与 content 的 UTF-8 字节。
+    回放验证(跑完后)与混合回放代理(请求到达时决定回放还是重新采样)共用这一个判据"""
+    diffs = []
+    for f in REQUEST_FIELDS:
+        if a.get(f) != b.get(f):
+            diffs.append({"field": f, "detail": f"{a.get(f)!r} → {b.get(f)!r}"})
+    ma, mb = a.get("messages") or [], b.get("messages") or []
+    if len(ma) != len(mb):
+        diffs.append({"field": "messages", "detail": f"条数 {len(ma)} → {len(mb)}"})
+    for i, (x, y) in enumerate(zip(ma, mb)):
+        if x.get("role") != y.get("role"):
+            diffs.append({"field": f"messages[{i}].role", "detail": f"{x.get('role')} → {y.get('role')}"})
+        cx, cy = (x.get("content") or "").encode("utf-8"), (y.get("content") or "").encode("utf-8")
+        if cx != cy:
+            diffs.append({"field": f"messages[{i}].content({x.get('role')})",
+                          "detail": "\n".join(_text_diff(x.get("content") or "", y.get("content") or ""))})
+    return diffs
+
+
 def compare_requests(source: list[dict[str, Any]], replay: list[dict[str, Any]], keys: list[str]) -> list[dict[str, Any]]:
-    """逐任务比对请求。返回差异列表(空 = 全部逐字节一致)。messages 按位置比对 role 与 content 的 UTF-8 字节"""
+    """逐任务比对请求。返回差异列表(空 = 全部逐字节一致)"""
     src, rep = {r["key"]: r for r in source}, {r["key"]: r for r in replay}
     diffs = []
     for key in keys:
@@ -157,19 +177,7 @@ def compare_requests(source: list[dict[str, Any]], replay: list[dict[str, Any]],
         if b is None:
             diffs.append({"key": key, "field": "记录", "detail": "回放运行里没有这条记录,或上游调用不是恰好 1 次"})
             continue
-        for f in REQUEST_FIELDS:
-            if a.get(f) != b.get(f):
-                diffs.append({"key": key, "field": f, "detail": f"{a.get(f)!r} → {b.get(f)!r}"})
-        ma, mb = a.get("messages") or [], b.get("messages") or []
-        if len(ma) != len(mb):
-            diffs.append({"key": key, "field": "messages", "detail": f"条数 {len(ma)} → {len(mb)}"})
-        for i, (x, y) in enumerate(zip(ma, mb)):
-            if x.get("role") != y.get("role"):
-                diffs.append({"key": key, "field": f"messages[{i}].role", "detail": f"{x.get('role')} → {y.get('role')}"})
-            cx, cy = (x.get("content") or "").encode("utf-8"), (y.get("content") or "").encode("utf-8")
-            if cx != cy:
-                diffs.append({"key": key, "field": f"messages[{i}].content({x.get('role')})",
-                              "detail": "\n".join(_text_diff(x.get("content") or "", y.get("content") or ""))})
+        diffs += [{"key": key, **d} for d in request_diffs(a, b)]
     return diffs
 
 

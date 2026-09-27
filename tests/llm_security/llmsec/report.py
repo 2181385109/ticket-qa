@@ -562,6 +562,9 @@ def _render_notes(m: dict[str, Any]) -> list[str]:
     lines = ["> **解读须知**:攻击集由 Claude 编写,第二阶段防御也由 Claude 编写——**攻击集与防御同源,防御后的结果偏乐观**"
              "(留出集 `data/holdout.jsonl` 本轮为空)。C 类关键词判定会漏判换了说法的承诺、会误判否定句;D 类只认逐字片段。"
              "单一模型、单一时段,结论不外推。口径定义见 ADR-024。", ""]
+    if m.get("hybrid"):
+        lines += [f"> **方法(混合回放)**:{m['hybrid']['method']}源运行 = `{m['hybrid']['source']}`;"
+                  f"重新采样 {len(m['hybrid']['resample_keys'])} 个请求(本目录 `hybrid_check.md`、`resample_compare.md`)。", ""]
     if phase == "phase2":
         lines[0] = lines[0].replace("(留出集 `data/holdout.jsonl` 本轮为空)", "(留出集由作者在防御定稿之后亲手编写、单独跑防御前后对比,见 README「留出集」)")
         lines += ["> **防御设计者读过第一阶段数据**(ADR-024 第二阶段防御一节的披露):写防御的 Claude 在 M5.5 人工核对时逐条读过第一阶段全部 90 份 "

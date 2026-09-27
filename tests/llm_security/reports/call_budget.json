@@ -1,11 +1,12 @@
 {
   "limit": 1700,
-  "total": 1304,
+  "total": 1329,
   "runs": {
     "pilot-20260925T102015Z": 5,
     "phase1-20260925T102100Z": 538,
     "pilot-20260926T040529Z": 5,
     "phase2-v1-20260926T040541Z": 538,
-    "phase1-rerun-attacks-20260926T083123Z": 218
+    "phase1-rerun-attacks-20260926T083123Z": 218,
+    "phase2-v2-hybrid-20260927T040133Z": 25
   }
 }

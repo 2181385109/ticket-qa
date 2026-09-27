@@ -15,6 +15,11 @@
                                                                        回放评估:SOURCE 录到的模型输出经 WireMock 逐条回放给当前服务(不发真实请求);
                                                                        先逐字节验证请求一致,一致才出 report.md / compare.md。一条命令跑完:tools/replay.ps1
   python tests/llm_security/run_eval.py replay-check SOURCE REPLAY     只重算回放验证(不发请求,只读两个运行目录)
+  python tests/llm_security/run_eval.py hybrid SOURCE REPLAY --run-label v2-hybrid [--service-ref REF]
+                                                                       混合回放:请求与 SOURCE 一致的复用其输出,不一致的(预期集合 = REPLAY 里请求不一致的任务)
+                                                                       发真实请求重新采样;一条命令跑完:tools/hybrid.ps1
+  python tests/llm_security/run_eval.py hybrid-check SOURCE HYBRID REPLAY  只重算混合回放验证(不发请求)
+  python tests/llm_security/run_eval.py resample-compare SOURCE HYBRID    重新采样的请求与其 v1 版本逐条并排(不发请求)
   python tests/llm_security/run_eval.py rerun-compare PHASE1 RERUN AFTER  基线复跑对比:第一阶段 / 复跑 / 防御后,只看攻击样本(不发请求)
   python tests/llm_security/run_eval.py run --phase holdout --run-label pre|post --service-ref REF   留出集(防御前后各跑一次)
                                                                        一条命令跑完前后两次 + 对比:tests/llm_security/tools/holdout_compare.ps1
@@ -37,6 +42,7 @@ sys.path.insert(0, str(HERE))
 from llmsec import compare as CMP            # noqa: E402
 from llmsec import crosscheck as XC          # noqa: E402
 from llmsec import dataset as dsmod          # noqa: E402
+from llmsec import hybrid as HY             # noqa: E402
 from llmsec import judge as J                # noqa: E402
 from llmsec import replay as RP              # noqa: E402
 from llmsec import rerun as RR               # noqa: E402
@@ -430,6 +436,115 @@ def cmd_replay(args) -> int:
     return 0
 
 
+# ---------------------------------------------------------------------- 混合回放(v2 评估,作者 2026-09-27 决定)
+
+def _hybrid_inputs(source: Path, replay: Path):
+    smeta = RN.read_meta(source)
+    ds = _dataset_for(source)
+    if smeta["dataset_text_sha256"] != ds.text_sha256():
+        raise RN.StopRun("源运行的数据集文本指纹与当前数据集不一致,拒绝回放")
+    samples = [ds.by_id[i] for i in smeta["sample_ids"]]
+    tasks = RN.plan_tasks(samples, int(smeta["k"]))
+    keys = [t.key for t in tasks]
+    _, src_records, _ = R.load_run(source)
+    _, rep_records, _ = R.load_run(replay)
+    return smeta, ds, samples, tasks, keys, src_records, HY.expected_resample(src_records, rep_records, keys)
+
+
+def hybrid_check(source: Path, hybrid: Path, replay: Path) -> tuple[bool, Path]:
+    """验证 + 写 hybrid_check.md(确定性,可由已提交的三个运行目录逐字节重算)"""
+    _, _, _, _, keys, src_records, expected = _hybrid_inputs(source, replay)
+    _, hy_records, _ = R.load_run(hybrid)
+    res = HY.check(src_records, hy_records, keys, expected)
+    out = hybrid / "hybrid_check.md"
+    out.write_text(HY.render_check(CMP._rel(source), CMP._rel(hybrid), CMP._rel(replay), len(keys), res, src_records, hy_records),
+                   encoding="utf-8", newline="\n")
+    return res["ok"], out
+
+
+def resample_compare(source: Path, hybrid: Path) -> Path:
+    meta = RN.read_meta(hybrid)
+    ds = _dataset_for(source)
+    _, src_records, _ = R.load_run(source)
+    _, hy_records, _ = R.load_run(hybrid)
+    from llmsec import review as RV
+    text = HY.render_resample(CMP._rel(source), CMP._rel(hybrid), ds, J.load_lists(dsmod.DATA_DIR), meta["hybrid"]["resample_keys"],
+                              src_records, hy_records, RV.load_hit_review(source), RV.load_hit_review(hybrid))
+    out = hybrid / "resample_compare.md"
+    out.write_text(text, encoding="utf-8", newline="\n")
+    return out
+
+
+def cmd_hybrid(args) -> int:
+    source, replay = Path(args.source).resolve(), Path(args.replay).resolve()
+    try:
+        smeta, ds, samples, tasks, keys, src_records, expected = _hybrid_inputs(source, replay)
+        calls = dict(RP.source_calls(src_records, tasks))
+        if not os.environ.get("LLM_API_KEY"):
+            raise RN.StopRun("停止条件 1:环境变量 LLM_API_KEY 不存在(重新采样要发真实请求)")
+        seen = _replay_preflight(args.base_url, args.proxy_port)
+        RN.Budget().check(len(expected))
+    except (RP.ReplayError, RN.StopRun) as e:
+        _out(f"停止:{e}")
+        return 2
+    _out(f"预期重新采样 {len(expected)} 个请求(真实调用),其余 {len(keys) - len(expected)} 个回放源运行的输出;"
+         f"预算 {RN.Budget().total} → 至多 {RN.Budget().total + len(expected)} / {RN.Budget().limit}")
+    label = args.run_label or "v2-hybrid"
+    run_dir = RN.REPORTS_DIR / f"{smeta['phase']}-{label}-{RN.utc_stamp()}"
+    run_dir.mkdir(parents=True, exist_ok=False)
+    RN.write_meta(run_dir, {
+        "phase": smeta["phase"], "run_label": label, "k": int(smeta["k"]), "dataset_text_sha256": ds.text_sha256(),
+        "planned_tasks": len(tasks), "sample_ids": smeta["sample_ids"], "git": RN.git_state(),
+        "upstream_base": args.upstream, "proxy": f"127.0.0.1:{args.proxy_port}(混合代理)",
+        "service_config": _service_config(args, seen),
+        "hybrid": {"source": CMP._rel(source), "expected_from": CMP._rel(replay), "method": HY.METHOD_NOTE,
+                   "resample_keys": expected},
+        "sessions": [], **({"service_ref": args.service_ref} if args.service_ref else {}),
+    })
+    meta = RN.read_meta(run_dir)
+    session = {"started_utc": RN.utc_stamp(), "git": RN.git_state(), "service_llm_config_seen": seen}
+    proxy = HY.HybridProxy(args.upstream, calls, set(expected), port=args.proxy_port).start()
+    _out(f"混合代理 {proxy.url} → 回放 / {args.upstream};输出 {run_dir}")
+    code = 0
+    try:
+        executor = HY.HybridExecutor(RN.LiveExecutor(proxy, base_url=args.base_url), proxy)
+        session["result"] = RN.Runner(run_dir, samples, tasks, executor, HY.HybridBudget(RN.Budget(), proxy), log=_out).run()
+        session["forwarded"] = proxy.forwarded
+        _out(f"完成:{session['result']};真实调用 {proxy.forwarded} 次")
+    except RN.StopRun as e:
+        session["stopped"] = str(e)
+        session["forwarded"] = proxy.forwarded
+        _out(f"停止:{e}(已发真实调用 {proxy.forwarded} 次)")
+        code = 2
+    finally:
+        proxy.stop()
+        session["ended_utc"] = RN.utc_stamp()
+        meta["sessions"].append(session)
+        RN.write_meta(run_dir, meta)
+    if code:
+        return code
+    ok, check = hybrid_check(source, run_dir, replay)
+    _out(f"混合回放验证:{'通过' if ok else '不通过'} → {check}")
+    if not ok:
+        _out("验证不通过:不生成 report.md / compare.md")
+        return 4
+    rejudge_one(run_dir, ds)
+    _out(f"已生成 {CMP.write(source, run_dir, ds, ds, J.load_lists(dsmod.DATA_DIR))}")
+    _out(f"已生成 {resample_compare(source, run_dir)}")
+    return 0
+
+
+def cmd_hybrid_check(args) -> int:
+    ok, out = hybrid_check(Path(args.source).resolve(), Path(args.hybrid).resolve(), Path(args.replay).resolve())
+    _out(f"混合回放验证:{'通过' if ok else '不通过'} → {out}")
+    return 0 if ok else 4
+
+
+def cmd_resample_compare(args) -> int:
+    _out(f"已生成 {resample_compare(Path(args.source).resolve(), Path(args.hybrid).resolve())}")
+    return 0
+
+
 def cmd_rerun_compare(args) -> int:
     p1, rr, af = (Path(x).resolve() for x in (args.phase1, args.rerun, args.after))
     out = RR.write(p1, rr, af, dsmod.load(), J.load_lists(dsmod.DATA_DIR))
@@ -562,6 +677,25 @@ def main(argv: list[str] | None = None) -> int:
     sp.add_argument("--service-ref", default=None, help="本次回放打的是哪一版服务代码,写进 meta 与报告")
     sp.add_argument("--wiremock", default=os.environ.get("WIREMOCK_URL", "http://localhost:8089"))
     sp.set_defaults(func=cmd_replay)
+
+    sp = sub.add_parser("hybrid")
+    live(sp)
+    sp.add_argument("source", help="源运行目录(v1;请求一致时回放它的输出)")
+    sp.add_argument("replay", help="纯回放运行目录(其中请求与源运行不一致的任务 = 要重新采样的任务)")
+    sp.add_argument("--run-label", default="v2-hybrid")
+    sp.add_argument("--service-ref", default=None)
+    sp.set_defaults(func=cmd_hybrid)
+
+    sp = sub.add_parser("hybrid-check")
+    sp.add_argument("source")
+    sp.add_argument("hybrid")
+    sp.add_argument("replay")
+    sp.set_defaults(func=cmd_hybrid_check)
+
+    sp = sub.add_parser("resample-compare")
+    sp.add_argument("source")
+    sp.add_argument("hybrid")
+    sp.set_defaults(func=cmd_resample_compare)
 
     sp = sub.add_parser("rerun-compare")
     sp.add_argument("phase1")

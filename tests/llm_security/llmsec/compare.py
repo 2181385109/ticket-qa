@@ -4,7 +4,8 @@
 用在三处:
   - phase1(第一阶段基线,无防御) vs phase2-v1(第二阶段防御后复测)——攻击集与防御同源;
   - holdout-pre vs holdout-post(留出集,作者在防御定稿后亲手编写;同一组样本分别打防御前 / 防御后的服务);
-  - phase2-v1 vs phase2-v2-replay(交叉校验 v2 的回放评估:同一批模型输出,v1 / v2 两种输出端逻辑;列名改为 v1 / v2)。
+  - phase2-v1 vs phase2-v2-replay(交叉校验 v2 的回放评估:同一批模型输出,v1 / v2 两种输出端逻辑;列名改为 v1 / v2);
+  - phase2-v1 vs phase2-v2-hybrid(混合回放:请求一致的复用 v1 输出,不一致的 25 个草稿请求重新采样,llmsec/hybrid.py)。
 
 KI-023(交叉校验误伤)一节以**全部样本**为主口径(作者 2026-09-26 指定),剔除 ⚠ 作参照;剔除 ⚠ 会藏掉损害时自动写明藏掉了什么。
 
@@ -79,6 +80,11 @@ def _notes(mb: dict[str, Any], ma: dict[str, Any]) -> list[str]:
     if ma.get("replay"):
         L += [f"> **方法(回放评估)**:{ma['replay']['method']} 源运行 = `{ma['replay']['source']}`。"
               "所以两列的**模型层逐条相同**(同一批模型输出),差别只可能出现在端到端;请求逐字节一致的验证见本目录 `replay_check.md`。", ""]
+    if ma.get("hybrid"):
+        h = ma["hybrid"]
+        L += [f"> **方法(混合回放)**:{h['method']} 源运行 = `{h['source']}`;重新采样的 {len(h['resample_keys'])} 个请求见本目录 "
+              "`hybrid_check.md`(哪些回放、哪些重采样,逐条验证)与 `resample_compare.md`(与各自的 v1 版本逐条并排)。"
+              "所以两列的模型层**除这些重采样请求外逐条相同**;分类场景的模型层完全相同,差别只可能出现在端到端。", ""]
     L += ["> **口径**:A/B 主口径 = 翻转口径(攻击第 r 轮与基底对照第 r 轮配对,对照给出期望值、攻击偏向目标才算);C/D 同时给**判定规则原始结果**"
           "(冻结的词表 / 片段)与**人工核对后结果**(各运行目录的 `hit_review.csv`)。端到端 = 服务最终采用的值 / 交给坐席的草稿;"
           "模型层 = 录制代理录到的模型原话。防御前的服务没有输出侧防线,两层本应一致;防御后两层之差 = 输出侧防线(交叉校验、草稿检查、严格解析)挡下的量,"
@@ -88,7 +94,7 @@ def _notes(mb: dict[str, Any], ma: dict[str, Any]) -> list[str]:
 
 def render(before_dir: Path, after_dir: Path, sb: dict[str, Any], sa: dict[str, Any]) -> str:
     mb, ma = sb["meta"], sa["meta"]
-    lb, la = ("v1", "v2(回放)") if ma.get("replay") else ("防御前", "防御后")
+    lb, la = ("v1", "v2(回放)") if ma.get("replay") else (("v1", "v2(混合回放)") if ma.get("hybrid") else ("防御前", "防御后"))
     title_b = f"{mb.get('phase')}" + (f"-{mb['run_label']}" if mb.get("run_label") else "")
     title_a = f"{ma.get('phase')}" + (f"-{ma['run_label']}" if ma.get("run_label") else "")
     L = [f"<!-- compare before={_rel(before_dir)} after={_rel(after_dir)} -->",

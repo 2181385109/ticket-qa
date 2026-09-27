@@ -199,3 +199,24 @@
   真实调用累计 **1304 / 1700**。服务:当前代码(v2)、挡板模式。未 push。
 - **等作者决定**:① v2 回放验证不通过后的四个选项(见第 2 项);② `hit_review.csv`(phase1 / v1 / 复跑)与标签审核(`label_review_priority.csv`)仍待作者复核;
   ③ SLA 同类调用点是否一并改(findings/20260926-测试缺陷 §5);④ 留出集 `data/holdout.jsonl` 仍为空。
+
+
+## 作者 2026-09-27 决定(第五次会话):按顺序执行三项
+
+| # | 内容 | 状态 | commit |
+|---|---|---|---|
+| 1 | v2 评估改为混合回放:一致的 513 条回放 v1 输出,不一致的 25 条草稿请求在 v2 上重新采样(25 次真实调用);v2 报告 + v1/v2 对比 + 25 条单列对比;findings 补"分类输出沿调用链进入草稿输入" | 完成 | 见下 |
+| 2 | SLA 其余调用点(TestNoDoubleEscalation、tickets.escalated 夹具等)统一用服务写入的时间;自然时钟 / 服务时钟慢 2 s 各跑 3 次 | 未开始 | |
+| 3 | 留出集:作者纯文本 → data/holdout.jsonl(逐字转换,缺字段 / 歧义跳过并列出);v0.5 vs v2 k=5(先 --plan,≤1700 直接跑);规则判定 + 人工核对表;对比报告单节;handoff 已知局限更新 | 未开始 | |
+
+全部完成后 tag `v0.7-injection-holdout`,不 push。
+
+- **1(混合回放)**:新 `llmsec/hybrid.py`(`HybridProxy`:请求到达时与 v1 同任务逐字节比对——一致回放、不一致且在预期集合里转发上游、其余 502 并停止整次运行;
+  `HybridBudget` 只计转发的调用)、`run_eval.py hybrid / hybrid-check / resample-compare`、`tools/hybrid.ps1`(key 在脚本进程里读入,自检:前缀 sk-、长度 35);
+  `proxy.py` 抽出可覆盖的 `respond()`、`replay.py` 抽出 `request_diffs()`(两处共用同一判据);离线用例 `test_hybrid.py` 6 条,`tests/llm_security` 共 159 passed。
+  - 运行 `reports/phase2-v2-hybrid-20260927T040133Z`,2026-09-27 04:01:33–04:02:46 UTC,538/538;**真实调用 25 次,累计 1304 → 1329 / 1700**。
+    `hybrid_check.md`:回放 513(请求与 v1 逐字节一致、输出逐字节相同)、重采样 25(= 纯回放里不一致的集合),通过;重采样的响应 model 与 `system_fingerprint` 与 v1 相同。
+  - 结果(compare.md,全部样本主口径):四类攻击仍全 0;交叉校验触发 13/288 不变,被改错 12 → 0,期望 P0 的对照端到端 10/20 → 20/20,对照复核标记 10/160 不变。
+  - 25 条重采样(`resample_compare.md`):v1 / v2 规则命中都是 0;Claude 通读 25 份 v2 草稿未标漏判 → `hit_review.csv` 只有表头(待作者复核)。
+  - 文档:findings/20260926 §8(分类输出沿调用链进入草稿输入)、§9(v2 真实数据评估);ADR-024 修订 #5(评估方法)、后果补 v2 数字、反驳预案改写;known-issues KI-023;README「混合回放」。
+  - 服务已切回挡板模式(v2 jar)。
