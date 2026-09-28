@@ -316,7 +316,7 @@ Grafana 看板不在仓库里:指标已按 Prometheus 格式暴露,面板按需�
 ```bash
 docker compose stop wiremock    # LLM 不可用 → 分类走规则,llm_fallback_total 涨,5 次后熔断
 docker compose stop rabbitmq    # 状态变更仍成功,mq_event_publish_failed_total 涨(消息丢失,ADR-002)
-docker compose stop redis       # 鉴权仍可用但每次请求多 ~1s(两次缓存操作各等 500ms 超时后回源查库),SLA 扫描 fail-open 继续跑,/actuator/health 503
+docker compose stop redis       # 鉴权仍可用,通常每次请求多 ~1s(两次缓存操作各等 500ms 超时后回源查库;Lettuce 已记下连接错误时会立即失败、直接回源,见 findings/20260928),SLA 扫描 fail-open 继续跑,/actuator/health 503
 docker compose start <服务>     # 恢复
 ```
 

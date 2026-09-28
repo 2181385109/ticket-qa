@@ -5,7 +5,8 @@
   RabbitMQ 停机:任务书写"不丢、补投",ADR-002 明确放弃,实测 9 条永久丢失(KI-014)。
                  决定:选「丢失可观测」,不实现补投(ADR-018)。用例断言的就是可观测性:
                  publish_failed 计数增加、ERROR 日志有那一行、恢复后**没有**补投(去重表始终 0 行)。
-  Redis 停机 / 恢复:停机时不 500、每请求约 +1 s、health 503;恢复后多久回到正常延迟——
+  Redis 停机 / 恢复:停机时不 500、缓存 fail-open(日志可观测)、单次请求 ≤ 1500 ms、health 503;恢复后多久回到正常延迟——
+                 (每请求通常 +1 s,但也可能立即失败回源,两条路径都合法,见 findings/20260928-测试缺陷-Redis停机用例把超时路径当成必然)
                  实测 23.6 s(Lettuce 重连退避,KI-015),用例给它一个 SLO(ADR-020:45 s)并把实测秒数记进 Allure。
 
 排在整个会话最后(fault 标记):中间件停机期间跑其它用例毫无意义。需要 DOCKER_COMPOSE_CMD,没配就 skip。
@@ -27,6 +28,20 @@ def _health_component(api, name: str) -> str | None:
 
 def _latency_ms(api, n: int = 3) -> float:
     return sum(api.me().elapsed_ms for _ in range(n)) / n
+
+
+# fail-open 的观测点:服务没有缓存失败计数,CacheConfig.errorHandler 只打这一行 WARN(文件日志格式带 [traceId],KI-016)。
+# err= 后面是 Spring 转换后的异常消息,Redis 不可达时只见过两种(findings/20260928-测试缺陷-Redis停机用例把超时路径当成必然):
+#   "Redis command timed out" —— 断连期间命令进缓冲区,等满 spring.data.redis.timeout(500 ms);
+#   "Redis exception"         —— Lettuce 在断连状态下收到过管道异常(如 Connection reset),记下 connectionError,之后命令立即失败。
+_CACHE_GET_FAILED = "缓存读取失败,回源查库 cache=agents"
+_FAIL_OPEN_ERRORS = {"err=Redis command timed out": "timed out", "err=Redis exception": "Redis exception"}
+
+
+def _fail_open_path(line: str | None) -> str | None:
+    if line is None:
+        return None
+    return next((name for marker, name in _FAIL_OPEN_ERRORS.items() if line.rstrip().endswith(marker)), line[-80:])
 
 
 @allure.story("RabbitMQ 停机:丢失可观测,不补投(ADR-018)")
@@ -82,18 +97,32 @@ class TestRabbitOutage:
 @allure.story("Redis 停机与恢复时长(ADR-020)")
 class TestRedisOutage:
 
-    def test_fail_open_and_recovery_within_slo(self, api, tickets, db, metrics, faults, config):
+    def test_fail_open_and_recovery_within_slo(self, api, tickets, db, metrics, faults, service_log, config):
+        assert service_log.available, "SERVICE_LOG_PATH 不可用:fail-open 只能从服务日志观测(服务没有缓存失败计数)"
         baseline = _latency_ms(api)
         before = metrics.snapshot()
+        log_offset = service_log.size()
 
         faults.stop("redis")
         try:
             wait_until(lambda: api.health().status, lambda s: s == 503, timeout=60, interval=2, what="health 503")
             assert _health_component(api, "redis") == "DOWN"
 
-            with allure.step("停机期间:业务不 500,鉴权每请求约 +1 s(get + put 各等 500 ms 超时后回源查库)"):
-                degraded = _latency_ms(api)
-                assert degraded >= 800, f"预期每请求 +~1 s,实际 {degraded:.0f}ms(基线 {baseline:.0f}ms)"
+            with allure.step("停机期间:鉴权不 500、缓存 fail-open(每次读缓存失败都回源查库),每次 /me ≤ 1500 ms"):
+                resps = [api.me() for _ in range(3)]
+                assert [r.status for r in resps] == [200] * 3, [r.status for r in resps]
+                fail_open = service_log.lines_since(log_offset, _CACHE_GET_FAILED)
+                paths = [_fail_open_path(next((ln for ln in fail_open if f"[{r.trace_id}]" in ln), None)) for r in resps]
+                degraded = sum(r.elapsed_ms for r in resps) / len(resps)
+                allure.attach(
+                    f"基线 {baseline:.0f}ms;停机期间 /me 逐次 {[r.elapsed_ms for r in resps]}ms\n"
+                    f"本次路径:{paths}(timed out = 命令在断连缓冲里等满 500 ms 超时;"
+                    f"Redis exception = Lettuce 已记下连接错误,命令立即失败)\n\n" + "\n".join(fail_open),
+                    name="Redis 停机:fail-open 路径与耗时", attachment_type=allure.attachment_type.TEXT)
+                assert None not in paths, f"有请求没有对应的'{_CACHE_GET_FAILED}'日志行(按 traceId 匹配):{paths}"
+                assert set(paths) <= set(_FAIL_OPEN_ERRORS.values()), f"缓存失败原因不是 Redis 不可达的两种已知表现:{paths}"
+                assert all(r.elapsed_ms <= 1500 for r in resps), \
+                    f"单次 /me 超过 1500 ms(get + put 各 ≤ 500 ms 超时 + 余量),缓存操作可能没有受超时约束:{[r.elapsed_ms for r in resps]}"
                 t = tickets.pending(group_id=1)
                 api.as_user(Users.AGENT_A).grab(t["id"]).expect.ok()
 
