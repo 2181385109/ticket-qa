@@ -29,7 +29,9 @@ spring:
       # 20 是本项目的运行配置(ADR-021:并发用例在撑满的 20 条上跑)。环境变量只给测试用:
       # CI 的容量用例用小池(HIKARI_MAX_POOL_SIZE=3)起服务,让 40 线程就能把池打满、复现消费者与 HTTP 争池(ADR-023)
       maximum-pool-size: ${HIKARI_MAX_POOL_SIZE:20}
-      minimum-idle: 2
+      # 默认 2(懒增长 + 空闲收缩,压测记录都在这个配置下测)。环境变量只给测试用:CI 起服务跑并发用例时设成 20,
+      # 让"池已撑满"这个前提由环境构造出来,而不是靠预热负载去碰运气(ADR-021 修订 #1)
+      minimum-idle: ${HIKARI_MINIMUM_IDLE:2}
       connection-timeout: 5000
 
   data:

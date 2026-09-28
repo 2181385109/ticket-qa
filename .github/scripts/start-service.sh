@@ -14,8 +14,8 @@ nohup java -Dfile.encoding=UTF-8 -jar target/ticket-qa-service-*.jar >> logs/std
 echo $! > logs/app.pid
 for i in $(seq 1 60); do
   if curl -sf localhost:8080/actuator/health | grep -q '"status":"UP"'; then
-    echo "service UP pid=$(cat logs/app.pid) HIKARI_MAX_POOL_SIZE=${HIKARI_MAX_POOL_SIZE:-<default 20>}"
-    curl -s localhost:8080/actuator/prometheus | grep '^hikaricp_connections_max' || true
+    echo "service UP pid=$(cat logs/app.pid) HIKARI_MAX_POOL_SIZE=${HIKARI_MAX_POOL_SIZE:-<default 20>} HIKARI_MINIMUM_IDLE=${HIKARI_MINIMUM_IDLE:-<default 2>}"
+    curl -s localhost:8080/actuator/prometheus | grep -E '^hikaricp_connections(_max|_min)?\{' || true
     exit 0
   fi
   sleep 2

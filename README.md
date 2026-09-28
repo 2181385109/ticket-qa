@@ -340,7 +340,7 @@ Mockito 测编排,H2 内存库跑手写 SQL(闭区间、条件更新、乐观锁
 ```bash
 cd tests
 pip install -r requirements.txt
-python tools/warm_pool.py              # 把 HikariCP 撑到上限,并发用例才可复现(ADR-021;CI 里也是这一步)
+python tools/warm_pool.py              # 把 HikariCP 撑到上限,并发用例才可复现(ADR-021);CI 里服务以 HIKARI_MINIMUM_IDLE=20 起,池启动即满,这一步只是确认
 python -m pytest                       # 312 条,约 7 分钟(熔断 2 分钟 + 故障注入 2 分钟排在最后)
 python -m pytest -m "not circuit and not fault and not capacity"   # 只跑功能 + 安全,约 3 分钟
 python -m pytest -m capacity -q             # 容量用例;前提"池被打满"由小池构造:服务以 HIKARI_MAX_POOL_SIZE=3 起(ADR-023)

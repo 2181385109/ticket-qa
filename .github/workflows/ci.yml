@@ -144,8 +144,13 @@ jobs:
         working-directory: service
         run: mvn -B -ntp -DskipTests package
 
+      # 并发用例的前提"池已撑满 20 条"由环境构造(ADR-021 修订 #1):minimum-idle = maximum-pool-size,Hikari 启动后自己补满。
+      # 靠预热负载撑池在 runner 上是概率事件——Python 负载源让 20 个以上借连接的线程同时排队的时刻太少(run 36433276730 停在 16 → 18)。
+      # 只作用于这一步起的服务;后面容量用例用小池重启时不带它(ADR-023)。
       - name: 起服务(后台)并等待 health UP
         working-directory: service
+        env:
+          HIKARI_MINIMUM_IDLE: "20"
         run: bash ../.github/scripts/start-service.sh
 
       - name: 安装 Python 依赖
